@@ -62,9 +62,17 @@ export default function ContactCommentsTab({ contactId }: ContactCommentsTabProp
         content: text,
       });
       if (error) throw error;
+      await supabase.from("audit_trail").insert({
+        entity_type: "contact",
+        entity_id: contactId,
+        action: "updated" as const,
+        user_id: user!.id,
+        new_data: { comment: text },
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["contact-comments", contactId] });
+      queryClient.invalidateQueries({ queryKey: ["contact-audit", contactId] });
       setContent("");
     },
     onError: () => toast({ title: "Грешка при добавяне", variant: "destructive" }),
@@ -72,10 +80,22 @@ export default function ContactCommentsTab({ contactId }: ContactCommentsTabProp
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
+      // Find comment content before deleting
+      const comment = comments.find((c) => c.id === id);
       const { error } = await supabase.from("contact_comments").delete().eq("id", id);
       if (error) throw error;
+      await supabase.from("audit_trail").insert({
+        entity_type: "contact",
+        entity_id: contactId,
+        action: "updated" as const,
+        user_id: user!.id,
+        old_data: comment ? { comment: comment.content } : null,
+      });
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["contact-comments", contactId] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["contact-comments", contactId] });
+      queryClient.invalidateQueries({ queryKey: ["contact-audit", contactId] });
+    },
     onError: () => toast({ title: "Грешка при изтриване", variant: "destructive" }),
   });
 
