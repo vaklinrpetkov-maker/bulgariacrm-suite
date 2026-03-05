@@ -11,6 +11,7 @@ import { Plus, Search } from "lucide-react";
 import ContactFormDialog, { type ContactFormValues } from "@/components/contacts/ContactFormDialog";
 import ContactDeleteDialog from "@/components/contacts/ContactDeleteDialog";
 import ContactsTable from "@/components/contacts/ContactsTable";
+import ContactProfileDialog from "@/components/contacts/ContactProfileDialog";
 import type { Tables } from "@/integrations/supabase/types";
 
 const ContactsPage = () => {
@@ -21,6 +22,7 @@ const ContactsPage = () => {
   const [formOpen, setFormOpen] = useState(false);
   const [editContact, setEditContact] = useState<Tables<"contacts"> | null>(null);
   const [deleteContact, setDeleteContact] = useState<Tables<"contacts"> | null>(null);
+  const [profileContact, setProfileContact] = useState<Tables<"contacts"> | null>(null);
 
   const { data: contacts = [], isLoading } = useQuery({
     queryKey: ["contacts"],
@@ -118,6 +120,7 @@ const ContactsPage = () => {
             contacts={filtered}
             onEdit={(c) => setEditContact(c)}
             onDelete={(c) => setDeleteContact(c)}
+            onDoubleClick={(c) => setProfileContact(c)}
           />
         )}
       </div>
@@ -143,6 +146,12 @@ const ContactsPage = () => {
         onConfirm={() => deleteMutation.mutate()}
         contact={deleteContact}
         isLoading={deleteMutation.isPending}
+      />
+
+      <ContactProfileDialog
+        contact={profileContact}
+        open={!!profileContact}
+        onOpenChange={(open) => { if (!open) setProfileContact(null); }}
       />
     </div>
   );
