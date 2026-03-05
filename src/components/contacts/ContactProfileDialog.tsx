@@ -317,14 +317,25 @@ export default function ContactProfileDialog({ contact, open, onOpenChange }: Co
             <TabsContent value="audit" className="mt-0">
               {auditLoading ? <LoadingState /> : auditTrail.length === 0 ? <EmptyState text="Няма записи в хронологията." /> : (
                 <div className="space-y-3 p-2">
-                  {auditTrail.map((entry) => (
-                    <div key={entry.id} className="flex items-start gap-3 border-b border-border pb-3 last:border-0">
-                      <div className="flex-1">
-                        <Badge variant="outline" className="mb-1">{statusLabels[entry.action] || entry.action}</Badge>
-                        <p className="text-xs text-muted-foreground">{format(new Date(entry.created_at), "dd.MM.yyyy HH:mm")}</p>
+                  {auditTrail.map((entry) => {
+                    const newData = entry.new_data as Record<string, any> | null;
+                    const oldData = entry.old_data as Record<string, any> | null;
+                    const comment = newData?.comment || oldData?.comment;
+                    return (
+                      <div key={entry.id} className="flex items-start gap-3 border-b border-border pb-3 last:border-0">
+                        <div className="flex-1">
+                          <Badge variant="outline" className="mb-1">{statusLabels[entry.action] || entry.action}</Badge>
+                          {comment && (
+                            <p className="text-sm mt-1">
+                              {newData?.comment ? "💬 Добавен коментар: " : "🗑️ Изтрит коментар: "}
+                              <span className="italic text-muted-foreground">"{comment}"</span>
+                            </p>
+                          )}
+                          <p className="text-xs text-muted-foreground mt-1">{format(new Date(entry.created_at), "dd.MM.yyyy HH:mm")}</p>
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </TabsContent>
