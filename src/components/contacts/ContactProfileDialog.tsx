@@ -7,8 +7,11 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Building2, User } from "lucide-react";
+import { Building2, Plus, User } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import CreateLeadFromContactDialog from "./CreateLeadFromContactDialog";
 import type { Tables } from "@/integrations/supabase/types";
+import { useState } from "react";
 
 interface ContactProfileDialogProps {
   contact: Tables<"contacts"> | null;
@@ -49,7 +52,7 @@ const statusLabels: Record<string, string> = {
 
 export default function ContactProfileDialog({ contact, open, onOpenChange }: ContactProfileDialogProps) {
   const contactId = contact?.id;
-
+  const [createLeadOpen, setCreateLeadOpen] = useState(false);
   const { data: leads = [], isLoading: leadsLoading } = useQuery({
     queryKey: ["contact-leads", contactId],
     queryFn: async () => {
@@ -117,12 +120,17 @@ export default function ContactProfileDialog({ contact, open, onOpenChange }: Co
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[85vh] flex flex-col">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            {contact.type === "company" ? <Building2 className="h-5 w-5" /> : <User className="h-5 w-5" />}
-            {getContactName(contact)}
-          </DialogTitle>
-          <DialogDescription className="sr-only">Профил на контакт</DialogDescription>
+        <DialogHeader className="flex flex-row items-center justify-between gap-2">
+          <div>
+            <DialogTitle className="flex items-center gap-2">
+              {contact.type === "company" ? <Building2 className="h-5 w-5" /> : <User className="h-5 w-5" />}
+              {getContactName(contact)}
+            </DialogTitle>
+            <DialogDescription className="sr-only">Профил на контакт</DialogDescription>
+          </div>
+          <Button size="sm" variant="outline" onClick={() => setCreateLeadOpen(true)}>
+            <Plus className="h-4 w-4 mr-1" /> Нов лийд
+          </Button>
         </DialogHeader>
         <Tabs defaultValue="info" className="flex-1 min-h-0">
           <TabsList className="w-full justify-start flex-wrap h-auto gap-1">
@@ -273,6 +281,7 @@ export default function ContactProfileDialog({ contact, open, onOpenChange }: Co
           </ScrollArea>
         </Tabs>
       </DialogContent>
+      <CreateLeadFromContactDialog contactId={contact.id} open={createLeadOpen} onOpenChange={setCreateLeadOpen} />
     </Dialog>
   );
 }
