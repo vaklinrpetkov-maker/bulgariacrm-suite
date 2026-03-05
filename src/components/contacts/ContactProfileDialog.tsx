@@ -15,6 +15,7 @@ import CreateLeadFromContactDialog from "./CreateLeadFromContactDialog";
 import CreateDealFromContactDialog from "./CreateDealFromContactDialog";
 import EditLeadDialog from "./EditLeadDialog";
 import EditDealDialog from "./EditDealDialog";
+import ContactCommentsTab from "./ContactCommentsTab";
 import type { Tables } from "@/integrations/supabase/types";
 import { useState } from "react";
 
@@ -172,6 +173,7 @@ export default function ContactProfileDialog({ contact, open, onOpenChange }: Co
             <TabsTrigger value="deals">Сделки</TabsTrigger>
             <TabsTrigger value="contracts">Договори</TabsTrigger>
             <TabsTrigger value="documents">Документи</TabsTrigger>
+            <TabsTrigger value="comments">Коментари</TabsTrigger>
             <TabsTrigger value="audit">Хронология</TabsTrigger>
           </TabsList>
 
@@ -306,6 +308,10 @@ export default function ContactProfileDialog({ contact, open, onOpenChange }: Co
                   </TableBody>
                 </Table>
               )}
+            </TabsContent>
+
+            <TabsContent value="comments" className="mt-0">
+              <ContactCommentsTab contactId={contact.id} />
             </TabsContent>
 
             <TabsContent value="audit" className="mt-0">
