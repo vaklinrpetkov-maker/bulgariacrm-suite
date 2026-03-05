@@ -9,6 +9,7 @@ interface ContactsTableProps {
   contacts: Tables<"contacts">[];
   onEdit: (contact: Tables<"contacts">) => void;
   onDelete: (contact: Tables<"contacts">) => void;
+  onDoubleClick?: (contact: Tables<"contacts">) => void;
 }
 
 function getContactName(c: Tables<"contacts">) {
@@ -16,7 +17,7 @@ function getContactName(c: Tables<"contacts">) {
   return [c.first_name, c.last_name].filter(Boolean).join(" ") || "—";
 }
 
-export default function ContactsTable({ contacts, onEdit, onDelete }: ContactsTableProps) {
+export default function ContactsTable({ contacts, onEdit, onDelete, onDoubleClick }: ContactsTableProps) {
   if (contacts.length === 0) {
     return (
       <div className="rounded-lg border border-border bg-card p-12 text-center">
@@ -41,7 +42,7 @@ export default function ContactsTable({ contacts, onEdit, onDelete }: ContactsTa
         </TableHeader>
         <TableBody>
           {contacts.map((contact) => (
-            <TableRow key={contact.id}>
+            <TableRow key={contact.id} className="cursor-pointer" onDoubleClick={() => onDoubleClick?.(contact)}>
               <TableCell>
                 <Badge variant={contact.type === "company" ? "default" : "secondary"} className="gap-1">
                   {contact.type === "company" ? <Building2 className="h-3 w-3" /> : <User className="h-3 w-3" />}
