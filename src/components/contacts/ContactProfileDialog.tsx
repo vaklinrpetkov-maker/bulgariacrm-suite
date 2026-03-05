@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -122,6 +122,7 @@ export default function ContactProfileDialog({ contact, open, onOpenChange }: Co
             {contact.type === "company" ? <Building2 className="h-5 w-5" /> : <User className="h-5 w-5" />}
             {getContactName(contact)}
           </DialogTitle>
+          <DialogDescription className="sr-only">Профил на контакт</DialogDescription>
         </DialogHeader>
         <Tabs defaultValue="info" className="flex-1 min-h-0">
           <TabsList className="w-full justify-start flex-wrap h-auto gap-1">
