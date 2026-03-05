@@ -1,48 +1,41 @@
 
 
-# Contacts CRUD Module - Implementation Plan
+# Contact Profile Dialog
 
-## Overview
-Build a full CRUD interface for the Contacts module (Контакти) with Bulgarian labels. The `contacts` table already exists with fields: type (person/company), first_name, last_name, company_name, email, phone, city, address, notes, owner_id, created_by, team_id.
+## What
+Add a double-click handler on contact table rows that opens a comprehensive "Customer Profile" dialog showing all information related to that contact in one place.
 
-## Components to Create
+## Components
 
-### 1. Contact Form Dialog (`src/components/contacts/ContactFormDialog.tsx`)
-- Dialog with form for creating/editing contacts
-- Toggle between "Физическо лице" (person) / "Компания" (company) type
-- Fields: first_name, last_name (person) or company_name (company), email, phone, city, address, notes
-- Uses react-hook-form + zod validation
-- On create: sets `owner_id` and `created_by` to current user
+### 1. `src/components/contacts/ContactProfileDialog.tsx` (Create)
+A large dialog (max-w-4xl) with tabbed sections, all in Bulgarian:
 
-### 2. Contact Delete Confirmation (`src/components/contacts/ContactDeleteDialog.tsx`)
-- AlertDialog confirming deletion with contact name
+- **Информация** tab: Contact details (name, type, email, phone, city, address, notes) displayed as read-only fields
+- **Лийдове** tab: Fetches from `leads` where `contact_id = contact.id` — shows title, status, estimated value, date
+- **Срещи** tab: Fetches meetings via leads (`leads.contact_id` → `meetings.lead_id`) — shows title, date, status, location
+- **Сделки** tab: Fetches from `deals` where `contact_id = contact.id` — shows title, value, status
+- **Договори** tab: Fetches from `contracts` where `contact_id = contact.id` — shows title, contract number, status, total value
+- **Документи** tab: Fetches from `documents` where `entity_type = 'contact'` and `entity_id = contact.id`
+- **Хронология** tab: Fetches from `audit_trail` where `entity_type = 'contact'` and `entity_id = contact.id` — chronological event list
 
-### 3. Contacts Table (`src/components/contacts/ContactsTable.tsx`)
-- Table showing all contacts with columns: Type badge, Name, Email, Phone, City, Created date
-- Row actions: Edit, Delete
-- Empty state when no contacts
+Each tab shows a simple table or empty state. Data fetched via separate `useQuery` calls keyed to the contact ID.
 
-### 4. Updated ContactsPage (`src/pages/crm/ContactsPage.tsx`)
-- Integrates all components
-- Uses `@tanstack/react-query` for data fetching (`useQuery` / `useMutation`)
-- Search/filter bar (by name, type)
-- "Нов контакт" button opens the form dialog
-- Toast notifications on success/error
+### 2. Update `ContactsTable.tsx`
+- Add `onDoubleClick` prop and attach `onDoubleClick` handler to each `TableRow`
+- Add cursor-pointer styling to rows
 
-## Data Flow
-- **Read**: `supabase.from('contacts').select('*').order('created_at', { ascending: false })`
-- **Create**: `supabase.from('contacts').insert({...data, owner_id: user.id, created_by: user.id})`
-- **Update**: `supabase.from('contacts').update(data).eq('id', id)`
-- **Delete**: `supabase.from('contacts').delete().eq('id', id)`
+### 3. Update `ContactsPage.tsx`
+- Add `profileContact` state
+- Pass `onDoubleClick` handler to `ContactsTable`
+- Render `ContactProfileDialog`
 
-## No Database Changes Needed
-The `contacts` table and RLS policies already exist and allow all operations for authenticated users.
+## No database changes needed
+All tables already exist with the right foreign keys/columns. The `contacts` table itself serves as the customer profile.
 
 ## Files
 | File | Action |
 |------|--------|
-| `src/components/contacts/ContactFormDialog.tsx` | Create |
-| `src/components/contacts/ContactDeleteDialog.tsx` | Create |
-| `src/components/contacts/ContactsTable.tsx` | Create |
-| `src/pages/crm/ContactsPage.tsx` | Rewrite |
+| `src/components/contacts/ContactProfileDialog.tsx` | Create |
+| `src/components/contacts/ContactsTable.tsx` | Edit (add onDoubleClick) |
+| `src/pages/crm/ContactsPage.tsx` | Edit (add profile state + dialog) |
 
