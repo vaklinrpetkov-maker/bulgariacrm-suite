@@ -1,18 +1,29 @@
 
 
-# Fix Console Warnings in ContactProfileDialog
+# Add "Create Lead" Button to Contact Profile
+
+## What
+Add a single convenience button in the Contact Profile dialog header that creates a new lead linked to the current contact. Clicking it opens a small dialog/form to enter lead details (title, estimated value, source, notes) with the contact already pre-associated.
 
 ## Changes
 
-### `src/components/contacts/ContactProfileDialog.tsx`
+### 1. Create `src/components/contacts/CreateLeadFromContactDialog.tsx`
+- Small dialog with form fields: title (required), estimated_value, source, notes
+- Pre-sets `contact_id` to the current contact
+- Uses `useMutation` to insert into `leads` table with `owner_id` and `created_by` from auth context
+- On success: invalidates `contact-leads` query key, shows toast, closes
 
-1. **Add `DialogDescription`** import from `@/components/ui/dialog` and add a visually-hidden description inside `DialogHeader` to fix the `aria-describedby` warning.
+### 2. Update `src/components/contacts/ContactProfileDialog.tsx`
+- Add a "Нов лийд" button next to the contact name in the `DialogHeader`
+- Button opens the `CreateLeadFromContactDialog`
+- Pass `contact.id` to the new dialog
 
-2. **EmptyState** is a plain function component, not passed as a ref — the `forwardRef` warning likely comes from it being used inside `TabsContent` (a Radix component). This is actually fine as-is since `EmptyState` doesn't receive a ref. The warning may be from Radix internals. No change needed for `EmptyState` itself.
+## No database changes needed
+The `leads` table already has `contact_id`, `title`, `estimated_value`, `source`, `notes`, `owner_id`, `created_by` columns with appropriate RLS.
 
-Actually, let me re-check — the `forwardRef` warning is more likely about the dialog missing `DialogDescription`. Radix Dialog warns when `aria-describedby` is set but no `DialogDescription` exists.
-
-### Summary
-- Import `DialogDescription` and add `<DialogDescription className="sr-only">Профил на контакт</DialogDescription>` after `DialogTitle`
-- Single file, single edit
+## Files
+| File | Action |
+|------|--------|
+| `src/components/contacts/CreateLeadFromContactDialog.tsx` | Create |
+| `src/components/contacts/ContactProfileDialog.tsx` | Edit (add button + render dialog) |
 
