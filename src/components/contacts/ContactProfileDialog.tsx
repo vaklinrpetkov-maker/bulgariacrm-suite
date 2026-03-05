@@ -10,6 +10,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Building2, Plus, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import CreateLeadFromContactDialog from "./CreateLeadFromContactDialog";
+import CreateDealFromContactDialog from "./CreateDealFromContactDialog";
 import type { Tables } from "@/integrations/supabase/types";
 import { useState } from "react";
 
@@ -53,6 +54,7 @@ const statusLabels: Record<string, string> = {
 export default function ContactProfileDialog({ contact, open, onOpenChange }: ContactProfileDialogProps) {
   const contactId = contact?.id;
   const [createLeadOpen, setCreateLeadOpen] = useState(false);
+  const [createDealOpen, setCreateDealOpen] = useState(false);
   const { data: leads = [], isLoading: leadsLoading } = useQuery({
     queryKey: ["contact-leads", contactId],
     queryFn: async () => {
@@ -128,9 +130,14 @@ export default function ContactProfileDialog({ contact, open, onOpenChange }: Co
             </DialogTitle>
             <DialogDescription className="sr-only">Профил на контакт</DialogDescription>
           </div>
-          <Button size="sm" variant="outline" onClick={() => setCreateLeadOpen(true)}>
-            <Plus className="h-4 w-4 mr-1" /> Нов лийд
-          </Button>
+          <div className="flex gap-2">
+            <Button size="sm" variant="outline" onClick={() => setCreateLeadOpen(true)}>
+              <Plus className="h-4 w-4 mr-1" /> Нов лийд
+            </Button>
+            <Button size="sm" variant="outline" onClick={() => setCreateDealOpen(true)}>
+              <Plus className="h-4 w-4 mr-1" /> Нова сделка
+            </Button>
+          </div>
         </DialogHeader>
         <Tabs defaultValue="info" className="flex-1 min-h-0">
           <TabsList className="w-full justify-start flex-wrap h-auto gap-1">
@@ -282,6 +289,7 @@ export default function ContactProfileDialog({ contact, open, onOpenChange }: Co
         </Tabs>
       </DialogContent>
       <CreateLeadFromContactDialog contactId={contact.id} open={createLeadOpen} onOpenChange={setCreateLeadOpen} />
+      <CreateDealFromContactDialog contactId={contact.id} open={createDealOpen} onOpenChange={setCreateDealOpen} />
     </Dialog>
   );
 }
