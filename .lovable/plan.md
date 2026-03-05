@@ -1,29 +1,47 @@
 
 
-# Add "Create Lead" Button to Contact Profile
+# Add Comments/Activity Tab to Contact Profile
 
 ## What
-Add a single convenience button in the Contact Profile dialog header that creates a new lead linked to the current contact. Clicking it opens a small dialog/form to enter lead details (title, estimated value, source, notes) with the contact already pre-associated.
+Add a new "Коментари" (Comments) tab in the contact profile dialog where users can leave timestamped notes about client activity, updates, interactions, etc. Each comment shows the author name, date, and text content with the ability to delete own comments.
 
-## Changes
+## Database Changes
 
-### 1. Create `src/components/contacts/CreateLeadFromContactDialog.tsx`
-- Small dialog with form fields: title (required), estimated_value, source, notes
-- Pre-sets `contact_id` to the current contact
-- Uses `useMutation` to insert into `leads` table with `owner_id` and `created_by` from auth context
-- On success: invalidates `contact-leads` query key, shows toast, closes
+### New `contact_comments` table
+```sql
+CREATE TABLE public.contact_comments (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  contact_id uuid NOT NULL,
+  user_id uuid NOT NULL,
+  content text NOT NULL,
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+
+ALTER TABLE public.contact_comments ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Comments access" ON public.contact_comments
+  FOR ALL TO authenticated
+  USING (true)
+  WITH CHECK (true);
+```
+
+## Code Changes
+
+### 1. Create `src/components/contacts/ContactCommentsTab.tsx`
+- Query `contact_comments` joined with `profiles` (for author name) ordered by `created_at DESC`
+- Textarea + "Добави" button to insert new comment with current user's ID
+- Each comment card shows: author name, relative timestamp, content, and a delete button (only for own comments)
+- Uses `useMutation` for insert/delete, invalidates `contact-comments` query key
 
 ### 2. Update `src/components/contacts/ContactProfileDialog.tsx`
-- Add a "Нов лийд" button next to the contact name in the `DialogHeader`
-- Button opens the `CreateLeadFromContactDialog`
-- Pass `contact.id` to the new dialog
-
-## No database changes needed
-The `leads` table already has `contact_id`, `title`, `estimated_value`, `source`, `notes`, `owner_id`, `created_by` columns with appropriate RLS.
+- Add new `<TabsTrigger value="comments">Коментари</TabsTrigger>` to the tab list (before "Хронология")
+- Add `<TabsContent value="comments">` rendering the new `ContactCommentsTab` component
+- Pass `contactId` to the new component
 
 ## Files
 | File | Action |
 |------|--------|
-| `src/components/contacts/CreateLeadFromContactDialog.tsx` | Create |
-| `src/components/contacts/ContactProfileDialog.tsx` | Edit (add button + render dialog) |
+| Migration (new table) | Create via migration tool |
+| `src/components/contacts/ContactCommentsTab.tsx` | Create |
+| `src/components/contacts/ContactProfileDialog.tsx` | Edit (add tab) |
 
