@@ -1,16 +1,20 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Building2, Plus, User } from "lucide-react";
+import { Building2, Pencil, Plus, Trash2, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { toast } from "@/hooks/use-toast";
 import CreateLeadFromContactDialog from "./CreateLeadFromContactDialog";
 import CreateDealFromContactDialog from "./CreateDealFromContactDialog";
+import EditLeadDialog from "./EditLeadDialog";
+import EditDealDialog from "./EditDealDialog";
 import type { Tables } from "@/integrations/supabase/types";
 import { useState } from "react";
 
@@ -55,6 +59,27 @@ export default function ContactProfileDialog({ contact, open, onOpenChange }: Co
   const contactId = contact?.id;
   const [createLeadOpen, setCreateLeadOpen] = useState(false);
   const [createDealOpen, setCreateDealOpen] = useState(false);
+  const [editLead, setEditLead] = useState<Tables<"leads"> | null>(null);
+  const [editDeal, setEditDeal] = useState<Tables<"deals"> | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<{ type: "lead" | "deal"; id: string } | null>(null);
+  const queryClient = useQueryClient();
+
+  const deleteMutation = useMutation({
+    mutationFn: async ({ type, id }: { type: "lead" | "deal"; id: string }) => {
+      const table = type === "lead" ? "leads" : "deals";
+      const { error } = await supabase.from(table).delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: (_, { type }) => {
+      const key = type === "lead" ? "contact-leads" : "contact-deals";
+      queryClient.invalidateQueries({ queryKey: [key, contactId] });
+      toast({ title: type === "lead" ? "Лийдът е изтрит" : "Сделката е изтрита" });
+      setDeleteTarget(null);
+    },
+    onError: () => {
+      toast({ title: "Грешка при изтриване", variant: "destructive" });
+    },
+  });
   const { data: leads = [], isLoading: leadsLoading } = useQuery({
     queryKey: ["contact-leads", contactId],
     queryFn: async () => {
@@ -177,7 +202,7 @@ export default function ContactProfileDialog({ contact, open, onOpenChange }: Co
               {leadsLoading ? <LoadingState /> : leads.length === 0 ? <EmptyState text="Няма лийдове." /> : (
                 <Table>
                   <TableHeader><TableRow>
-                    <TableHead>Заглавие</TableHead><TableHead>Статус</TableHead><TableHead>Ест. стойност</TableHead><TableHead>Дата</TableHead>
+                    <TableHead>Заглавие</TableHead><TableHead>Статус</TableHead><TableHead>Ест. стойност</TableHead><TableHead>Дата</TableHead><TableHead className="w-20">Действия</TableHead>
                   </TableRow></TableHeader>
                   <TableBody>
                     {leads.map((l) => (
@@ -186,6 +211,12 @@ export default function ContactProfileDialog({ contact, open, onOpenChange }: Co
                         <TableCell><Badge variant="secondary">{statusLabels[l.status] || l.status}</Badge></TableCell>
                         <TableCell>{l.estimated_value != null ? `${l.estimated_value} лв.` : "—"}</TableCell>
                         <TableCell>{format(new Date(l.created_at), "dd.MM.yyyy")}</TableCell>
+                        <TableCell>
+                          <div className="flex gap-1">
+                            <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => setEditLead(l)}><Pencil className="h-3.5 w-3.5" /></Button>
+                            <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive" onClick={() => setDeleteTarget({ type: "lead", id: l.id })}><Trash2 className="h-3.5 w-3.5" /></Button>
+                          </div>
+                        </TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
@@ -217,7 +248,7 @@ export default function ContactProfileDialog({ contact, open, onOpenChange }: Co
               {dealsLoading ? <LoadingState /> : deals.length === 0 ? <EmptyState text="Няма сделки." /> : (
                 <Table>
                   <TableHeader><TableRow>
-                    <TableHead>Заглавие</TableHead><TableHead>Стойност</TableHead><TableHead>Статус</TableHead>
+                    <TableHead>Заглавие</TableHead><TableHead>Стойност</TableHead><TableHead>Статус</TableHead><TableHead className="w-20">Действия</TableHead>
                   </TableRow></TableHeader>
                   <TableBody>
                     {deals.map((d) => (
@@ -225,6 +256,12 @@ export default function ContactProfileDialog({ contact, open, onOpenChange }: Co
                         <TableCell className="font-medium">{d.title}</TableCell>
                         <TableCell>{d.value != null ? `${d.value} лв.` : "—"}</TableCell>
                         <TableCell><Badge variant="secondary">{statusLabels[d.status] || d.status}</Badge></TableCell>
+                        <TableCell>
+                          <div className="flex gap-1">
+                            <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => setEditDeal(d)}><Pencil className="h-3.5 w-3.5" /></Button>
+                            <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive" onClick={() => setDeleteTarget({ type: "deal", id: d.id })}><Trash2 className="h-3.5 w-3.5" /></Button>
+                          </div>
+                        </TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
@@ -290,6 +327,24 @@ export default function ContactProfileDialog({ contact, open, onOpenChange }: Co
       </DialogContent>
       <CreateLeadFromContactDialog contactId={contact.id} open={createLeadOpen} onOpenChange={setCreateLeadOpen} />
       <CreateDealFromContactDialog contactId={contact.id} open={createDealOpen} onOpenChange={setCreateDealOpen} />
+      <EditLeadDialog lead={editLead} open={!!editLead} onOpenChange={(o) => !o && setEditLead(null)} />
+      <EditDealDialog deal={editDeal} open={!!editDeal} onOpenChange={(o) => !o && setEditDeal(null)} />
+      <AlertDialog open={!!deleteTarget} onOpenChange={(o) => !o && setDeleteTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Потвърждение за изтриване</AlertDialogTitle>
+            <AlertDialogDescription>
+              Сигурни ли сте, че искате да изтриете {deleteTarget?.type === "lead" ? "този лийд" : "тази сделка"}? Действието е необратимо.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Отказ</AlertDialogCancel>
+            <AlertDialogAction onClick={() => deleteTarget && deleteMutation.mutate(deleteTarget)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Изтрий
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Dialog>
   );
 }
