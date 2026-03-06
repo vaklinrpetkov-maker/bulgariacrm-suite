@@ -10,7 +10,7 @@ import type { Tables } from "@/integrations/supabase/types";
 interface ContactsTableProps {
   contacts: (Tables<"contacts"> & { _ownerName?: string | null })[];
   onEdit: (contact: Tables<"contacts">) => void;
-  onDelete: (contact: Tables<"contacts">) => void;
+  onDelete?: (contact: Tables<"contacts">) => void;
   onDoubleClick?: (contact: Tables<"contacts">) => void;
   onCreateLead?: (contact: Tables<"contacts">) => void;
 }
