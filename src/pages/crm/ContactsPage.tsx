@@ -204,7 +204,7 @@ const ContactsPage = () => {
           <ContactsTable
             contacts={filtered}
             onEdit={(c) => setEditContact(c)}
-            onDelete={(c) => setDeleteContact(c)}
+            onDelete={isAdmin ? (c) => setDeleteContact(c) : undefined}
             onDoubleClick={(c) => setProfileContact(c)}
             onCreateLead={(c) => setCreateLeadContact(c)}
           />
