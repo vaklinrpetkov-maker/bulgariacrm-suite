@@ -43,6 +43,13 @@ const AppSidebar = () => {
   const { user, signOut } = useAuth();
   const location = useLocation();
   const [expandedItems, setExpandedItems] = useState<string[]>(["/crm"]);
+  const [isDark, setIsDark] = useState(() =>
+    document.documentElement.classList.contains("dark")
+  );
+
+  useEffect(() => {
+    document.documentElement.classList.toggle("dark", isDark);
+  }, [isDark]);
 
   const toggleExpand = (path: string) => {
     setExpandedItems((prev) =>
