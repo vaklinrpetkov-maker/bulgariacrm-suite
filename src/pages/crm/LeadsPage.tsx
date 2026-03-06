@@ -17,6 +17,7 @@ import { exportToExcel } from "@/lib/exportToExcel";
 import LeadFormDialog from "@/components/leads/LeadFormDialog";
 import LeadResponseTimer from "@/components/leads/LeadResponseTimer";
 import LeadsKpiBar from "@/components/leads/LeadsKpiBar";
+import LeadsOverdueAlert from "@/components/leads/LeadsOverdueAlert";
 import type { Tables } from "@/integrations/supabase/types";
 
 const statusLabels: Record<string, string> = {
@@ -132,6 +133,7 @@ const LeadsPage = () => {
         }
       />
       <div className="p-6 space-y-4">
+        <LeadsOverdueAlert />
         <LeadsKpiBar />
         <div className="flex gap-3 items-center flex-wrap">
           <div className="relative flex-1 max-w-sm">
