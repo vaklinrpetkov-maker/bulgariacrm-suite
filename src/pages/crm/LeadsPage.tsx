@@ -264,7 +264,7 @@ const LeadsPage = () => {
                         onStop={() => stopTimerMutation.mutate(lead.id)}
                       />
                     </TableCell>
-                    <TableCell>{lead.estimated_value != null ? `${lead.estimated_value} лв.` : "—"}</TableCell>
+                    <TableCell>{lead.estimated_value != null ? `${lead.estimated_value} €` : "—"}</TableCell>
                     <TableCell>{lead.source || "—"}</TableCell>
                     <TableCell>{(lead as any)._ownerName || "—"}</TableCell>
                     <TableCell>{format(new Date(lead.created_at), "dd.MM.yyyy")}</TableCell>
