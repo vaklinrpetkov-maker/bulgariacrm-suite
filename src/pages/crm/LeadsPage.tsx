@@ -110,7 +110,10 @@ const LeadsPage = () => {
     const matchesOwner = ownerFilter === "all" ||
       (ownerFilter === "mine" && l.owner_id === user?.id) ||
       (ownerFilter === "unassigned" && !l.owner_id);
-    return matchesSearch && matchesStatus && matchesOwner;
+    const createdDate = new Date(l.created_at);
+    const matchesDateFrom = !dateRange?.from || createdDate >= new Date(format(dateRange.from, "yyyy-MM-dd"));
+    const matchesDateTo = !dateRange?.to || createdDate <= new Date(format(dateRange.to, "yyyy-MM-dd") + "T23:59:59");
+    return matchesSearch && matchesStatus && matchesOwner && matchesDateFrom && matchesDateTo;
   });
 
   const handleExport = () => {
