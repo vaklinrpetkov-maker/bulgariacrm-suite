@@ -1,5 +1,6 @@
 import { format } from "date-fns";
-import { Pencil, Trash2, Building2, User } from "lucide-react";
+import { Pencil, Trash2, Building2, User, Plus } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -10,6 +11,7 @@ interface ContactsTableProps {
   onEdit: (contact: Tables<"contacts">) => void;
   onDelete: (contact: Tables<"contacts">) => void;
   onDoubleClick?: (contact: Tables<"contacts">) => void;
+  onCreateLead?: (contact: Tables<"contacts">) => void;
 }
 
 function getContactName(c: Tables<"contacts">) {
@@ -17,7 +19,7 @@ function getContactName(c: Tables<"contacts">) {
   return [c.first_name, c.last_name].filter(Boolean).join(" ") || "—";
 }
 
-export default function ContactsTable({ contacts, onEdit, onDelete, onDoubleClick }: ContactsTableProps) {
+export default function ContactsTable({ contacts, onEdit, onDelete, onDoubleClick, onCreateLead }: ContactsTableProps) {
   if (contacts.length === 0) {
     return (
       <div className="rounded-lg border border-border bg-card p-12 text-center">
@@ -38,7 +40,7 @@ export default function ContactsTable({ contacts, onEdit, onDelete, onDoubleClic
             <TableHead>Град</TableHead>
             <TableHead>Отговорник</TableHead>
             <TableHead>Създаден</TableHead>
-            <TableHead className="w-24">Действия</TableHead>
+            <TableHead className="w-32">Действия</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -58,6 +60,14 @@ export default function ContactsTable({ contacts, onEdit, onDelete, onDoubleClic
               <TableCell>{format(new Date(contact.created_at), "dd.MM.yyyy")}</TableCell>
               <TableCell>
                 <div className="flex gap-1">
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button variant="ghost" size="icon" onClick={() => onCreateLead?.(contact)}>
+                        <Plus className="h-4 w-4 text-primary" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Нов лийд</TooltipContent>
+                  </Tooltip>
                   <Button variant="ghost" size="icon" onClick={() => onEdit(contact)}>
                     <Pencil className="h-4 w-4" />
                   </Button>

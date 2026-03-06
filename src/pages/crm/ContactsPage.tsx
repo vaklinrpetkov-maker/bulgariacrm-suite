@@ -17,6 +17,7 @@ import ContactDeleteDialog from "@/components/contacts/ContactDeleteDialog";
 import ContactsTable from "@/components/contacts/ContactsTable";
 import ContactProfileDialog from "@/components/contacts/ContactProfileDialog";
 import type { Tables } from "@/integrations/supabase/types";
+import CreateLeadFromContactDialog from "@/components/contacts/CreateLeadFromContactDialog";
 
 const ContactsPage = () => {
   const { user } = useAuth();
@@ -29,6 +30,7 @@ const ContactsPage = () => {
   const [profileContact, setProfileContact] = useState<Tables<"contacts"> | null>(null);
   const [ownerFilter, setOwnerFilter] = useState<string>("all");
   const [dateFilter, setDateFilter] = useState<Date | undefined>(undefined);
+  const [createLeadContact, setCreateLeadContact] = useState<Tables<"contacts"> | null>(null);
 
   const { data: contacts = [], isLoading } = useQuery({
     queryKey: ["contacts"],
@@ -165,6 +167,7 @@ const ContactsPage = () => {
             onEdit={(c) => setEditContact(c)}
             onDelete={(c) => setDeleteContact(c)}
             onDoubleClick={(c) => setProfileContact(c)}
+            onCreateLead={(c) => setCreateLeadContact(c)}
           />
         )}
       </div>
@@ -196,6 +199,12 @@ const ContactsPage = () => {
         contact={profileContact}
         open={!!profileContact}
         onOpenChange={(open) => { if (!open) setProfileContact(null); }}
+      />
+
+      <CreateLeadFromContactDialog
+        contactId={createLeadContact?.id || ""}
+        open={!!createLeadContact}
+        onOpenChange={(open) => { if (!open) setCreateLeadContact(null); }}
       />
     </div>
   );
