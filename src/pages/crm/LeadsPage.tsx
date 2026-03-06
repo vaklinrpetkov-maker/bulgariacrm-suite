@@ -204,8 +204,13 @@ const LeadsPage = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filtered.map((lead) => (
-                  <TableRow key={lead.id}>
+                {filtered.map((lead) => {
+                  const isRunning = !(lead as any).responded_at;
+                  const elapsed = isRunning
+                    ? Math.max(0, Date.now() - new Date(lead.created_at).getTime())
+                    : Math.max(0, new Date((lead as any).responded_at).getTime() - new Date(lead.created_at).getTime());
+                  return (
+                  <TableRow key={lead.id} className={getTimerRowClass(elapsed, isRunning)}>
                     <TableCell className="font-medium">
                       <LeadMessageHoverCard notes={lead.notes}>
                         {lead.title}
