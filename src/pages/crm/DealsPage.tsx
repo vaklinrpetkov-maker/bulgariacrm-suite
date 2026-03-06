@@ -18,6 +18,10 @@ const statusLabels: Record<string, string> = {
 };
 
 const DealsPage = () => {
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
+
   const { data: deals = [] } = useQuery({
     queryKey: ["deals"],
     queryFn: async () => {
