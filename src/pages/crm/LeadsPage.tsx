@@ -72,8 +72,8 @@ const LeadsPage = () => {
   });
 
   const deleteMutation = useMutation({
-    mutationFn: async () => {
-      const { error } = await supabase.from("leads").delete().eq("id", deleteLead!.id);
+    mutationFn: async (leadId: string) => {
+      const { error } = await supabase.from("leads").delete().eq("id", leadId);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -81,7 +81,10 @@ const LeadsPage = () => {
       setDeleteLead(null);
       toast({ title: "Лийдът е изтрит." });
     },
-    onError: () => toast({ title: "Грешка при изтриване.", variant: "destructive" }),
+    onError: (err) => {
+      console.error("Delete lead error:", err);
+      toast({ title: "Грешка при изтриване.", variant: "destructive" });
+    },
   });
 
   const filtered = leads.filter((l) => {
@@ -243,7 +246,7 @@ const LeadsPage = () => {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Отказ</AlertDialogCancel>
-            <AlertDialogAction onClick={() => deleteMutation.mutate()} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+            <AlertDialogAction onClick={() => deleteLead && deleteMutation.mutate(deleteLead.id)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
               Изтрий
             </AlertDialogAction>
           </AlertDialogFooter>
