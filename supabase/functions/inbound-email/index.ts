@@ -184,8 +184,10 @@ Deno.serve(async (req) => {
       contactId = newContact.id;
     }
 
-    // Create lead with parsed fields
-    const leadTitle = subject || `Email from ${contactEmail}`;
+    // Title = exact timestamp when lead entered the system
+    const now = new Date();
+    const pad = (n: number) => String(n).padStart(2, "0");
+    const leadTitle = `${pad(now.getDate())}.${pad(now.getMonth() + 1)}.${now.getFullYear()} ${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
     const { error: leadError } = await supabase.from("leads").insert({
       contact_id: contactId,
       title: leadTitle,
