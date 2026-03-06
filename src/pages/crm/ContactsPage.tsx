@@ -114,10 +114,10 @@ const ContactsPage = () => {
     const matchesOwner = ownerFilter === "all" || 
       (ownerFilter === "mine" && c.owner_id === user?.id) || 
       (ownerFilter === "unassigned" && !c.owner_id);
-    const createdDate = new Date(c.created_at);
-    const matchesDateFrom = !dateFrom || createdDate >= new Date(format(dateFrom, "yyyy-MM-dd"));
-    const matchesDateTo = !dateTo || createdDate <= new Date(format(dateTo, "yyyy-MM-dd") + "T23:59:59");
-    return matchesSearch && matchesType && matchesOwner && matchesDateFrom && matchesDateTo;
+     const createdDate = new Date(c.created_at);
+     const matchesDateFrom = !dateRange?.from || createdDate >= new Date(format(dateRange.from, "yyyy-MM-dd"));
+     const matchesDateTo = !dateRange?.to || createdDate <= new Date(format(dateRange.to, "yyyy-MM-dd") + "T23:59:59");
+     return matchesSearch && matchesType && matchesOwner && matchesDateFrom && matchesDateTo;
   });
 
   const handleExport = () => {
