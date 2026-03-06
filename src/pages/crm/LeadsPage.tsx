@@ -185,6 +185,37 @@ const LeadsPage = () => {
               <SelectItem value="unassigned">Без отговорник</SelectItem>
             </SelectContent>
           </Select>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="outline" className={cn("w-64 justify-start text-left font-normal", !dateRange && "text-muted-foreground")}>
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                {dateRange?.from ? (
+                  dateRange.to ? (
+                    <>{format(dateRange.from, "dd.MM.yyyy")} – {format(dateRange.to, "dd.MM.yyyy")}</>
+                  ) : (
+                    format(dateRange.from, "dd.MM.yyyy")
+                  )
+                ) : (
+                  "Период на създаване"
+                )}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar
+                mode="range"
+                selected={dateRange}
+                onSelect={setDateRange}
+                numberOfMonths={2}
+                initialFocus
+                className={cn("p-3 pointer-events-auto")}
+              />
+            </PopoverContent>
+          </Popover>
+          {dateRange && (
+            <Button variant="ghost" size="icon" onClick={() => setDateRange(undefined)}>
+              <X className="h-4 w-4" />
+            </Button>
+          )}
         </div>
 
         {isLoading ? (

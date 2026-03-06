@@ -63,7 +63,56 @@ const DealsPage = () => {
           </>
         }
       />
-      <div className="p-6">
+      <div className="p-6 space-y-4">
+        <div className="flex gap-3 items-center flex-wrap">
+          <div className="relative flex-1 max-w-sm">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input placeholder="Търсене по заглавие..." className="pl-9" value={search} onChange={(e) => setSearch(e.target.value)} />
+          </div>
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="w-44">
+              <SelectValue placeholder="Всички статуси" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Всички статуси</SelectItem>
+              <SelectItem value="negotiation">Преговори</SelectItem>
+              <SelectItem value="proposal">Предложение</SelectItem>
+              <SelectItem value="won">Спечелена</SelectItem>
+              <SelectItem value="lost">Загубена</SelectItem>
+            </SelectContent>
+          </Select>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="outline" className={cn("w-64 justify-start text-left font-normal", !dateRange && "text-muted-foreground")}>
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                {dateRange?.from ? (
+                  dateRange.to ? (
+                    <>{format(dateRange.from, "dd.MM.yyyy")} – {format(dateRange.to, "dd.MM.yyyy")}</>
+                  ) : (
+                    format(dateRange.from, "dd.MM.yyyy")
+                  )
+                ) : (
+                  "Период на създаване"
+                )}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar
+                mode="range"
+                selected={dateRange}
+                onSelect={setDateRange}
+                numberOfMonths={2}
+                initialFocus
+                className={cn("p-3 pointer-events-auto")}
+              />
+            </PopoverContent>
+          </Popover>
+          {dateRange && (
+            <Button variant="ghost" size="icon" onClick={() => setDateRange(undefined)}>
+              <X className="h-4 w-4" />
+            </Button>
+          )}
+        </div>
         <div className="rounded-lg border border-border bg-card p-12 text-center">
           <p className="text-muted-foreground">Няма сделки.</p>
         </div>
