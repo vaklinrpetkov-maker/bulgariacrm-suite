@@ -229,7 +229,7 @@ const ContactsPage = () => {
       <ContactDeleteDialog
         open={!!deleteContact}
         onOpenChange={(open) => { if (!open) setDeleteContact(null); }}
-        onConfirm={() => deleteMutation.mutate()}
+        onConfirm={() => deleteContact && deleteMutation.mutate(deleteContact.id)}
         contact={deleteContact}
         isLoading={deleteMutation.isPending}
       />
