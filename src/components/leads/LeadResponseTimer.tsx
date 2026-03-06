@@ -2,6 +2,9 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Timer, Square } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { format } from "date-fns";
+import { bg } from "date-fns/locale";
 
 interface LeadResponseTimerProps {
   createdAt: string;
@@ -47,26 +50,38 @@ export default function LeadResponseTimer({ createdAt, respondedAt, onStop, comp
   const colors = getTimerColor(elapsed, isRunning);
 
   return (
-    <div className="flex items-center gap-1.5">
-      <Timer className={cn("h-3.5 w-3.5", colors.icon, isRunning && "animate-pulse")} />
-      <span className={cn(
-        "text-xs font-mono tabular-nums",
-        colors.text,
-        isRunning && "font-semibold"
-      )}>
-        {formatDuration(elapsed)}
-      </span>
-      {isRunning && onStop && (
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-6 w-6 text-destructive hover:text-destructive"
-          onClick={(e) => { e.stopPropagation(); onStop(); }}
-          title="Спри таймера"
-        >
-          <Square className="h-3 w-3 fill-current" />
-        </Button>
-      )}
-    </div>
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <div className="flex items-center gap-1.5 cursor-help">
+          <Timer className={cn("h-3.5 w-3.5", colors.icon, isRunning && "animate-pulse")} />
+          <span className={cn(
+            "text-xs font-mono tabular-nums",
+            colors.text,
+            isRunning && "font-semibold"
+          )}>
+            {formatDuration(elapsed)}
+          </span>
+          {isRunning && onStop && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-6 w-6 text-destructive hover:text-destructive"
+              onClick={(e) => { e.stopPropagation(); onStop(); }}
+              title="Спри таймера"
+            >
+              <Square className="h-3 w-3 fill-current" />
+            </Button>
+          )}
+        </div>
+      </TooltipTrigger>
+      <TooltipContent>
+        <div className="text-xs space-y-1">
+          <div>Създаден: {format(new Date(createdAt), "dd.MM.yyyy HH:mm:ss", { locale: bg })}</div>
+          {respondedAt && (
+            <div>Отговор: {format(new Date(respondedAt), "dd.MM.yyyy HH:mm:ss", { locale: bg })}</div>
+          )}
+        </div>
+      </TooltipContent>
+    </Tooltip>
   );
 }
