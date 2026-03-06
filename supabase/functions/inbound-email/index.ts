@@ -6,8 +6,52 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type",
 };
 
+interface ParsedFields {
+  project: string | null;
+  fullName: string | null;
+  email: string | null;
+  phone: string | null;
+  message: string | null;
+}
+
+function parseStructuredBody(text: string): ParsedFields {
+  const result: ParsedFields = {
+    project: null,
+    fullName: null,
+    email: null,
+    phone: null,
+    message: null,
+  };
+
+  if (!text) return result;
+
+  // Remove * wrappers used for bold formatting
+  const clean = (v: string) => v.replace(/^\*+|\*+$/g, "").trim();
+
+  // Try to extract "Проект:" field
+  const projectMatch = text.match(/Проект:\s*\*?([^*\n]+)\*?/i);
+  if (projectMatch) result.project = clean(projectMatch[1]);
+
+  // Try to extract "Име и фамилия:" field
+  const nameMatch = text.match(/Име и фамилия:\s*\*?([^*\n]+)\*?/i);
+  if (nameMatch) result.fullName = clean(nameMatch[1]);
+
+  // Try to extract "Имейл:" field
+  const emailMatch = text.match(/Имейл:\s*\*?([^*\n\s]+)\*?/i);
+  if (emailMatch) result.email = clean(emailMatch[1]).toLowerCase();
+
+  // Try to extract "Телефон:" field
+  const phoneMatch = text.match(/Телефон:\s*\*?([^*\n]+)\*?/i);
+  if (phoneMatch) result.phone = clean(phoneMatch[1]);
+
+  // Try to extract "Съобщение:" field - everything after it until end
+  const msgMatch = text.match(/Съобщение:\s*\*?([\s\S]*?)(?:\*?\s*$)/i);
+  if (msgMatch) result.message = clean(msgMatch[1]);
+
+  return result;
+}
+
 function parseFromField(from: string): { email: string; name: string } {
-  // Handles: "John Doe <john@example.com>" or "john@example.com"
   const match = from.match(/^(?:"?([^"<]*)"?\s*)?<?([^\s>]+@[^\s>]+)>?$/);
   if (match) {
     return {
@@ -45,14 +89,13 @@ Deno.serve(async (req) => {
       subject = (formData.get("subject") as string) || "";
       textBody = (formData.get("text") as string) || "";
     } else {
-      // fallback JSON
       const body = await req.json();
       fromRaw = body.from || "";
       subject = body.subject || "";
       textBody = body.text || "";
     }
 
-    // --- Filter 2: Subject must contain "форма" ---
+    // --- Filter: Subject must contain "форма" ---
     if (!subject || !subject.toLowerCase().includes("форма")) {
       return new Response(
         JSON.stringify({ skipped: true, reason: "subject missing 'форма'" }),
@@ -67,35 +110,69 @@ Deno.serve(async (req) => {
       });
     }
 
-    const { email, name } = parseFromField(fromRaw);
+    const { email: fromEmail, name: fromName } = parseFromField(fromRaw);
+
+    // Parse structured fields from email body
+    const parsed = parseStructuredBody(textBody);
+
+    // Determine contact email & name: prefer parsed fields, fallback to from header
+    const contactEmail = parsed.email || fromEmail;
+    const contactFullName = parsed.fullName || fromName || "";
+    const contactPhone = parsed.phone || null;
 
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
-    // Find or create contact by email
-    const { data: existingContact } = await supabase
-      .from("contacts")
-      .select("id")
-      .eq("email", email)
-      .maybeSingle();
+    // Find existing contact by email first, then by name
+    let contactId: string | null = null;
 
-    let contactId: string;
+    // 1. Try email lookup
+    if (contactEmail) {
+      const { data: byEmail } = await supabase
+        .from("contacts")
+        .select("id")
+        .eq("email", contactEmail)
+        .maybeSingle();
+      if (byEmail) contactId = byEmail.id;
+    }
 
-    if (existingContact) {
-      contactId = existingContact.id;
-    } else {
-      const nameParts = name.split(/\s+/);
-      const firstName = nameParts[0] || email.split("@")[0];
+    // 2. If no email match, try name lookup
+    if (!contactId && contactFullName) {
+      const nameParts = contactFullName.split(/\s+/);
+      const firstName = nameParts[0];
+      const lastName = nameParts.length > 1 ? nameParts.slice(1).join(" ") : null;
+
+      let query = supabase.from("contacts").select("id").eq("first_name", firstName);
+      if (lastName) query = query.eq("last_name", lastName);
+
+      const { data: byName } = await query.maybeSingle();
+      if (byName) {
+        contactId = byName.id;
+        // Update phone/email on existing contact if missing
+        const updates: Record<string, string> = {};
+        if (contactEmail) updates.email = contactEmail;
+        if (contactPhone) updates.phone = contactPhone;
+        if (Object.keys(updates).length > 0) {
+          await supabase.from("contacts").update(updates).eq("id", contactId).is("email", null);
+        }
+      }
+    }
+
+    // 3. Create new contact if not found
+    if (!contactId) {
+      const nameParts = contactFullName.split(/\s+/);
+      const firstName = nameParts[0] || contactEmail.split("@")[0];
       const lastName = nameParts.length > 1 ? nameParts.slice(1).join(" ") : null;
 
       const { data: newContact, error: contactError } = await supabase
         .from("contacts")
         .insert({
-          email,
+          email: contactEmail || null,
           first_name: firstName,
           last_name: lastName,
+          phone: contactPhone,
           type: "person",
         })
         .select("id")
@@ -107,14 +184,15 @@ Deno.serve(async (req) => {
       contactId = newContact.id;
     }
 
-    // Create lead
-    const leadTitle = subject || `Email from ${email}`;
+    // Create lead with parsed fields
+    const leadTitle = subject || `Email from ${contactEmail}`;
     const { error: leadError } = await supabase.from("leads").insert({
       contact_id: contactId,
       title: leadTitle,
       source: "email",
       status: "new",
       notes: textBody ? textBody.substring(0, 2000) : null,
+      project_name: parsed.project || null,
     });
 
     if (leadError) {
@@ -122,7 +200,7 @@ Deno.serve(async (req) => {
     }
 
     return new Response(
-      JSON.stringify({ success: true, contact_id: contactId }),
+      JSON.stringify({ success: true, contact_id: contactId, parsed }),
       {
         status: 200,
         headers: { ...corsHeaders, "Content-Type": "application/json" },

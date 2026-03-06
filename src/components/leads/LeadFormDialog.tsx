@@ -40,6 +40,7 @@ export default function LeadFormDialog({ open, onOpenChange, lead }: LeadFormDia
   const [source, setSource] = useState("");
   const [notes, setNotes] = useState("");
   const [status, setStatus] = useState("new");
+  const [projectName, setProjectName] = useState("");
 
   const { data: contacts = [] } = useQuery({
     queryKey: ["contacts-list"],
@@ -59,6 +60,7 @@ export default function LeadFormDialog({ open, onOpenChange, lead }: LeadFormDia
       setSource(lead.source || "");
       setNotes(lead.notes || "");
       setStatus(lead.status);
+      setProjectName((lead as any).project_name || "");
     } else {
       setContactId("");
       setTitle("");
@@ -66,6 +68,7 @@ export default function LeadFormDialog({ open, onOpenChange, lead }: LeadFormDia
       setSource("");
       setNotes("");
       setStatus("new");
+      setProjectName("");
     }
   }, [lead, open]);
 
@@ -78,7 +81,8 @@ export default function LeadFormDialog({ open, onOpenChange, lead }: LeadFormDia
           source: source || null,
           notes: notes || null,
           status: status as Tables<"leads">["status"],
-        }).eq("id", lead!.id);
+          project_name: projectName || null,
+        } as any).eq("id", lead!.id);
         if (error) throw error;
       } else {
         const { error } = await supabase.from("leads").insert({
@@ -89,7 +93,8 @@ export default function LeadFormDialog({ open, onOpenChange, lead }: LeadFormDia
           notes: notes || null,
           owner_id: user?.id,
           created_by: user?.id,
-        });
+          project_name: projectName || null,
+        } as any);
         if (error) throw error;
       }
     },
@@ -145,6 +150,10 @@ export default function LeadFormDialog({ open, onOpenChange, lead }: LeadFormDia
           <div className="space-y-2">
             <Label>Очаквана стойност (лв.)</Label>
             <Input type="number" min="0" step="0.01" value={estimatedValue} onChange={(e) => setEstimatedValue(e.target.value)} />
+          </div>
+          <div className="space-y-2">
+            <Label>Проект</Label>
+            <Input value={projectName} onChange={(e) => setProjectName(e.target.value)} placeholder="Име на проекта" />
           </div>
           <div className="space-y-2">
             <Label>Източник</Label>

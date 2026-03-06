@@ -1,0 +1,1 @@
+ALTER TABLE public.leads ADD COLUMN project_name text DEFAULT NULL;
