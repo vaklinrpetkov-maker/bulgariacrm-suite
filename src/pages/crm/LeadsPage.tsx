@@ -12,7 +12,8 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Plus, Search, Pencil, Trash2 } from "lucide-react";
+import { Plus, Search, Pencil, Trash2, Download } from "lucide-react";
+import { exportToExcel } from "@/lib/exportToExcel";
 import LeadFormDialog from "@/components/leads/LeadFormDialog";
 import type { Tables } from "@/integrations/supabase/types";
 
@@ -79,12 +80,42 @@ const LeadsPage = () => {
     return matchesSearch && matchesStatus && matchesOwner;
   });
 
+  const handleExport = () => {
+    const contactName = (l: any) => l.contacts ? getContactName(l.contacts) : "";
+    exportToExcel(
+      filtered.map(l => ({
+        title: l.title,
+        contact: contactName(l),
+        status: statusLabels[l.status] || l.status,
+        estimated_value: l.estimated_value != null ? `${l.estimated_value} лв.` : "",
+        source: l.source || "",
+        owner: (l as any)._ownerName || "",
+        created_at: format(new Date(l.created_at), "dd.MM.yyyy"),
+      })),
+      [
+        { key: "title", label: "Заглавие" },
+        { key: "contact", label: "Контакт" },
+        { key: "status", label: "Статус" },
+        { key: "estimated_value", label: "Ест. стойност" },
+        { key: "source", label: "Източник" },
+        { key: "owner", label: "Отговорник" },
+        { key: "created_at", label: "Създаден" },
+      ],
+      "Лийдове"
+    );
+  };
+
   return (
     <div>
       <PageHeader
         title="Лийдове"
         description="Проследяване на потенциални клиенти"
-        actions={<Button onClick={() => setFormOpen(true)}><Plus className="mr-2 h-4 w-4" />Нов лийд</Button>}
+        actions={
+          <>
+            <Button variant="outline" onClick={handleExport}><Download className="mr-2 h-4 w-4" />Excel</Button>
+            <Button onClick={() => setFormOpen(true)}><Plus className="mr-2 h-4 w-4" />Нов лийд</Button>
+          </>
+        }
       />
       <div className="p-6 space-y-4">
         <div className="flex gap-3 items-center flex-wrap">
