@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { Plus, Search, CalendarIcon, X, Download } from "lucide-react";
+import type { DateRange } from "react-day-picker";
 import { exportToExcel } from "@/lib/exportToExcel";
 import ContactFormDialog, { type ContactFormValues } from "@/components/contacts/ContactFormDialog";
 import ContactDeleteDialog from "@/components/contacts/ContactDeleteDialog";
@@ -30,8 +31,7 @@ const ContactsPage = () => {
   const [deleteContact, setDeleteContact] = useState<Tables<"contacts"> | null>(null);
   const [profileContact, setProfileContact] = useState<Tables<"contacts"> | null>(null);
   const [ownerFilter, setOwnerFilter] = useState<string>("all");
-  const [dateFrom, setDateFrom] = useState<Date | undefined>(undefined);
-  const [dateTo, setDateTo] = useState<Date | undefined>(undefined);
+  const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
   const [createLeadContact, setCreateLeadContact] = useState<Tables<"contacts"> | null>(null);
 
   const { data: isAdmin } = useQuery({
@@ -114,10 +114,10 @@ const ContactsPage = () => {
     const matchesOwner = ownerFilter === "all" || 
       (ownerFilter === "mine" && c.owner_id === user?.id) || 
       (ownerFilter === "unassigned" && !c.owner_id);
-    const createdDate = new Date(c.created_at);
-    const matchesDateFrom = !dateFrom || createdDate >= new Date(format(dateFrom, "yyyy-MM-dd"));
-    const matchesDateTo = !dateTo || createdDate <= new Date(format(dateTo, "yyyy-MM-dd") + "T23:59:59");
-    return matchesSearch && matchesType && matchesOwner && matchesDateFrom && matchesDateTo;
+     const createdDate = new Date(c.created_at);
+     const matchesDateFrom = !dateRange?.from || createdDate >= new Date(format(dateRange.from, "yyyy-MM-dd"));
+     const matchesDateTo = !dateRange?.to || createdDate <= new Date(format(dateRange.to, "yyyy-MM-dd") + "T23:59:59");
+     return matchesSearch && matchesType && matchesOwner && matchesDateFrom && matchesDateTo;
   });
 
   const handleExport = () => {
@@ -184,28 +184,25 @@ const ContactsPage = () => {
           </Select>
           <Popover>
             <PopoverTrigger asChild>
-              <Button variant="outline" className={cn("w-48 justify-start text-left font-normal", !dateFrom && "text-muted-foreground")}>
+              <Button variant="outline" className={cn("w-64 justify-start text-left font-normal", !dateRange && "text-muted-foreground")}>
                 <CalendarIcon className="mr-2 h-4 w-4" />
-                {dateFrom ? format(dateFrom, "dd.MM.yyyy") : "От дата"}
+                {dateRange?.from ? (
+                  dateRange.to ? (
+                    <>{format(dateRange.from, "dd.MM.yyyy")} – {format(dateRange.to, "dd.MM.yyyy")}</>
+                  ) : (
+                    format(dateRange.from, "dd.MM.yyyy")
+                  )
+                ) : (
+                  "Период на създаване"
+                )}
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0" align="start">
-              <Calendar mode="single" selected={dateFrom} onSelect={setDateFrom} initialFocus className={cn("p-3 pointer-events-auto")} />
+              <Calendar mode="range" selected={dateRange} onSelect={setDateRange} numberOfMonths={2} initialFocus className={cn("p-3 pointer-events-auto")} />
             </PopoverContent>
           </Popover>
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button variant="outline" className={cn("w-48 justify-start text-left font-normal", !dateTo && "text-muted-foreground")}>
-                <CalendarIcon className="mr-2 h-4 w-4" />
-                {dateTo ? format(dateTo, "dd.MM.yyyy") : "До дата"}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
-              <Calendar mode="single" selected={dateTo} onSelect={setDateTo} initialFocus className={cn("p-3 pointer-events-auto")} />
-            </PopoverContent>
-          </Popover>
-          {(dateFrom || dateTo) && (
-            <Button variant="ghost" size="icon" className="h-9 w-9" onClick={() => { setDateFrom(undefined); setDateTo(undefined); }}>
+          {dateRange && (
+            <Button variant="ghost" size="icon" className="h-9 w-9" onClick={() => setDateRange(undefined)}>
               <X className="h-4 w-4" />
             </Button>
           )}
