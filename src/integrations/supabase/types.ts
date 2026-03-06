@@ -718,6 +718,7 @@ export type Database = {
           id: string
           notes: string | null
           owner_id: string | null
+          responded_at: string | null
           source: string | null
           status: Database["public"]["Enums"]["lead_status"]
           team_id: string | null
@@ -732,6 +733,7 @@ export type Database = {
           id?: string
           notes?: string | null
           owner_id?: string | null
+          responded_at?: string | null
           source?: string | null
           status?: Database["public"]["Enums"]["lead_status"]
           team_id?: string | null
@@ -746,6 +748,7 @@ export type Database = {
           id?: string
           notes?: string | null
           owner_id?: string | null
+          responded_at?: string | null
           source?: string | null
           status?: Database["public"]["Enums"]["lead_status"]
           team_id?: string | null
