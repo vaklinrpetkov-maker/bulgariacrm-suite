@@ -124,7 +124,7 @@ const LeadsPage = () => {
         contact: contactName(l),
         project_name: (l as any).project_name || "",
         status: statusLabels[l.status] || l.status,
-        estimated_value: l.estimated_value != null ? `${l.estimated_value} лв.` : "",
+        estimated_value: l.estimated_value != null ? `${l.estimated_value} €` : "",
         source: l.source || "",
         owner: (l as any)._ownerName || "",
         created_at: format(new Date(l.created_at), "dd.MM.yyyy"),
@@ -134,7 +134,7 @@ const LeadsPage = () => {
         { key: "contact", label: "Контакт" },
         { key: "project_name", label: "Проект" },
         { key: "status", label: "Статус" },
-        { key: "estimated_value", label: "Ест. стойност" },
+        { key: "estimated_value", label: "Търсене €" },
         { key: "source", label: "Източник" },
         { key: "owner", label: "Отговорник" },
         { key: "created_at", label: "Създаден" },
@@ -234,7 +234,7 @@ const LeadsPage = () => {
                   <TableHead>Проект</TableHead>
                   <TableHead>Статус</TableHead>
                   <TableHead>Време за отговор</TableHead>
-                  <TableHead>Ест. стойност</TableHead>
+                  <TableHead>Търсене €</TableHead>
                   <TableHead>Източник</TableHead>
                   <TableHead>Отговорник</TableHead>
                   <TableHead>Създаден</TableHead>
@@ -264,7 +264,7 @@ const LeadsPage = () => {
                         onStop={() => stopTimerMutation.mutate(lead.id)}
                       />
                     </TableCell>
-                    <TableCell>{lead.estimated_value != null ? `${lead.estimated_value} лв.` : "—"}</TableCell>
+                    <TableCell>{lead.estimated_value != null ? `${lead.estimated_value} €` : "—"}</TableCell>
                     <TableCell>{lead.source || "—"}</TableCell>
                     <TableCell>{(lead as any)._ownerName || "—"}</TableCell>
                     <TableCell>{format(new Date(lead.created_at), "dd.MM.yyyy")}</TableCell>
