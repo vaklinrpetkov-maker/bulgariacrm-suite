@@ -1,47 +1,52 @@
 
 
-# Add Comments/Activity Tab to Contact Profile
+# Email-to-Lead Webhook
 
-## What
-Add a new "Коментари" (Comments) tab in the contact profile dialog where users can leave timestamped notes about client activity, updates, interactions, etc. Each comment shows the author name, date, and text content with the ability to delete own comments.
+## Overview
+Create a backend function that receives parsed inbound emails (from SendGrid Inbound Parse) and automatically creates a contact + lead in the database.
 
-## Database Changes
+## Architecture
 
-### New `contact_comments` table
-```sql
-CREATE TABLE public.contact_comments (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  contact_id uuid NOT NULL,
-  user_id uuid NOT NULL,
-  content text NOT NULL,
-  created_at timestamptz NOT NULL DEFAULT now()
-);
-
-ALTER TABLE public.contact_comments ENABLE ROW LEVEL SECURITY;
-
-CREATE POLICY "Comments access" ON public.contact_comments
-  FOR ALL TO authenticated
-  USING (true)
-  WITH CHECK (true);
+```text
+Gmail/Outlook  ──forwarding──>  leads@yourdomain.com
+                                      │
+                              SendGrid Inbound Parse
+                                      │
+                                  POST webhook
+                                      │
+                          Edge Function: inbound-email
+                                      │
+                        ┌─────────────┴──────────────┐
+                        │                            │
+                  Find or create              Create lead
+                  contact by email         (title = subject)
 ```
 
-## Code Changes
+## Implementation
 
-### 1. Create `src/components/contacts/ContactCommentsTab.tsx`
-- Query `contact_comments` joined with `profiles` (for author name) ordered by `created_at DESC`
-- Textarea + "Добави" button to insert new comment with current user's ID
-- Each comment card shows: author name, relative timestamp, content, and a delete button (only for own comments)
-- Uses `useMutation` for insert/delete, invalidates `contact-comments` query key
+### 1. Edge Function: `supabase/functions/inbound-email/index.ts`
+- **Public endpoint** (no JWT) since SendGrid calls it
+- Parses `multipart/form-data` from SendGrid (fields: `from`, `subject`, `text`, `envelope`)
+- Extracts sender email and name from the `from` field
+- Upserts a contact (finds existing by email or creates a new "person" contact)
+- Creates a lead linked to that contact with `source: "email"` and `title` from the email subject
+- Returns 200 to acknowledge receipt
 
-### 2. Update `src/components/contacts/ContactProfileDialog.tsx`
-- Add new `<TabsTrigger value="comments">Коментари</TabsTrigger>` to the tab list (before "Хронология")
-- Add `<TabsContent value="comments">` rendering the new `ContactCommentsTab` component
-- Pass `contactId` to the new component
+### 2. Config: `supabase/config.toml`
+- Add `[functions.inbound-email]` with `verify_jwt = false`
+
+### 3. No database changes needed
+The existing `contacts` and `leads` tables already have the required columns.
+
+## Setup Steps (for user after deployment)
+1. Create a free SendGrid account
+2. Add and verify a domain (or subdomain like `parse.yourdomain.com`) with MX record pointing to `mx.sendgrid.net`
+3. In SendGrid > Inbound Parse, set the webhook URL to the deployed function URL
+4. Set up email forwarding from Gmail/Outlook to `leads@parse.yourdomain.com`
 
 ## Files
 | File | Action |
 |------|--------|
-| Migration (new table) | Create via migration tool |
-| `src/components/contacts/ContactCommentsTab.tsx` | Create |
-| `src/components/contacts/ContactProfileDialog.tsx` | Edit (add tab) |
+| `supabase/functions/inbound-email/index.ts` | Create |
+| `supabase/config.toml` | Update (add function config) |
 
