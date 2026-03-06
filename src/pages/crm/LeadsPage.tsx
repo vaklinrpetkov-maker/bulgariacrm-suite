@@ -15,7 +15,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Plus, Search, Pencil, Trash2, Download } from "lucide-react";
 import { exportToExcel } from "@/lib/exportToExcel";
 import LeadFormDialog from "@/components/leads/LeadFormDialog";
-import LeadResponseTimer from "@/components/leads/LeadResponseTimer";
+import LeadResponseTimer, { getTimerRowClass } from "@/components/leads/LeadResponseTimer";
 import LeadsKpiBar from "@/components/leads/LeadsKpiBar";
 import LeadsOverdueAlert from "@/components/leads/LeadsOverdueAlert";
 import LeadMessageHoverCard from "@/components/leads/LeadMessageHoverCard";
