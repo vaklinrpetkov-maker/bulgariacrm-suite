@@ -18,11 +18,11 @@ export default function LeadMessageHoverCard({ notes, children }: LeadMessageHov
           <MessageSquare className="h-3 w-3 text-muted-foreground" />
         </span>
       </HoverCardTrigger>
-      <HoverCardContent className="w-full max-w-2xl" side="top">
+      <HoverCardContent className="w-[500px] max-w-[90vw]" side="top" align="start">
         <div className="space-y-2">
           <p className="text-xs font-medium text-muted-foreground">Съобщение от имейл</p>
-          <ScrollArea className="max-h-48">
-            <p className="text-sm whitespace-pre-wrap break-words">{notes}</p>
+          <ScrollArea className="max-h-72">
+            <pre className="text-sm whitespace-pre-wrap break-words font-sans">{notes}</pre>
           </ScrollArea>
         </div>
       </HoverCardContent>
