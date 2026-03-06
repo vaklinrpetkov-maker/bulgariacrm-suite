@@ -157,6 +157,13 @@ const AppSidebar = () => {
             </p>
           </div>
           <button
+            onClick={() => setIsDark((d) => !d)}
+            className="rounded p-1 text-sidebar-muted hover:text-sidebar-foreground transition-colors"
+            title={isDark ? "Светъл режим" : "Тъмен режим"}
+          >
+            {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+          </button>
+          <button
             onClick={signOut}
             className="rounded p-1 text-sidebar-muted hover:text-sidebar-foreground transition-colors"
             title="Изход"
