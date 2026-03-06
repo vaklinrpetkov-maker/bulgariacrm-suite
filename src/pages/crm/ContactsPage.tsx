@@ -92,8 +92,8 @@ const ContactsPage = () => {
   });
 
   const deleteMutation = useMutation({
-    mutationFn: async () => {
-      const { error } = await supabase.from("contacts").delete().eq("id", deleteContact!.id);
+    mutationFn: async (contactId: string) => {
+      const { error } = await supabase.from("contacts").delete().eq("id", contactId);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -101,7 +101,7 @@ const ContactsPage = () => {
       setDeleteContact(null);
       toast({ title: "Контактът е изтрит." });
     },
-    onError: () => toast({ title: "Грешка при изтриване.", variant: "destructive" }),
+    onError: (err: any) => toast({ title: "Грешка при изтриване.", description: err?.message || "", variant: "destructive" }),
   });
 
   const filtered = contacts.filter((c) => {
@@ -229,7 +229,7 @@ const ContactsPage = () => {
       <ContactDeleteDialog
         open={!!deleteContact}
         onOpenChange={(open) => { if (!open) setDeleteContact(null); }}
-        onConfirm={() => deleteMutation.mutate()}
+        onConfirm={() => deleteContact && deleteMutation.mutate(deleteContact.id)}
         contact={deleteContact}
         isLoading={deleteMutation.isPending}
       />
