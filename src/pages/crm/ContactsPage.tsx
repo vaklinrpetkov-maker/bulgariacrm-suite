@@ -30,7 +30,8 @@ const ContactsPage = () => {
   const [deleteContact, setDeleteContact] = useState<Tables<"contacts"> | null>(null);
   const [profileContact, setProfileContact] = useState<Tables<"contacts"> | null>(null);
   const [ownerFilter, setOwnerFilter] = useState<string>("all");
-  const [dateFilter, setDateFilter] = useState<Date | undefined>(undefined);
+  const [dateFrom, setDateFrom] = useState<Date | undefined>(undefined);
+  const [dateTo, setDateTo] = useState<Date | undefined>(undefined);
   const [createLeadContact, setCreateLeadContact] = useState<Tables<"contacts"> | null>(null);
 
   const { data: isAdmin } = useQuery({
@@ -113,9 +114,10 @@ const ContactsPage = () => {
     const matchesOwner = ownerFilter === "all" || 
       (ownerFilter === "mine" && c.owner_id === user?.id) || 
       (ownerFilter === "unassigned" && !c.owner_id);
-    const matchesDate = !dateFilter || 
-      format(new Date(c.created_at), "yyyy-MM-dd") === format(dateFilter, "yyyy-MM-dd");
-    return matchesSearch && matchesType && matchesOwner && matchesDate;
+    const createdDate = new Date(c.created_at);
+    const matchesDateFrom = !dateFrom || createdDate >= new Date(format(dateFrom, "yyyy-MM-dd"));
+    const matchesDateTo = !dateTo || createdDate <= new Date(format(dateTo, "yyyy-MM-dd") + "T23:59:59");
+    return matchesSearch && matchesType && matchesOwner && matchesDateFrom && matchesDateTo;
   });
 
   const handleExport = () => {
@@ -182,17 +184,28 @@ const ContactsPage = () => {
           </Select>
           <Popover>
             <PopoverTrigger asChild>
-              <Button variant="outline" className={cn("w-48 justify-start text-left font-normal", !dateFilter && "text-muted-foreground")}>
+              <Button variant="outline" className={cn("w-48 justify-start text-left font-normal", !dateFrom && "text-muted-foreground")}>
                 <CalendarIcon className="mr-2 h-4 w-4" />
-                {dateFilter ? format(dateFilter, "dd.MM.yyyy") : "Дата на създаване"}
+                {dateFrom ? format(dateFrom, "dd.MM.yyyy") : "От дата"}
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0" align="start">
-              <Calendar mode="single" selected={dateFilter} onSelect={setDateFilter} initialFocus className={cn("p-3 pointer-events-auto")} />
+              <Calendar mode="single" selected={dateFrom} onSelect={setDateFrom} initialFocus className={cn("p-3 pointer-events-auto")} />
             </PopoverContent>
           </Popover>
-          {dateFilter && (
-            <Button variant="ghost" size="icon" className="h-9 w-9" onClick={() => setDateFilter(undefined)}>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="outline" className={cn("w-48 justify-start text-left font-normal", !dateTo && "text-muted-foreground")}>
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                {dateTo ? format(dateTo, "dd.MM.yyyy") : "До дата"}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar mode="single" selected={dateTo} onSelect={setDateTo} initialFocus className={cn("p-3 pointer-events-auto")} />
+            </PopoverContent>
+          </Popover>
+          {(dateFrom || dateTo) && (
+            <Button variant="ghost" size="icon" className="h-9 w-9" onClick={() => { setDateFrom(undefined); setDateTo(undefined); }}>
               <X className="h-4 w-4" />
             </Button>
           )}
