@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import type { Tables } from "@/integrations/supabase/types";
 
 interface ContactsTableProps {
-  contacts: Tables<"contacts">[];
+  contacts: (Tables<"contacts"> & { _ownerName?: string | null })[];
   onEdit: (contact: Tables<"contacts">) => void;
   onDelete: (contact: Tables<"contacts">) => void;
   onDoubleClick?: (contact: Tables<"contacts">) => void;
@@ -36,6 +36,7 @@ export default function ContactsTable({ contacts, onEdit, onDelete, onDoubleClic
             <TableHead>Имейл</TableHead>
             <TableHead>Телефон</TableHead>
             <TableHead>Град</TableHead>
+            <TableHead>Отговорник</TableHead>
             <TableHead>Създаден</TableHead>
             <TableHead className="w-24">Действия</TableHead>
           </TableRow>
@@ -53,6 +54,7 @@ export default function ContactsTable({ contacts, onEdit, onDelete, onDoubleClic
               <TableCell>{contact.email || "—"}</TableCell>
               <TableCell>{contact.phone || "—"}</TableCell>
               <TableCell>{contact.city || "—"}</TableCell>
+              <TableCell>{(contact as any)._ownerName || "—"}</TableCell>
               <TableCell>{format(new Date(contact.created_at), "dd.MM.yyyy")}</TableCell>
               <TableCell>
                 <div className="flex gap-1">

@@ -8,9 +8,10 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Building2, Pencil, Plus, Trash2, User } from "lucide-react";
+import { Building2, Pencil, Plus, Trash2, User, UserCheck, UserPlus, UserMinus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
 import CreateLeadFromContactDialog from "./CreateLeadFromContactDialog";
 import CreateDealFromContactDialog from "./CreateDealFromContactDialog";
 import EditLeadDialog from "./EditLeadDialog";
@@ -58,12 +59,36 @@ const statusLabels: Record<string, string> = {
 
 export default function ContactProfileDialog({ contact, open, onOpenChange }: ContactProfileDialogProps) {
   const contactId = contact?.id;
+  const { user } = useAuth();
   const [createLeadOpen, setCreateLeadOpen] = useState(false);
   const [createDealOpen, setCreateDealOpen] = useState(false);
   const [editLead, setEditLead] = useState<Tables<"leads"> | null>(null);
   const [editDeal, setEditDeal] = useState<Tables<"deals"> | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<{ type: "lead" | "deal"; id: string } | null>(null);
   const queryClient = useQueryClient();
+
+  // Fetch owner profile name
+  const { data: ownerName } = useQuery({
+    queryKey: ["contact-owner", contact?.owner_id],
+    queryFn: async () => {
+      const { data } = await supabase.from("profiles").select("full_name").eq("user_id", contact!.owner_id!).single();
+      return data?.full_name || "—";
+    },
+    enabled: !!contact?.owner_id,
+  });
+
+  const assignMutation = useMutation({
+    mutationFn: async (ownerId: string | null) => {
+      const { error } = await supabase.from("contacts").update({ owner_id: ownerId }).eq("id", contactId!);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["contacts"] });
+      queryClient.invalidateQueries({ queryKey: ["contact-owner"] });
+      toast({ title: "Отговорникът е обновен." });
+    },
+    onError: () => toast({ title: "Грешка при обновяване.", variant: "destructive" }),
+  });
 
   const deleteMutation = useMutation({
     mutationFn: async ({ type, id }: { type: "lead" | "deal"; id: string }) => {
@@ -202,6 +227,33 @@ export default function ContactProfileDialog({ contact, open, onOpenChange }: Co
                 <InfoField label="Адрес" value={contact.address} />
                 <div className="col-span-2">
                   <InfoField label="Бележки" value={contact.notes} />
+                </div>
+                <div className="col-span-2">
+                  <dt className="text-sm font-medium text-muted-foreground">Отговорник</dt>
+                  <dd className="mt-1 text-sm flex items-center gap-2">
+                    {contact.owner_id ? (
+                      <>
+                        <UserCheck className="h-4 w-4 text-primary" />
+                        <span>{ownerName || "—"}</span>
+                        {contact.owner_id === user?.id ? (
+                          <Button size="sm" variant="ghost" className="h-7 text-xs text-destructive" onClick={() => assignMutation.mutate(null)}>
+                            <UserMinus className="h-3.5 w-3.5 mr-1" /> Премахни
+                          </Button>
+                        ) : (
+                          <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => assignMutation.mutate(user!.id)}>
+                            <UserPlus className="h-3.5 w-3.5 mr-1" /> Поеми
+                          </Button>
+                        )}
+                      </>
+                    ) : (
+                      <>
+                        <span className="text-muted-foreground">Няма</span>
+                        <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => assignMutation.mutate(user!.id)}>
+                          <UserPlus className="h-3.5 w-3.5 mr-1" /> Поеми контакта
+                        </Button>
+                      </>
+                    )}
+                  </dd>
                 </div>
                 <InfoField label="Създаден" value={format(new Date(contact.created_at), "dd.MM.yyyy HH:mm")} />
               </dl>
