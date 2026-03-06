@@ -18,7 +18,7 @@ export default function LeadMessageHoverCard({ notes, children }: LeadMessageHov
           <MessageSquare className="h-3 w-3 text-muted-foreground" />
         </span>
       </HoverCardTrigger>
-      <HoverCardContent className="w-80" side="top">
+      <HoverCardContent className="w-full max-w-2xl" side="top">
         <div className="space-y-2">
           <p className="text-xs font-medium text-muted-foreground">Съобщение от имейл</p>
           <ScrollArea className="max-h-48">
