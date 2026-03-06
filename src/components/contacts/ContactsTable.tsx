@@ -4,6 +4,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import ContactAuditHoverCard from "./ContactAuditHoverCard";
 import type { Tables } from "@/integrations/supabase/types";
 
 interface ContactsTableProps {
@@ -52,7 +53,13 @@ export default function ContactsTable({ contacts, onEdit, onDelete, onDoubleClic
                   {contact.type === "company" ? "Компания" : "Лице"}
                 </Badge>
               </TableCell>
-              <TableCell className="font-medium">{getContactName(contact)}</TableCell>
+              <TableCell className="font-medium">
+                <ContactAuditHoverCard contactId={contact.id}>
+                  <span className="cursor-help underline decoration-dotted underline-offset-4 decoration-muted-foreground/40">
+                    {getContactName(contact)}
+                  </span>
+                </ContactAuditHoverCard>
+              </TableCell>
               <TableCell>{contact.email || "—"}</TableCell>
               <TableCell>{contact.phone || "—"}</TableCell>
               <TableCell>{contact.city || "—"}</TableCell>
