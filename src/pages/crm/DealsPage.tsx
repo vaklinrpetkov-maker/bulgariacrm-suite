@@ -1,9 +1,16 @@
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
+import { cn } from "@/lib/utils";
 import PageHeader from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
-import { Plus, Download } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { Plus, Download, Search, CalendarIcon, X } from "lucide-react";
+import type { DateRange } from "react-day-picker";
 import { exportToExcel } from "@/lib/exportToExcel";
 
 const statusLabels: Record<string, string> = {
