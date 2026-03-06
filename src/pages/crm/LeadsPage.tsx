@@ -15,6 +15,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Plus, Search, Pencil, Trash2, Download } from "lucide-react";
 import { exportToExcel } from "@/lib/exportToExcel";
 import LeadFormDialog from "@/components/leads/LeadFormDialog";
+import LeadResponseTimer from "@/components/leads/LeadResponseTimer";
 import type { Tables } from "@/integrations/supabase/types";
 
 const statusLabels: Record<string, string> = {
@@ -53,6 +54,18 @@ const LeadsPage = () => {
       }
       return data.map(l => ({ ...l, _ownerName: l.owner_id ? (ownerMap[l.owner_id] || "—") : null }));
     },
+  });
+
+  const stopTimerMutation = useMutation({
+    mutationFn: async (leadId: string) => {
+      const { error } = await supabase.from("leads").update({ responded_at: new Date().toISOString() } as any).eq("id", leadId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["leads"] });
+      toast({ title: "Таймерът е спрян." });
+    },
+    onError: () => toast({ title: "Грешка при спиране на таймера.", variant: "destructive" }),
   });
 
   const deleteMutation = useMutation({
@@ -161,6 +174,7 @@ const LeadsPage = () => {
                   <TableHead>Заглавие</TableHead>
                   <TableHead>Контакт</TableHead>
                   <TableHead>Статус</TableHead>
+                  <TableHead>Време за отговор</TableHead>
                   <TableHead>Ест. стойност</TableHead>
                   <TableHead>Източник</TableHead>
                   <TableHead>Отговорник</TableHead>
@@ -174,6 +188,13 @@ const LeadsPage = () => {
                     <TableCell className="font-medium">{lead.title}</TableCell>
                     <TableCell>{lead.contacts ? getContactName(lead.contacts as any) : "—"}</TableCell>
                     <TableCell><Badge variant="secondary">{statusLabels[lead.status] || lead.status}</Badge></TableCell>
+                    <TableCell>
+                      <LeadResponseTimer
+                        createdAt={lead.created_at}
+                        respondedAt={(lead as any).responded_at}
+                        onStop={() => stopTimerMutation.mutate(lead.id)}
+                      />
+                    </TableCell>
                     <TableCell>{lead.estimated_value != null ? `${lead.estimated_value} лв.` : "—"}</TableCell>
                     <TableCell>{lead.source || "—"}</TableCell>
                     <TableCell>{(lead as any)._ownerName || "—"}</TableCell>
