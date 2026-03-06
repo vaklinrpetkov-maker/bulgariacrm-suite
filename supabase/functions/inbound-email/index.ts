@@ -67,10 +67,12 @@ Deno.serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
-  // Validate shared secret
-  const webhookSecret = req.headers.get("x-webhook-secret");
+  // Validate shared secret via header OR query parameter (SendGrid Inbound Parse can't send custom headers)
+  const url = new URL(req.url);
+  const webhookSecret = req.headers.get("x-webhook-secret") || url.searchParams.get("secret");
   const expectedSecret = Deno.env.get("INBOUND_EMAIL_SECRET");
   if (!expectedSecret || webhookSecret !== expectedSecret) {
+    console.error("Auth failed. Got secret:", webhookSecret ? "(present)" : "(missing)");
     return new Response(JSON.stringify({ error: "Unauthorized" }), {
       status: 401,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
