@@ -148,8 +148,8 @@ export default function LeadFormDialog({ open, onOpenChange, lead }: LeadFormDia
             </div>
           )}
           <div className="space-y-2">
-            <Label>Очаквана стойност (лв.)</Label>
-            <Input type="number" min="0" step="0.01" value={estimatedValue} onChange={(e) => setEstimatedValue(e.target.value)} />
+            <Label>Търсене € (бюджет на клиента)</Label>
+            <Input type="number" min="0" step="0.01" value={estimatedValue} onChange={(e) => setEstimatedValue(e.target.value)} placeholder="Сума в евро" />
           </div>
           <div className="space-y-2">
             <Label>Проект</Label>

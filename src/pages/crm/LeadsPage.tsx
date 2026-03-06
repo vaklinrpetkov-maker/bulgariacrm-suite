@@ -134,7 +134,7 @@ const LeadsPage = () => {
         { key: "contact", label: "Контакт" },
         { key: "project_name", label: "Проект" },
         { key: "status", label: "Статус" },
-        { key: "estimated_value", label: "Ест. стойност" },
+        { key: "estimated_value", label: "Търсене €" },
         { key: "source", label: "Източник" },
         { key: "owner", label: "Отговорник" },
         { key: "created_at", label: "Създаден" },
