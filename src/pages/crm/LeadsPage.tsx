@@ -18,6 +18,7 @@ import LeadFormDialog from "@/components/leads/LeadFormDialog";
 import LeadResponseTimer from "@/components/leads/LeadResponseTimer";
 import LeadsKpiBar from "@/components/leads/LeadsKpiBar";
 import LeadsOverdueAlert from "@/components/leads/LeadsOverdueAlert";
+import LeadMessageHoverCard from "@/components/leads/LeadMessageHoverCard";
 import type { Tables } from "@/integrations/supabase/types";
 
 const statusLabels: Record<string, string> = {
@@ -101,6 +102,7 @@ const LeadsPage = () => {
       filtered.map(l => ({
         title: l.title,
         contact: contactName(l),
+        project_name: (l as any).project_name || "",
         status: statusLabels[l.status] || l.status,
         estimated_value: l.estimated_value != null ? `${l.estimated_value} лв.` : "",
         source: l.source || "",
@@ -110,6 +112,7 @@ const LeadsPage = () => {
       [
         { key: "title", label: "Заглавие" },
         { key: "contact", label: "Контакт" },
+        { key: "project_name", label: "Проект" },
         { key: "status", label: "Статус" },
         { key: "estimated_value", label: "Ест. стойност" },
         { key: "source", label: "Източник" },
@@ -177,6 +180,7 @@ const LeadsPage = () => {
                 <TableRow>
                   <TableHead>Заглавие</TableHead>
                   <TableHead>Контакт</TableHead>
+                  <TableHead>Проект</TableHead>
                   <TableHead>Статус</TableHead>
                   <TableHead>Време за отговор</TableHead>
                   <TableHead>Ест. стойност</TableHead>
@@ -189,8 +193,13 @@ const LeadsPage = () => {
               <TableBody>
                 {filtered.map((lead) => (
                   <TableRow key={lead.id}>
-                    <TableCell className="font-medium">{lead.title}</TableCell>
+                    <TableCell className="font-medium">
+                      <LeadMessageHoverCard notes={lead.notes}>
+                        {lead.title}
+                      </LeadMessageHoverCard>
+                    </TableCell>
                     <TableCell>{lead.contacts ? getContactName(lead.contacts as any) : "—"}</TableCell>
+                    <TableCell>{(lead as any).project_name || "—"}</TableCell>
                     <TableCell><Badge variant="secondary">{statusLabels[lead.status] || lead.status}</Badge></TableCell>
                     <TableCell>
                       <LeadResponseTimer
