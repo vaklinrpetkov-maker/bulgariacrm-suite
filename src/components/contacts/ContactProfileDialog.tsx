@@ -18,7 +18,7 @@ import EditLeadDialog from "./EditLeadDialog";
 import EditDealDialog from "./EditDealDialog";
 import ContactCommentsTab from "./ContactCommentsTab";
 import type { Tables } from "@/integrations/supabase/types";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 interface ContactProfileDialogProps {
   contact: Tables<"contacts"> | null;
@@ -65,24 +65,32 @@ export default function ContactProfileDialog({ contact, open, onOpenChange }: Co
   const [editLead, setEditLead] = useState<Tables<"leads"> | null>(null);
   const [editDeal, setEditDeal] = useState<Tables<"deals"> | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<{ type: "lead" | "deal"; id: string } | null>(null);
+  const [currentOwnerId, setCurrentOwnerId] = useState<string | null>(null);
   const queryClient = useQueryClient();
+
+  // Sync local owner state from prop
+  useEffect(() => {
+    setCurrentOwnerId(contact?.owner_id ?? null);
+  }, [contact?.owner_id, contact?.id]);
 
   // Fetch owner profile name
   const { data: ownerName } = useQuery({
-    queryKey: ["contact-owner", contact?.owner_id],
+    queryKey: ["contact-owner", currentOwnerId],
     queryFn: async () => {
-      const { data } = await supabase.from("profiles").select("full_name").eq("user_id", contact!.owner_id!).single();
+      const { data } = await supabase.from("profiles").select("full_name").eq("user_id", currentOwnerId!).single();
       return data?.full_name || "—";
     },
-    enabled: !!contact?.owner_id,
+    enabled: !!currentOwnerId,
   });
 
   const assignMutation = useMutation({
     mutationFn: async (ownerId: string | null) => {
       const { error } = await supabase.from("contacts").update({ owner_id: ownerId }).eq("id", contactId!);
       if (error) throw error;
+      return ownerId;
     },
-    onSuccess: () => {
+    onSuccess: (ownerId) => {
+      setCurrentOwnerId(ownerId);
       queryClient.invalidateQueries({ queryKey: ["contacts"] });
       queryClient.invalidateQueries({ queryKey: ["contact-owner"] });
       toast({ title: "Отговорникът е обновен." });
@@ -231,11 +239,11 @@ export default function ContactProfileDialog({ contact, open, onOpenChange }: Co
                 <div className="col-span-2">
                   <dt className="text-sm font-medium text-muted-foreground">Отговорник</dt>
                   <dd className="mt-1 text-sm flex items-center gap-2">
-                    {contact.owner_id ? (
+                    {currentOwnerId ? (
                       <>
                         <UserCheck className="h-4 w-4 text-primary" />
                         <span>{ownerName || "—"}</span>
-                        {contact.owner_id === user?.id ? (
+                        {currentOwnerId === user?.id ? (
                           <Button size="sm" variant="ghost" className="h-7 text-xs text-destructive" onClick={() => assignMutation.mutate(null)}>
                             <UserMinus className="h-3.5 w-3.5 mr-1" /> Премахни
                           </Button>
