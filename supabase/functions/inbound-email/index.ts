@@ -29,41 +29,17 @@ Deno.serve(async (req) => {
     let subject = "";
     let textBody = "";
 
-    let toRaw = "";
-    let envelope = "";
-
     if (contentType.includes("multipart/form-data")) {
       const formData = await req.formData();
       fromRaw = (formData.get("from") as string) || "";
       subject = (formData.get("subject") as string) || "";
       textBody = (formData.get("text") as string) || "";
-      toRaw = (formData.get("to") as string) || "";
-      envelope = (formData.get("envelope") as string) || "";
     } else {
       // fallback JSON
       const body = await req.json();
       fromRaw = body.from || "";
       subject = body.subject || "";
       textBody = body.text || "";
-      toRaw = body.to || "";
-      envelope = body.envelope || "";
-    }
-
-    // --- Filter 1: Recipient check ---
-    const TARGET_EMAIL = "leads@vminvest.bg";
-    let recipientMatch = toRaw.toLowerCase().includes(TARGET_EMAIL);
-    if (!recipientMatch && envelope) {
-      try {
-        const env = typeof envelope === "string" ? JSON.parse(envelope) : envelope;
-        const envelopeTo: string[] = env.to || [];
-        recipientMatch = envelopeTo.some((e: string) => e.toLowerCase() === TARGET_EMAIL);
-      } catch { /* ignore parse errors */ }
-    }
-    if (!recipientMatch) {
-      return new Response(
-        JSON.stringify({ skipped: true, reason: "recipient mismatch" }),
-        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
     }
 
     // --- Filter 2: Subject must contain "форма" ---
