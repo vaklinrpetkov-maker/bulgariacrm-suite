@@ -56,20 +56,19 @@ const AppSidebar = () => {
   };
 
   return (
-    <aside className="flex h-screen w-64 flex-col sidebar-gradient border-r border-sidebar-border">
+    <aside className="flex h-screen w-56 flex-col bg-sidebar border-r border-sidebar-border">
       {/* Logo */}
-      <div className="flex items-center gap-3 px-5 py-5 border-b border-sidebar-border">
-        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-sidebar-primary">
-          <Building2 className="h-5 w-5 text-sidebar-primary-foreground" />
+      <div className="flex items-center gap-3 px-4 py-4 border-b border-sidebar-border">
+        <div className="flex h-7 w-7 items-center justify-center bg-primary">
+          <Building2 className="h-4 w-4 text-primary-foreground" />
         </div>
         <div>
-          <h1 className="text-sm font-semibold text-sidebar-foreground">BuildCRM</h1>
-          <p className="text-xs text-sidebar-muted">Строителство & Имоти</p>
+          <h1 className="text-xs font-semibold uppercase tracking-widest text-sidebar-accent-foreground">BuildCRM</h1>
         </div>
       </div>
 
       {/* Nav */}
-      <nav className="flex-1 overflow-y-auto px-3 py-3 space-y-0.5">
+      <nav className="flex-1 overflow-y-auto px-2 py-3 space-y-px">
         {navItems.map((item) => {
           const Icon = item.icon;
           const active = isActive(item.path);
@@ -81,29 +80,29 @@ const AppSidebar = () => {
                 <button
                   onClick={() => toggleExpand(item.path)}
                   className={cn(
-                    "flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors",
+                    "flex w-full items-center gap-2.5 px-3 py-1.5 text-xs uppercase tracking-wider transition-colors duration-150",
                     active
                       ? "bg-sidebar-accent text-sidebar-accent-foreground"
                       : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
                   )}
                 >
-                  <Icon className="h-4 w-4 shrink-0" />
+                  <Icon className="h-3.5 w-3.5 shrink-0" />
                   <span className="flex-1 text-left">{item.label}</span>
                   <ChevronDown
-                    className={cn("h-3.5 w-3.5 transition-transform", expanded && "rotate-180")}
+                    className={cn("h-3 w-3 transition-transform duration-150", expanded && "rotate-180")}
                   />
                 </button>
                 {expanded && (
-                  <div className="ml-7 mt-0.5 space-y-0.5 border-l border-sidebar-border pl-3">
+                  <div className="ml-6 mt-px space-y-px border-l border-sidebar-border pl-3">
                     {item.children.map((child) => (
                       <NavLink
                         key={child.path}
                         to={child.path}
                         className={({ isActive }) =>
                           cn(
-                            "block rounded-md px-3 py-1.5 text-sm transition-colors",
+                            "block px-3 py-1.5 text-xs tracking-wide transition-colors duration-150",
                             isActive
-                              ? "bg-sidebar-primary/10 text-sidebar-primary font-medium"
+                              ? "text-primary font-medium"
                               : "text-sidebar-muted hover:text-sidebar-foreground"
                           )
                         }
@@ -124,14 +123,14 @@ const AppSidebar = () => {
               end={item.path === "/"}
               className={({ isActive }) =>
                 cn(
-                  "flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors",
+                  "flex items-center gap-2.5 px-3 py-1.5 text-xs uppercase tracking-wider transition-colors duration-150",
                   isActive
                     ? "bg-sidebar-accent text-sidebar-accent-foreground"
                     : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
                 )
               }
             >
-              <Icon className="h-4 w-4 shrink-0" />
+              <Icon className="h-3.5 w-3.5 shrink-0" />
               <span>{item.label}</span>
             </NavLink>
           );
@@ -139,22 +138,22 @@ const AppSidebar = () => {
       </nav>
 
       {/* User */}
-      <div className="border-t border-sidebar-border p-3">
-        <div className="flex items-center gap-3 rounded-md px-3 py-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-sidebar-accent text-xs font-medium text-sidebar-accent-foreground">
+      <div className="border-t border-sidebar-border p-2">
+        <div className="flex items-center gap-2.5 px-3 py-2">
+          <div className="flex h-6 w-6 items-center justify-center bg-sidebar-accent text-[10px] font-medium uppercase text-sidebar-accent-foreground">
             {user?.email?.charAt(0).toUpperCase()}
           </div>
           <div className="flex-1 min-w-0">
-            <p className="truncate text-xs font-medium text-sidebar-foreground">
+            <p className="truncate text-[10px] tracking-wide text-sidebar-foreground">
               {user?.email}
             </p>
           </div>
           <button
             onClick={signOut}
-            className="rounded p-1 text-sidebar-muted hover:text-sidebar-foreground transition-colors"
+            className="p-1 text-sidebar-muted hover:text-sidebar-foreground transition-colors duration-150"
             title="Изход"
           >
-            <LogOut className="h-4 w-4" />
+            <LogOut className="h-3.5 w-3.5" />
           </button>
         </div>
       </div>
