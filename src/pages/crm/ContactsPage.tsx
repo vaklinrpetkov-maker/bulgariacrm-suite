@@ -3,11 +3,15 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";
+import { format } from "date-fns";
+import { cn } from "@/lib/utils";
 import PageHeader from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Search } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { Plus, Search, CalendarIcon, X } from "lucide-react";
 import ContactFormDialog, { type ContactFormValues } from "@/components/contacts/ContactFormDialog";
 import ContactDeleteDialog from "@/components/contacts/ContactDeleteDialog";
 import ContactsTable from "@/components/contacts/ContactsTable";
@@ -23,6 +27,8 @@ const ContactsPage = () => {
   const [editContact, setEditContact] = useState<Tables<"contacts"> | null>(null);
   const [deleteContact, setDeleteContact] = useState<Tables<"contacts"> | null>(null);
   const [profileContact, setProfileContact] = useState<Tables<"contacts"> | null>(null);
+  const [ownerFilter, setOwnerFilter] = useState<string>("all");
+  const [dateFilter, setDateFilter] = useState<Date | undefined>(undefined);
 
   const { data: contacts = [], isLoading } = useQuery({
     queryKey: ["contacts"],
@@ -92,7 +98,12 @@ const ContactsPage = () => {
       : `${c.first_name || ""} ${c.last_name || ""}`;
     const matchesSearch = !search || name.toLowerCase().includes(search.toLowerCase()) || (c.email || "").toLowerCase().includes(search.toLowerCase());
     const matchesType = typeFilter === "all" || c.type === typeFilter;
-    return matchesSearch && matchesType;
+    const matchesOwner = ownerFilter === "all" || 
+      (ownerFilter === "mine" && c.owner_id === user?.id) || 
+      (ownerFilter === "unassigned" && !c.owner_id);
+    const matchesDate = !dateFilter || 
+      format(new Date(c.created_at), "yyyy-MM-dd") === format(dateFilter, "yyyy-MM-dd");
+    return matchesSearch && matchesType && matchesOwner && matchesDate;
   });
 
   return (
@@ -103,7 +114,7 @@ const ContactsPage = () => {
         actions={<Button onClick={() => setFormOpen(true)}><Plus className="mr-2 h-4 w-4" />Нов контакт</Button>}
       />
       <div className="p-6 space-y-4">
-        <div className="flex gap-3 items-center">
+        <div className="flex gap-3 items-center flex-wrap">
           <div className="relative flex-1 max-w-sm">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input placeholder="Търсене по име или имейл..." className="pl-9" value={search} onChange={(e) => setSearch(e.target.value)} />
@@ -118,6 +129,32 @@ const ContactsPage = () => {
               <SelectItem value="company">Компания</SelectItem>
             </SelectContent>
           </Select>
+          <Select value={ownerFilter} onValueChange={setOwnerFilter}>
+            <SelectTrigger className="w-44">
+              <SelectValue placeholder="Всички отговорници" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Всички отговорници</SelectItem>
+              <SelectItem value="mine">Мои контакти</SelectItem>
+              <SelectItem value="unassigned">Без отговорник</SelectItem>
+            </SelectContent>
+          </Select>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="outline" className={cn("w-48 justify-start text-left font-normal", !dateFilter && "text-muted-foreground")}>
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                {dateFilter ? format(dateFilter, "dd.MM.yyyy") : "Дата на създаване"}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar mode="single" selected={dateFilter} onSelect={setDateFilter} initialFocus className={cn("p-3 pointer-events-auto")} />
+            </PopoverContent>
+          </Popover>
+          {dateFilter && (
+            <Button variant="ghost" size="icon" className="h-9 w-9" onClick={() => setDateFilter(undefined)}>
+              <X className="h-4 w-4" />
+            </Button>
+          )}
         </div>
 
         {isLoading ? (
