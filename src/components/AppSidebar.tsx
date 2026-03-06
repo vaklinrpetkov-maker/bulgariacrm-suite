@@ -4,10 +4,10 @@ import {
   Building2, Users, Target, Calendar, Handshake, FileText,
   FolderOpen, Workflow, CheckSquare, Briefcase, Wallet,
   Percent, Bell, Settings, LogOut, ChevronDown, Home,
-  Building, LayoutGrid
+  Building, LayoutGrid, Sun, Moon
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 interface NavItem {
   label: string;
