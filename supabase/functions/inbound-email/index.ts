@@ -23,6 +23,16 @@ Deno.serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  // Validate shared secret
+  const webhookSecret = req.headers.get("x-webhook-secret");
+  const expectedSecret = Deno.env.get("INBOUND_EMAIL_SECRET");
+  if (!expectedSecret || webhookSecret !== expectedSecret) {
+    return new Response(JSON.stringify({ error: "Unauthorized" }), {
+      status: 401,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+
   try {
     const contentType = req.headers.get("content-type") || "";
     let fromRaw = "";
