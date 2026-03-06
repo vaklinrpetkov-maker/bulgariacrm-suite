@@ -11,7 +11,8 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
-import { Plus, Search, CalendarIcon, X } from "lucide-react";
+import { Plus, Search, CalendarIcon, X, Download } from "lucide-react";
+import { exportToExcel } from "@/lib/exportToExcel";
 import ContactFormDialog, { type ContactFormValues } from "@/components/contacts/ContactFormDialog";
 import ContactDeleteDialog from "@/components/contacts/ContactDeleteDialog";
 import ContactsTable from "@/components/contacts/ContactsTable";
@@ -108,12 +109,41 @@ const ContactsPage = () => {
     return matchesSearch && matchesType && matchesOwner && matchesDate;
   });
 
+  const handleExport = () => {
+    exportToExcel(
+      filtered.map(c => ({
+        type: c.type === "company" ? "Компания" : "Лице",
+        name: c.type === "company" ? (c.company_name || "") : [c.first_name, c.last_name].filter(Boolean).join(" "),
+        email: c.email || "",
+        phone: c.phone || "",
+        city: c.city || "",
+        owner: (c as any)._ownerName || "",
+        created_at: format(new Date(c.created_at), "dd.MM.yyyy"),
+      })),
+      [
+        { key: "type", label: "Тип" },
+        { key: "name", label: "Име" },
+        { key: "email", label: "Имейл" },
+        { key: "phone", label: "Телефон" },
+        { key: "city", label: "Град" },
+        { key: "owner", label: "Отговорник" },
+        { key: "created_at", label: "Създаден" },
+      ],
+      "Контакти"
+    );
+  };
+
   return (
     <div>
       <PageHeader
         title="Контакти"
         description="Управление на клиенти и компании"
-        actions={<Button onClick={() => setFormOpen(true)}><Plus className="mr-2 h-4 w-4" />Нов контакт</Button>}
+        actions={
+          <>
+            <Button variant="outline" onClick={handleExport}><Download className="mr-2 h-4 w-4" />Excel</Button>
+            <Button onClick={() => setFormOpen(true)}><Plus className="mr-2 h-4 w-4" />Нов контакт</Button>
+          </>
+        }
       />
       <div className="p-6 space-y-4">
         <div className="flex gap-3 items-center flex-wrap">
