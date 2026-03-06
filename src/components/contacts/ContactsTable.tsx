@@ -10,7 +10,7 @@ import type { Tables } from "@/integrations/supabase/types";
 interface ContactsTableProps {
   contacts: (Tables<"contacts"> & { _ownerName?: string | null })[];
   onEdit: (contact: Tables<"contacts">) => void;
-  onDelete: (contact: Tables<"contacts">) => void;
+  onDelete?: (contact: Tables<"contacts">) => void;
   onDoubleClick?: (contact: Tables<"contacts">) => void;
   onCreateLead?: (contact: Tables<"contacts">) => void;
 }
@@ -78,9 +78,11 @@ export default function ContactsTable({ contacts, onEdit, onDelete, onDoubleClic
                   <Button variant="ghost" size="icon" onClick={() => onEdit(contact)}>
                     <Pencil className="h-4 w-4" />
                   </Button>
-                  <Button variant="ghost" size="icon" onClick={() => onDelete(contact)}>
-                    <Trash2 className="h-4 w-4 text-destructive" />
-                  </Button>
+                  {onDelete && (
+                    <Button variant="ghost" size="icon" onClick={() => onDelete(contact)}>
+                      <Trash2 className="h-4 w-4 text-destructive" />
+                    </Button>
+                  )}
                 </div>
               </TableCell>
             </TableRow>
