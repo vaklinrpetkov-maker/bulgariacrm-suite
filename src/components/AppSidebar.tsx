@@ -63,7 +63,7 @@ const AppSidebar = () => {
   };
 
   return (
-    <aside className="flex h-screen w-64 flex-col sidebar-gradient border-r border-sidebar-border">
+    <aside className="flex h-full w-full flex-col sidebar-gradient border-r border-sidebar-border">
       {/* Logo */}
       <div className="flex items-center gap-3 px-5 py-5 border-b border-sidebar-border">
         <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-sidebar-primary">
