@@ -15,7 +15,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Plus, Search, Pencil, Trash2, Download } from "lucide-react";
 import { exportToExcel } from "@/lib/exportToExcel";
 import LeadFormDialog from "@/components/leads/LeadFormDialog";
-import LeadResponseTimer from "@/components/leads/LeadResponseTimer";
+import LeadResponseTimer, { getTimerRowClass } from "@/components/leads/LeadResponseTimer";
 import LeadsKpiBar from "@/components/leads/LeadsKpiBar";
 import LeadsOverdueAlert from "@/components/leads/LeadsOverdueAlert";
 import LeadMessageHoverCard from "@/components/leads/LeadMessageHoverCard";
@@ -204,8 +204,13 @@ const LeadsPage = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filtered.map((lead) => (
-                  <TableRow key={lead.id}>
+                {filtered.map((lead) => {
+                  const isRunning = !(lead as any).responded_at;
+                  const elapsed = isRunning
+                    ? Math.max(0, Date.now() - new Date(lead.created_at).getTime())
+                    : Math.max(0, new Date((lead as any).responded_at).getTime() - new Date(lead.created_at).getTime());
+                  return (
+                  <TableRow key={lead.id} className={getTimerRowClass(elapsed, isRunning)}>
                     <TableCell className="font-medium">
                       <LeadMessageHoverCard notes={lead.notes}>
                         {lead.title}
@@ -238,7 +243,8 @@ const LeadsPage = () => {
                       </div>
                     </TableCell>
                   </TableRow>
-                ))}
+                  );
+                })}
               </TableBody>
             </Table>
           </div>
