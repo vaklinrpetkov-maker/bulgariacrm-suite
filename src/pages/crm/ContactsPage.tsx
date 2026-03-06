@@ -101,7 +101,7 @@ const ContactsPage = () => {
       setDeleteContact(null);
       toast({ title: "Контактът е изтрит." });
     },
-    onError: () => toast({ title: "Грешка при изтриване.", variant: "destructive" }),
+    onError: (err: any) => toast({ title: "Грешка при изтриване.", description: err?.message || "", variant: "destructive" }),
   });
 
   const filtered = contacts.filter((c) => {
