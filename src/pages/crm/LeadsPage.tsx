@@ -234,7 +234,7 @@ const LeadsPage = () => {
                   <TableHead>Проект</TableHead>
                   <TableHead>Статус</TableHead>
                   <TableHead>Време за отговор</TableHead>
-                  <TableHead>Ест. стойност</TableHead>
+                  <TableHead>Търсене €</TableHead>
                   <TableHead>Източник</TableHead>
                   <TableHead>Отговорник</TableHead>
                   <TableHead>Създаден</TableHead>
