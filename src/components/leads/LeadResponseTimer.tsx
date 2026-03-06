@@ -23,6 +23,14 @@ function formatDuration(ms: number) {
   return `${seconds}с`;
 }
 
+function getTimerColor(elapsedMs: number, isRunning: boolean) {
+  if (!isRunning) return { icon: "text-muted-foreground", text: "text-muted-foreground" };
+  const minutes = elapsedMs / 60000;
+  if (minutes <= 30) return { icon: "text-success", text: "text-success" };
+  if (minutes <= 120) return { icon: "text-warning", text: "text-warning" };
+  return { icon: "text-destructive", text: "text-destructive" };
+}
+
 export default function LeadResponseTimer({ createdAt, respondedAt, onStop, compact }: LeadResponseTimerProps) {
   const [now, setNow] = useState(Date.now());
   const isRunning = !respondedAt;
@@ -36,13 +44,15 @@ export default function LeadResponseTimer({ createdAt, respondedAt, onStop, comp
   const start = new Date(createdAt).getTime();
   const end = respondedAt ? new Date(respondedAt).getTime() : now;
   const elapsed = Math.max(0, end - start);
+  const colors = getTimerColor(elapsed, isRunning);
 
   return (
     <div className="flex items-center gap-1.5">
-      <Timer className={cn("h-3.5 w-3.5", isRunning ? "text-orange-500 animate-pulse" : "text-muted-foreground")} />
+      <Timer className={cn("h-3.5 w-3.5", colors.icon, isRunning && "animate-pulse")} />
       <span className={cn(
         "text-xs font-mono tabular-nums",
-        isRunning ? "text-orange-600 dark:text-orange-400 font-semibold" : "text-muted-foreground"
+        colors.text,
+        isRunning && "font-semibold"
       )}>
         {formatDuration(elapsed)}
       </span>
