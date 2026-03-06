@@ -4,10 +4,10 @@ import {
   Building2, Users, Target, Calendar, Handshake, FileText,
   FolderOpen, Workflow, CheckSquare, Briefcase, Wallet,
   Percent, Bell, Settings, LogOut, ChevronDown, Home,
-  Building, LayoutGrid
+  Building, LayoutGrid, Sun, Moon
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 interface NavItem {
   label: string;
@@ -43,6 +43,13 @@ const AppSidebar = () => {
   const { user, signOut } = useAuth();
   const location = useLocation();
   const [expandedItems, setExpandedItems] = useState<string[]>(["/crm"]);
+  const [isDark, setIsDark] = useState(() =>
+    document.documentElement.classList.contains("dark")
+  );
+
+  useEffect(() => {
+    document.documentElement.classList.toggle("dark", isDark);
+  }, [isDark]);
 
   const toggleExpand = (path: string) => {
     setExpandedItems((prev) =>
@@ -149,6 +156,13 @@ const AppSidebar = () => {
               {user?.email}
             </p>
           </div>
+          <button
+            onClick={() => setIsDark((d) => !d)}
+            className="rounded p-1 text-sidebar-muted hover:text-sidebar-foreground transition-colors"
+            title={isDark ? "Светъл режим" : "Тъмен режим"}
+          >
+            {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+          </button>
           <button
             onClick={signOut}
             className="rounded p-1 text-sidebar-muted hover:text-sidebar-foreground transition-colors"
