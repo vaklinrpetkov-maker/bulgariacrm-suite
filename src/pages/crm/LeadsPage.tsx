@@ -40,6 +40,16 @@ const LeadsPage = () => {
   const [editLead, setEditLead] = useState<Tables<"leads"> | null>(null);
   const [deleteLead, setDeleteLead] = useState<Tables<"leads"> | null>(null);
 
+  const { data: isAdmin = false } = useQuery({
+    queryKey: ["is-admin", user?.id],
+    queryFn: async () => {
+      if (!user?.id) return false;
+      const { data } = await supabase.from("user_roles").select("role").eq("user_id", user.id).eq("role", "admin");
+      return (data?.length ?? 0) > 0;
+    },
+    enabled: !!user?.id,
+  });
+
   const { data: leads = [], isLoading } = useQuery({
     queryKey: ["leads"],
     queryFn: async () => {
@@ -220,9 +230,11 @@ const LeadsPage = () => {
                         <Button variant="ghost" size="icon" onClick={() => setEditLead(lead)}>
                           <Pencil className="h-4 w-4" />
                         </Button>
-                        <Button variant="ghost" size="icon" onClick={() => setDeleteLead(lead)}>
-                          <Trash2 className="h-4 w-4 text-destructive" />
-                        </Button>
+                        {isAdmin && (
+                          <Button variant="ghost" size="icon" onClick={() => setDeleteLead(lead)}>
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                          </Button>
+                        )}
                       </div>
                     </TableCell>
                   </TableRow>
