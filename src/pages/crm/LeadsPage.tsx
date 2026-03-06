@@ -16,6 +16,7 @@ import { Plus, Search, Pencil, Trash2, Download } from "lucide-react";
 import { exportToExcel } from "@/lib/exportToExcel";
 import LeadFormDialog from "@/components/leads/LeadFormDialog";
 import LeadResponseTimer from "@/components/leads/LeadResponseTimer";
+import LeadsKpiBar from "@/components/leads/LeadsKpiBar";
 import type { Tables } from "@/integrations/supabase/types";
 
 const statusLabels: Record<string, string> = {
@@ -131,6 +132,7 @@ const LeadsPage = () => {
         }
       />
       <div className="p-6 space-y-4">
+        <LeadsKpiBar />
         <div className="flex gap-3 items-center flex-wrap">
           <div className="relative flex-1 max-w-sm">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
