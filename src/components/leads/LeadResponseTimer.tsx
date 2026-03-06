@@ -37,9 +37,9 @@ function getTimerColor(elapsedMs: number, isRunning: boolean) {
 export function getTimerRowClass(elapsedMs: number, isRunning: boolean): string {
   if (!isRunning) return "";
   const minutes = elapsedMs / 60000;
-  if (minutes <= 30) return "bg-success/5 hover:bg-success/10";
-  if (minutes <= 120) return "bg-warning/5 hover:bg-warning/10";
-  return "bg-destructive/5 hover:bg-destructive/10";
+  if (minutes <= 30) return "bg-green-50 dark:bg-green-950/20 hover:bg-green-100 dark:hover:bg-green-950/30";
+  if (minutes <= 120) return "bg-orange-50 dark:bg-orange-950/20 hover:bg-orange-100 dark:hover:bg-orange-950/30";
+  return "bg-red-50 dark:bg-red-950/20 hover:bg-red-100 dark:hover:bg-red-950/30";
 }
 
 export default function LeadResponseTimer({ createdAt, respondedAt, onStop, compact }: LeadResponseTimerProps) {

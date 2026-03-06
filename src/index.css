@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -6,85 +6,85 @@
 
 @layer base {
   :root {
-    --background: 220 6% 6%;
-    --foreground: 0 0% 100%;
+    --background: 220 20% 97%;
+    --foreground: 220 25% 10%;
 
-    --card: 220 6% 9%;
-    --card-foreground: 0 0% 100%;
+    --card: 0 0% 100%;
+    --card-foreground: 220 25% 10%;
 
-    --popover: 220 6% 9%;
-    --popover-foreground: 0 0% 100%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 25% 10%;
 
-    --primary: 222 100% 65%;
+    --primary: 239 80% 42%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 220 6% 13%;
-    --secondary-foreground: 220 5% 65%;
+    --secondary: 220 14% 92%;
+    --secondary-foreground: 220 25% 20%;
 
-    --muted: 220 6% 11%;
-    --muted-foreground: 220 5% 55%;
+    --muted: 220 14% 95%;
+    --muted-foreground: 220 10% 46%;
 
-    --accent: 222 100% 65%;
+    --accent: 35 92% 50%;
     --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 62% 50%;
+    --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
 
-    --success: 142 60% 40%;
+    --success: 142 72% 36%;
     --success-foreground: 0 0% 100%;
 
-    --warning: 38 80% 50%;
+    --warning: 38 92% 50%;
     --warning-foreground: 0 0% 100%;
 
-    --border: 220 6% 15%;
-    --input: 220 6% 15%;
-    --ring: 222 100% 65%;
+    --border: 220 13% 88%;
+    --input: 220 13% 88%;
+    --ring: 215 80% 42%;
 
-    --radius: 0.125rem;
+    --radius: 0.5rem;
 
-    --sidebar-background: 220 8% 5%;
-    --sidebar-foreground: 220 5% 70%;
-    --sidebar-primary: 222 100% 65%;
+    --sidebar-background: 220 25% 12%;
+    --sidebar-foreground: 220 10% 85%;
+    --sidebar-primary: 215 80% 55%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 220 6% 10%;
-    --sidebar-accent-foreground: 0 0% 92%;
-    --sidebar-border: 220 6% 12%;
-    --sidebar-ring: 222 100% 65%;
-    --sidebar-muted: 220 5% 40%;
+    --sidebar-accent: 220 20% 18%;
+    --sidebar-accent-foreground: 220 10% 90%;
+    --sidebar-border: 220 20% 20%;
+    --sidebar-ring: 215 80% 55%;
+    --sidebar-muted: 220 15% 35%;
 
-    --font-sans: 'Space Grotesk', system-ui, -apple-system, sans-serif;
-    --font-mono: 'IBM Plex Mono', monospace;
+    --font-sans: 'IBM Plex Sans', system-ui, -apple-system, sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
   }
 
   .dark {
-    --background: 220 6% 6%;
-    --foreground: 0 0% 100%;
-    --card: 220 6% 9%;
-    --card-foreground: 0 0% 100%;
-    --popover: 220 6% 9%;
-    --popover-foreground: 0 0% 100%;
-    --primary: 222 100% 65%;
+    --background: 220 25% 7%;
+    --foreground: 220 10% 92%;
+    --card: 220 25% 10%;
+    --card-foreground: 220 10% 92%;
+    --popover: 220 25% 10%;
+    --popover-foreground: 220 10% 92%;
+    --primary: 215 80% 55%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 220 6% 13%;
-    --secondary-foreground: 220 5% 65%;
-    --muted: 220 6% 11%;
-    --muted-foreground: 220 5% 55%;
-    --accent: 222 100% 65%;
+    --secondary: 220 20% 18%;
+    --secondary-foreground: 220 10% 85%;
+    --muted: 220 20% 15%;
+    --muted-foreground: 220 10% 55%;
+    --accent: 35 92% 50%;
     --accent-foreground: 0 0% 100%;
-    --destructive: 0 62% 50%;
+    --destructive: 0 62% 45%;
     --destructive-foreground: 0 0% 100%;
-    --border: 220 6% 15%;
-    --input: 220 6% 15%;
-    --ring: 222 100% 65%;
-    --sidebar-background: 220 8% 4%;
-    --sidebar-foreground: 220 5% 70%;
-    --sidebar-primary: 222 100% 65%;
+    --border: 220 20% 18%;
+    --input: 220 20% 18%;
+    --ring: 215 80% 55%;
+    --sidebar-background: 220 30% 6%;
+    --sidebar-foreground: 220 10% 80%;
+    --sidebar-primary: 215 80% 55%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 220 6% 10%;
-    --sidebar-accent-foreground: 0 0% 92%;
-    --sidebar-border: 220 6% 12%;
-    --sidebar-ring: 222 100% 65%;
-    --sidebar-muted: 220 5% 40%;
+    --sidebar-accent: 220 25% 12%;
+    --sidebar-accent-foreground: 220 10% 90%;
+    --sidebar-border: 220 25% 14%;
+    --sidebar-ring: 215 80% 55%;
+    --sidebar-muted: 220 15% 30%;
   }
 }
 
@@ -95,25 +95,10 @@
   body {
     @apply bg-background text-foreground font-sans antialiased;
   }
-  
-  /* Brutalist scrollbar */
-  ::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
-  }
-  ::-webkit-scrollbar-track {
-    background: hsl(var(--background));
-  }
-  ::-webkit-scrollbar-thumb {
-    background: hsl(var(--border));
-  }
-  ::-webkit-scrollbar-thumb:hover {
-    background: hsl(var(--muted-foreground));
-  }
 }
 
 @layer utilities {
   .sidebar-gradient {
-    background: hsl(var(--sidebar-background));
+    background: linear-gradient(180deg, hsl(var(--sidebar-background)) 0%, hsl(220 28% 8%) 100%);
   }
 }
