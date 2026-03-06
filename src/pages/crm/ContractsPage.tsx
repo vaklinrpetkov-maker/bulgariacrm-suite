@@ -18,6 +18,10 @@ const statusLabels: Record<string, string> = {
 };
 
 const ContractsPage = () => {
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
+
   const { data: contracts = [] } = useQuery({
     queryKey: ["contracts"],
     queryFn: async () => {
