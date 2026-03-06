@@ -37,12 +37,12 @@ const Auth = () => {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background p-4">
-      <Card className="w-full max-w-md animate-fade-in">
+      <Card className="w-full max-w-sm animate-fade-in">
         <CardHeader className="text-center">
-          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-xl bg-primary">
-            <Building2 className="h-7 w-7 text-primary-foreground" />
+          <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center bg-primary">
+            <Building2 className="h-5 w-5 text-primary-foreground" />
           </div>
-          <CardTitle className="text-2xl font-bold">BuildCRM</CardTitle>
+          <CardTitle className="text-sm">BUILDCRM</CardTitle>
           <CardDescription>Система за управление на строителство и имоти</CardDescription>
         </CardHeader>
         <CardContent>
@@ -54,11 +54,11 @@ const Auth = () => {
             <TabsContent value="login">
               <form onSubmit={handleLogin} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="email">Имейл</Label>
+                  <Label htmlFor="email" className="text-[10px] uppercase tracking-widest">Имейл</Label>
                   <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="password">Парола</Label>
+                  <Label htmlFor="password" className="text-[10px] uppercase tracking-widest">Парола</Label>
                   <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
                 </div>
                 <Button type="submit" className="w-full" disabled={loading}>
@@ -69,15 +69,15 @@ const Auth = () => {
             <TabsContent value="register">
               <form onSubmit={handleSignUp} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="fullName">Пълно име</Label>
+                  <Label htmlFor="fullName" className="text-[10px] uppercase tracking-widest">Пълно име</Label>
                   <Input id="fullName" value={fullName} onChange={(e) => setFullName(e.target.value)} required />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="regEmail">Имейл</Label>
+                  <Label htmlFor="regEmail" className="text-[10px] uppercase tracking-widest">Имейл</Label>
                   <Input id="regEmail" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="regPassword">Парола</Label>
+                  <Label htmlFor="regPassword" className="text-[10px] uppercase tracking-widest">Парола</Label>
                   <Input id="regPassword" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
                 </div>
                 <Button type="submit" className="w-full" disabled={loading}>
