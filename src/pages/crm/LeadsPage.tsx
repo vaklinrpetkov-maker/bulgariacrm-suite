@@ -124,7 +124,7 @@ const LeadsPage = () => {
         contact: contactName(l),
         project_name: (l as any).project_name || "",
         status: statusLabels[l.status] || l.status,
-        estimated_value: l.estimated_value != null ? `${l.estimated_value} лв.` : "",
+        estimated_value: l.estimated_value != null ? `${l.estimated_value} €` : "",
         source: l.source || "",
         owner: (l as any)._ownerName || "",
         created_at: format(new Date(l.created_at), "dd.MM.yyyy"),
