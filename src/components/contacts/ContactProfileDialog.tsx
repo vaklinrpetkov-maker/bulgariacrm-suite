@@ -138,7 +138,14 @@ export default function ContactProfileDialog({ contact, open, onOpenChange }: Co
     queryFn: async () => {
       const { data, error } = await supabase.from("audit_trail").select("*").eq("entity_type", "contact").eq("entity_id", contactId!).order("created_at", { ascending: false });
       if (error) throw error;
-      return data;
+      // Fetch author names for entries with user_id
+      const userIds = [...new Set(data.filter(e => e.user_id).map(e => e.user_id!))];
+      const profilesMap: Record<string, string> = {};
+      if (userIds.length > 0) {
+        const { data: profiles } = await supabase.from("profiles").select("user_id, full_name").in("user_id", userIds);
+        profiles?.forEach(p => { profilesMap[p.user_id] = p.full_name || "—"; });
+      }
+      return data.map(e => ({ ...e, _authorName: e.user_id ? (profilesMap[e.user_id] || "—") : null }));
     },
     enabled: !!contactId,
   });
@@ -324,7 +331,12 @@ export default function ContactProfileDialog({ contact, open, onOpenChange }: Co
                     return (
                       <div key={entry.id} className="flex items-start gap-3 border-b border-border pb-3 last:border-0">
                         <div className="flex-1">
-                          <Badge variant="outline" className="mb-1">{statusLabels[entry.action] || entry.action}</Badge>
+                          <div className="flex items-center gap-2 mb-1">
+                            <Badge variant="outline">{statusLabels[entry.action] || entry.action}</Badge>
+                            {(entry as any)._authorName && (
+                              <span className="text-xs font-medium text-foreground">{(entry as any)._authorName}</span>
+                            )}
+                          </div>
                           {comment && (
                             <p className="text-sm mt-1">
                               {newData?.comment ? "💬 Добавен коментар: " : "🗑️ Изтрит коментар: "}
