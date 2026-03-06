@@ -31,8 +31,7 @@ const ContactsPage = () => {
   const [deleteContact, setDeleteContact] = useState<Tables<"contacts"> | null>(null);
   const [profileContact, setProfileContact] = useState<Tables<"contacts"> | null>(null);
   const [ownerFilter, setOwnerFilter] = useState<string>("all");
-  const [dateFrom, setDateFrom] = useState<Date | undefined>(undefined);
-  const [dateTo, setDateTo] = useState<Date | undefined>(undefined);
+  const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
   const [createLeadContact, setCreateLeadContact] = useState<Tables<"contacts"> | null>(null);
 
   const { data: isAdmin } = useQuery({
