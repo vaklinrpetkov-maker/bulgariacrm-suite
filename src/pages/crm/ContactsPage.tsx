@@ -33,6 +33,15 @@ const ContactsPage = () => {
   const [dateFilter, setDateFilter] = useState<Date | undefined>(undefined);
   const [createLeadContact, setCreateLeadContact] = useState<Tables<"contacts"> | null>(null);
 
+  const { data: isAdmin } = useQuery({
+    queryKey: ["is-admin", user?.id],
+    enabled: !!user,
+    queryFn: async () => {
+      const { data } = await supabase.from("user_roles").select("role").eq("user_id", user!.id).eq("role", "admin").maybeSingle();
+      return !!data;
+    },
+  });
+
   const { data: contacts = [], isLoading } = useQuery({
     queryKey: ["contacts"],
     queryFn: async () => {
