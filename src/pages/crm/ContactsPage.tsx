@@ -92,8 +92,8 @@ const ContactsPage = () => {
   });
 
   const deleteMutation = useMutation({
-    mutationFn: async () => {
-      const { error } = await supabase.from("contacts").delete().eq("id", deleteContact!.id);
+    mutationFn: async (contactId: string) => {
+      const { error } = await supabase.from("contacts").delete().eq("id", contactId);
       if (error) throw error;
     },
     onSuccess: () => {
