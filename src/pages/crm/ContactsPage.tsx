@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { Plus, Search, CalendarIcon, X, Download } from "lucide-react";
+import type { DateRange } from "react-day-picker";
 import { exportToExcel } from "@/lib/exportToExcel";
 import ContactFormDialog, { type ContactFormValues } from "@/components/contacts/ContactFormDialog";
 import ContactDeleteDialog from "@/components/contacts/ContactDeleteDialog";
