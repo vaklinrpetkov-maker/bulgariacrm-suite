@@ -206,7 +206,7 @@ const LeadsPage = () => {
               <Calendar
                 mode="range"
                 selected={dateRange}
-                onSelect={setDateRange}
+                onSelect={(r) => { setDateRange(r); setCurrentPage(1); }}
                 numberOfMonths={2}
                 initialFocus
                 className={cn("p-3 pointer-events-auto")}
