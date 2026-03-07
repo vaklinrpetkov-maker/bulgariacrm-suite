@@ -209,6 +209,7 @@ export default function ContactProfileDialog({ contact, open, onOpenChange }: Co
         <Tabs defaultValue="info" className="flex-1 min-h-0">
           <TabsList className="w-full justify-start flex-wrap h-auto gap-1">
             <TabsTrigger value="info">Информация</TabsTrigger>
+            <TabsTrigger value="emails">Имейли</TabsTrigger>
             <TabsTrigger value="leads">Лийдове</TabsTrigger>
             <TabsTrigger value="meetings">Срещи</TabsTrigger>
             <TabsTrigger value="deals">Сделки</TabsTrigger>
