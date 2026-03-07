@@ -14,7 +14,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Plus, Search, Pencil, Trash2, Download, CalendarIcon, X } from "lucide-react";
+import { Plus, Search, Pencil, Trash2, Download, CalendarIcon, X, ChevronLeft, ChevronRight } from "lucide-react";
 import type { DateRange } from "react-day-picker";
 import { exportToExcel } from "@/lib/exportToExcel";
 import LeadFormDialog from "@/components/leads/LeadFormDialog";
