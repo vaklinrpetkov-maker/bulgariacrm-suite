@@ -14,7 +14,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Plus, Search, Pencil, Trash2, Download, CalendarIcon, X } from "lucide-react";
+import { Plus, Search, Pencil, Trash2, Download, CalendarIcon, X, ChevronLeft, ChevronRight } from "lucide-react";
 import type { DateRange } from "react-day-picker";
 import { exportToExcel } from "@/lib/exportToExcel";
 import LeadFormDialog from "@/components/leads/LeadFormDialog";
@@ -43,6 +43,8 @@ const LeadsPage = () => {
   const [editLead, setEditLead] = useState<Tables<"leads"> | null>(null);
   const [deleteLead, setDeleteLead] = useState<Tables<"leads"> | null>(null);
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
+  const [pageSize, setPageSize] = useState(20);
+  const [currentPage, setCurrentPage] = useState(1);
 
   const { data: isAdmin = false } = useQuery({
     queryKey: ["is-admin", user?.id],
@@ -161,9 +163,9 @@ const LeadsPage = () => {
         <div className="flex gap-3 items-center flex-wrap">
           <div className="relative flex-1 max-w-sm">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input placeholder="Търсене по заглавие или контакт..." className="pl-9" value={search} onChange={(e) => setSearch(e.target.value)} />
+            <Input placeholder="Търсене по заглавие или контакт..." className="pl-9" value={search} onChange={(e) => { setSearch(e.target.value); setCurrentPage(1); }} />
           </div>
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
+          <Select value={statusFilter} onValueChange={(v) => { setStatusFilter(v); setCurrentPage(1); }}>
             <SelectTrigger className="w-44">
               <SelectValue placeholder="Всички статуси" />
             </SelectTrigger>
@@ -175,7 +177,7 @@ const LeadsPage = () => {
               <SelectItem value="unqualified">Неквалифициран</SelectItem>
             </SelectContent>
           </Select>
-          <Select value={ownerFilter} onValueChange={setOwnerFilter}>
+          <Select value={ownerFilter} onValueChange={(v) => { setOwnerFilter(v); setCurrentPage(1); }}>
             <SelectTrigger className="w-44">
               <SelectValue placeholder="Всички отговорници" />
             </SelectTrigger>
@@ -204,7 +206,7 @@ const LeadsPage = () => {
               <Calendar
                 mode="range"
                 selected={dateRange}
-                onSelect={setDateRange}
+                onSelect={(r) => { setDateRange(r); setCurrentPage(1); }}
                 numberOfMonths={2}
                 initialFocus
                 className={cn("p-3 pointer-events-auto")}
@@ -225,67 +227,103 @@ const LeadsPage = () => {
             <p className="text-muted-foreground">Няма намерени лийдове.</p>
           </div>
         ) : (
-          <div className="rounded-lg border border-border bg-card">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Заглавие</TableHead>
-                  <TableHead>Контакт</TableHead>
-                  <TableHead>Проект</TableHead>
-                  <TableHead>Статус</TableHead>
-                  <TableHead>Време за отговор</TableHead>
-                  <TableHead>Търсене €</TableHead>
-                  <TableHead>Източник</TableHead>
-                  <TableHead>Отговорник</TableHead>
-                  <TableHead>Създаден</TableHead>
-                  <TableHead className="w-24">Действия</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filtered.map((lead) => {
-                  const isRunning = !(lead as any).responded_at;
-                  const elapsed = isRunning
-                    ? Math.max(0, Date.now() - new Date(lead.created_at).getTime())
-                    : Math.max(0, new Date((lead as any).responded_at).getTime() - new Date(lead.created_at).getTime());
-                  return (
-                  <TableRow key={lead.id} className={getTimerRowClass(elapsed, isRunning)}>
-                    <TableCell className="font-medium">
-                      <LeadMessageHoverCard notes={lead.notes}>
-                        {lead.title}
-                      </LeadMessageHoverCard>
-                    </TableCell>
-                    <TableCell>{lead.contacts ? getContactName(lead.contacts as any) : "—"}</TableCell>
-                    <TableCell>{(lead as any).project_name || "—"}</TableCell>
-                    <TableCell><Badge variant="secondary">{statusLabels[lead.status] || lead.status}</Badge></TableCell>
-                    <TableCell>
-                      <LeadResponseTimer
-                        createdAt={lead.created_at}
-                        respondedAt={(lead as any).responded_at}
-                        onStop={() => stopTimerMutation.mutate(lead.id)}
-                      />
-                    </TableCell>
-                    <TableCell>{lead.estimated_value != null ? `${lead.estimated_value} €` : "—"}</TableCell>
-                    <TableCell>{lead.source || "—"}</TableCell>
-                    <TableCell>{(lead as any)._ownerName || "—"}</TableCell>
-                    <TableCell>{format(new Date(lead.created_at), "dd.MM.yyyy")}</TableCell>
-                    <TableCell>
-                      <div className="flex gap-1">
-                        <Button variant="ghost" size="icon" onClick={() => setEditLead(lead)}>
-                          <Pencil className="h-4 w-4" />
-                        </Button>
-                        {isAdmin && (
-                          <Button variant="ghost" size="icon" onClick={() => setDeleteLead(lead)}>
-                            <Trash2 className="h-4 w-4 text-destructive" />
-                          </Button>
-                        )}
-                      </div>
-                    </TableCell>
+          <>
+            <div className="rounded-lg border border-border bg-card">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Заглавие</TableHead>
+                    <TableHead>Контакт</TableHead>
+                    <TableHead>Проект</TableHead>
+                    <TableHead>Статус</TableHead>
+                    <TableHead>Време за отговор</TableHead>
+                    <TableHead>Търсене €</TableHead>
+                    <TableHead>Източник</TableHead>
+                    <TableHead>Отговорник</TableHead>
+                    <TableHead>Създаден</TableHead>
+                    <TableHead className="w-24">Действия</TableHead>
                   </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
-          </div>
+                </TableHeader>
+                <TableBody>
+                  {filtered.slice((currentPage - 1) * pageSize, currentPage * pageSize).map((lead) => {
+                    const isRunning = !(lead as any).responded_at;
+                    const elapsed = isRunning
+                      ? Math.max(0, Date.now() - new Date(lead.created_at).getTime())
+                      : Math.max(0, new Date((lead as any).responded_at).getTime() - new Date(lead.created_at).getTime());
+                    return (
+                    <TableRow key={lead.id} className={getTimerRowClass(elapsed, isRunning)}>
+                      <TableCell className="font-medium">
+                        <LeadMessageHoverCard notes={lead.notes}>
+                          {lead.title}
+                        </LeadMessageHoverCard>
+                      </TableCell>
+                      <TableCell>{lead.contacts ? getContactName(lead.contacts as any) : "—"}</TableCell>
+                      <TableCell>{(lead as any).project_name || "—"}</TableCell>
+                      <TableCell><Badge variant="secondary">{statusLabels[lead.status] || lead.status}</Badge></TableCell>
+                      <TableCell>
+                        <LeadResponseTimer
+                          createdAt={lead.created_at}
+                          respondedAt={(lead as any).responded_at}
+                          onStop={() => stopTimerMutation.mutate(lead.id)}
+                        />
+                      </TableCell>
+                      <TableCell>{lead.estimated_value != null ? `${lead.estimated_value} €` : "—"}</TableCell>
+                      <TableCell>{lead.source || "—"}</TableCell>
+                      <TableCell>{(lead as any)._ownerName || "—"}</TableCell>
+                      <TableCell>{format(new Date(lead.created_at), "dd.MM.yyyy")}</TableCell>
+                      <TableCell>
+                        <div className="flex gap-1">
+                          <Button variant="ghost" size="icon" onClick={() => setEditLead(lead)}>
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          {isAdmin && (
+                            <Button variant="ghost" size="icon" onClick={() => setDeleteLead(lead)}>
+                              <Trash2 className="h-4 w-4 text-destructive" />
+                            </Button>
+                          )}
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </div>
+            {/* Pagination */}
+            {(() => {
+              const totalPages = Math.ceil(filtered.length / pageSize);
+              return (
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <span>Показване на</span>
+                    <Select value={String(pageSize)} onValueChange={(v) => { setPageSize(Number(v)); setCurrentPage(1); }}>
+                      <SelectTrigger className="w-[70px] h-8"><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="10">10</SelectItem>
+                        <SelectItem value="20">20</SelectItem>
+                        <SelectItem value="50">50</SelectItem>
+                        <SelectItem value="100">100</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <span>от {filtered.length} резултата</span>
+                  </div>
+                  {totalPages > 1 && (
+                    <div className="flex items-center gap-1">
+                      <Button variant="outline" size="icon" className="h-8 w-8" disabled={currentPage === 1} onClick={() => setCurrentPage(p => p - 1)}>
+                        <ChevronLeft className="h-4 w-4" />
+                      </Button>
+                      <span className="px-3 text-sm text-muted-foreground">
+                        {currentPage} / {totalPages}
+                      </span>
+                      <Button variant="outline" size="icon" className="h-8 w-8" disabled={currentPage === totalPages} onClick={() => setCurrentPage(p => p + 1)}>
+                        <ChevronRight className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
+          </>
         )}
       </div>
 
