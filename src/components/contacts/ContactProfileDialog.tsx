@@ -8,7 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Building2, Pencil, Plus, Trash2, User, UserCheck, UserPlus, UserMinus } from "lucide-react";
+import { Building2, Mail, Pencil, Plus, Trash2, User, UserCheck, UserPlus, UserMinus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
