@@ -8,7 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Building2, Pencil, Plus, Trash2, User, UserCheck, UserPlus, UserMinus } from "lucide-react";
+import { Building2, Mail, Pencil, Plus, Trash2, User, UserCheck, UserPlus, UserMinus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
@@ -17,6 +17,7 @@ import CreateDealFromContactDialog from "./CreateDealFromContactDialog";
 import EditLeadDialog from "./EditLeadDialog";
 import EditDealDialog from "./EditDealDialog";
 import ContactCommentsTab from "./ContactCommentsTab";
+import ContactEmailsTab from "./ContactEmailsTab";
 import type { Tables } from "@/integrations/supabase/types";
 import { useState, useEffect } from "react";
 
@@ -208,6 +209,7 @@ export default function ContactProfileDialog({ contact, open, onOpenChange }: Co
         <Tabs defaultValue="info" className="flex-1 min-h-0">
           <TabsList className="w-full justify-start flex-wrap h-auto gap-1">
             <TabsTrigger value="info">Информация</TabsTrigger>
+            <TabsTrigger value="emails">Имейли</TabsTrigger>
             <TabsTrigger value="leads">Лийдове</TabsTrigger>
             <TabsTrigger value="meetings">Срещи</TabsTrigger>
             <TabsTrigger value="deals">Сделки</TabsTrigger>
@@ -265,6 +267,10 @@ export default function ContactProfileDialog({ contact, open, onOpenChange }: Co
                 </div>
                 <InfoField label="Създаден" value={format(new Date(contact.created_at), "dd.MM.yyyy HH:mm")} />
               </dl>
+            </TabsContent>
+
+            <TabsContent value="emails" className="mt-0">
+              <ContactEmailsTab contactId={contact.id} contactEmail={contact.email} />
             </TabsContent>
 
             <TabsContent value="leads" className="mt-0">
