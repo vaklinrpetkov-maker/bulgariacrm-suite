@@ -165,7 +165,7 @@ const LeadsPage = () => {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input placeholder="Търсене по заглавие или контакт..." className="pl-9" value={search} onChange={(e) => { setSearch(e.target.value); setCurrentPage(1); }} />
           </div>
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
+          <Select value={statusFilter} onValueChange={(v) => { setStatusFilter(v); setCurrentPage(1); }}>
             <SelectTrigger className="w-44">
               <SelectValue placeholder="Всички статуси" />
             </SelectTrigger>
