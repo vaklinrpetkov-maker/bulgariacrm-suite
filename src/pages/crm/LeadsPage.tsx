@@ -43,6 +43,8 @@ const LeadsPage = () => {
   const [editLead, setEditLead] = useState<Tables<"leads"> | null>(null);
   const [deleteLead, setDeleteLead] = useState<Tables<"leads"> | null>(null);
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
+  const [pageSize, setPageSize] = useState(20);
+  const [currentPage, setCurrentPage] = useState(1);
 
   const { data: isAdmin = false } = useQuery({
     queryKey: ["is-admin", user?.id],
