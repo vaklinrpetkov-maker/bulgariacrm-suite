@@ -688,6 +688,68 @@ export type Database = {
           },
         ]
       }
+      emails: {
+        Row: {
+          body_html: string | null
+          body_text: string | null
+          contact_id: string | null
+          created_at: string
+          created_by: string | null
+          direction: string
+          from_address: string
+          id: string
+          in_reply_to: string | null
+          is_read: boolean
+          message_id: string | null
+          sent_at: string
+          subject: string | null
+          synced_at: string
+          to_address: string
+        }
+        Insert: {
+          body_html?: string | null
+          body_text?: string | null
+          contact_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          direction?: string
+          from_address: string
+          id?: string
+          in_reply_to?: string | null
+          is_read?: boolean
+          message_id?: string | null
+          sent_at?: string
+          subject?: string | null
+          synced_at?: string
+          to_address: string
+        }
+        Update: {
+          body_html?: string | null
+          body_text?: string | null
+          contact_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          direction?: string
+          from_address?: string
+          id?: string
+          in_reply_to?: string | null
+          is_read?: boolean
+          message_id?: string | null
+          sent_at?: string
+          subject?: string | null
+          synced_at?: string
+          to_address?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "emails_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       job_titles: {
         Row: {
           created_at: string
