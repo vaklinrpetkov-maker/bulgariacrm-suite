@@ -269,6 +269,10 @@ export default function ContactProfileDialog({ contact, open, onOpenChange }: Co
               </dl>
             </TabsContent>
 
+            <TabsContent value="emails" className="mt-0">
+              <ContactEmailsTab contactId={contact.id} contactEmail={contact.email} />
+            </TabsContent>
+
             <TabsContent value="leads" className="mt-0">
               {leadsLoading ? <LoadingState /> : leads.length === 0 ? <EmptyState text="Няма лийдове." /> : (
                 <Table>
