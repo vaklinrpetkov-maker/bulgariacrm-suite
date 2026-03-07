@@ -17,6 +17,7 @@ import CreateDealFromContactDialog from "./CreateDealFromContactDialog";
 import EditLeadDialog from "./EditLeadDialog";
 import EditDealDialog from "./EditDealDialog";
 import ContactCommentsTab from "./ContactCommentsTab";
+import ContactEmailsTab from "./ContactEmailsTab";
 import type { Tables } from "@/integrations/supabase/types";
 import { useState, useEffect } from "react";
 
