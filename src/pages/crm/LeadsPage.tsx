@@ -177,7 +177,7 @@ const LeadsPage = () => {
               <SelectItem value="unqualified">Неквалифициран</SelectItem>
             </SelectContent>
           </Select>
-          <Select value={ownerFilter} onValueChange={setOwnerFilter}>
+          <Select value={ownerFilter} onValueChange={(v) => { setOwnerFilter(v); setCurrentPage(1); }}>
             <SelectTrigger className="w-44">
               <SelectValue placeholder="Всички отговорници" />
             </SelectTrigger>
