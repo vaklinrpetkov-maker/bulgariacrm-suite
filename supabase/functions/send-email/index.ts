@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { SMTPClient } from "https://deno.land/x/denomailer@1.6.0/mod.ts";
+import nodemailer from "npm:nodemailer@6.9.10";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -33,27 +33,23 @@ serve(async (req) => {
     const emailPass = Deno.env.get("EMAIL_PASSWORD");
     if (!emailUser || !emailPass) throw new Error("Email credentials not configured");
 
-    const client = new SMTPClient({
-      connection: {
-        hostname: "mail.vminvest.bg",
-        port: 465,
-        tls: true,
-        auth: { username: emailUser, password: emailPass },
-      },
+    const transporter = nodemailer.createTransport({
+      host: "mail.vminvest.bg",
+      port: 465,
+      secure: true,
+      auth: { user: emailUser, pass: emailPass },
     });
 
     const messageId = `<${crypto.randomUUID()}@vminvest.bg>`;
 
-    await client.send({
+    await transporter.sendMail({
       from: emailUser,
       to,
       subject,
-      content: body,
+      text: body,
       html: body,
-      headers: { "Message-ID": messageId },
+      messageId,
     });
-
-    await client.close();
 
     // Save to DB
     const serviceClient = createClient(supabaseUrl, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);

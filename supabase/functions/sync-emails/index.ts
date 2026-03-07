@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { ImapClient } from "https://deno.land/x/deno_imap@v0.4.1/mod.ts";
+import { ImapFlow } from "npm:imapflow@1.0.164";
+import { simpleParser } from "npm:mailparser@3.7.1";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -22,77 +23,75 @@ serve(async (req) => {
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, serviceKey);
 
-    // Connect to IMAP
-    const client = new ImapClient({
-      hostname: "mail.vminvest.bg",
+    // Connect to IMAP using imapflow (npm package that works in Deno)
+    const client = new ImapFlow({
+      host: "mail.vminvest.bg",
       port: 993,
-      tls: true,
-      username: emailUser,
-      password: emailPass,
+      secure: true,
+      auth: { user: emailUser, pass: emailPass },
+      logger: false,
     });
 
     await client.connect();
-    await client.login();
-    await client.select("INBOX");
 
-    // Fetch recent emails (last 50 unseen or recent)
-    const searchResult = await client.search("UNSEEN");
-    const uids = searchResult.slice(-50);
-
-    if (uids.length === 0) {
-      await client.logout();
-      return new Response(JSON.stringify({ success: true, synced: 0 }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    // Get all contacts for matching
-    const { data: contacts } = await supabase.from("contacts").select("id, email");
-    const contactByEmail: Record<string, string> = {};
-    contacts?.forEach((c) => {
-      if (c.email) contactByEmail[c.email.toLowerCase()] = c.id;
-    });
-
+    const lock = await client.getMailboxLock("INBOX");
     let synced = 0;
 
-    for (const uid of uids) {
-      try {
-        const msg = await client.fetch(uid, { envelope: true, bodyStructure: true, body: true });
-        
-        const messageId = msg.envelope?.messageId || `<imap-${uid}-${Date.now()}@vminvest.bg>`;
-        const from = msg.envelope?.from?.[0]?.mailbox && msg.envelope?.from?.[0]?.host
-          ? `${msg.envelope.from[0].mailbox}@${msg.envelope.from[0].host}`
-          : "unknown";
-        const to = msg.envelope?.to?.[0]?.mailbox && msg.envelope?.to?.[0]?.host
-          ? `${msg.envelope.to[0].mailbox}@${msg.envelope.to[0].host}`
-          : emailUser;
-        const subject = msg.envelope?.subject || "(без тема)";
-        const sentAt = msg.envelope?.date ? new Date(msg.envelope.date).toISOString() : new Date().toISOString();
-        const bodyText = msg.body || "";
+    try {
+      // Get all contacts for matching
+      const { data: contacts } = await supabase.from("contacts").select("id, email");
+      const contactByEmail: Record<string, string> = {};
+      contacts?.forEach((c: any) => {
+        if (c.email) contactByEmail[c.email.toLowerCase()] = c.id;
+      });
 
-        // Match contact by from email
-        const contactId = contactByEmail[from.toLowerCase()] || null;
+      // Fetch last 50 unseen messages
+      const messages = client.fetch("1:*", {
+        envelope: true,
+        source: true,
+        uid: true,
+      }, { changedSince: 0n });
 
-        // Upsert (skip if message_id exists)
-        const { error } = await supabase.from("emails").upsert(
-          {
-            direction: "inbound",
-            from_address: from,
-            to_address: to,
-            subject,
-            body_text: bodyText,
-            message_id: messageId,
-            contact_id: contactId,
-            sent_at: sentAt,
-            is_read: false,
-          },
-          { onConflict: "message_id", ignoreDuplicates: true }
-        );
+      let count = 0;
+      for await (const msg of messages) {
+        if (count >= 50) break;
+        count++;
 
-        if (!error) synced++;
-      } catch (fetchErr) {
-        console.error(`Error fetching UID ${uid}:`, fetchErr);
+        try {
+          const parsed = await simpleParser(msg.source);
+          const messageId = parsed.messageId || `<imap-${msg.uid}-${Date.now()}@vminvest.bg>`;
+          const from = parsed.from?.value?.[0]?.address || "unknown";
+          const to = parsed.to ? (Array.isArray(parsed.to) ? parsed.to[0]?.value?.[0]?.address : parsed.to.value?.[0]?.address) : emailUser;
+          const subject = parsed.subject || "(без тема)";
+          const sentAt = parsed.date ? parsed.date.toISOString() : new Date().toISOString();
+          const bodyText = parsed.text || "";
+          const bodyHtml = parsed.html || null;
+
+          const contactId = contactByEmail[from.toLowerCase()] || null;
+
+          const { error } = await supabase.from("emails").upsert(
+            {
+              direction: "inbound",
+              from_address: from,
+              to_address: to || emailUser,
+              subject,
+              body_text: bodyText,
+              body_html: bodyHtml,
+              message_id: messageId,
+              contact_id: contactId,
+              sent_at: sentAt,
+              is_read: false,
+            },
+            { onConflict: "message_id", ignoreDuplicates: true }
+          );
+
+          if (!error) synced++;
+        } catch (fetchErr) {
+          console.error(`Error processing message:`, fetchErr);
+        }
       }
+    } finally {
+      lock.release();
     }
 
     await client.logout();
