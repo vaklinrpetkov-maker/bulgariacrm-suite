@@ -13,6 +13,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import {
+  Send, Mail, ArrowDownLeft, ArrowUpRight, RefreshCw, Search, X, User, Reply,
+} from "lucide-react";
   Send, Mail, ArrowDownLeft, ArrowUpRight, RefreshCw, Search, X, User,
 } from "lucide-react";
 
