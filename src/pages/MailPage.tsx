@@ -253,6 +253,17 @@ export default function MailPage() {
                     </Badge>
                   )}
                 </div>
+                {selected.direction === "inbound" && (
+                  <div className="flex">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => { setReplyOpen(!replyOpen); setReplyBody(""); }}
+                    >
+                      <Reply className="h-4 w-4 mr-1" /> Отговори
+                    </Button>
+                  </div>
+                )}
               </div>
               <div className="border-t border-border pt-4">
                 {selected.body_html ? (
@@ -261,6 +272,31 @@ export default function MailPage() {
                   <pre className="whitespace-pre-wrap text-sm text-foreground">{selected.body_text || "(празен имейл)"}</pre>
                 )}
               </div>
+              {replyOpen && selected.direction === "inbound" && (
+                <div className="border-t border-border pt-4 space-y-3">
+                  <div className="text-sm text-muted-foreground">
+                    Отговор до: <span className="font-medium text-foreground">{selected.from_address}</span>
+                  </div>
+                  <Textarea
+                    value={replyBody}
+                    onChange={(e) => setReplyBody(e.target.value)}
+                    placeholder="Напишете отговор..."
+                    rows={5}
+                  />
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      onClick={() => replyMutation.mutate()}
+                      disabled={!replyBody.trim() || replyMutation.isPending}
+                    >
+                      <Send className="h-4 w-4 mr-1" /> Изпрати отговор
+                    </Button>
+                    <Button size="sm" variant="outline" onClick={() => setReplyOpen(false)}>
+                      Отказ
+                    </Button>
+                  </div>
+                </div>
+              )}
             </div>
           ) : (
             <div className="flex h-full items-center justify-center text-muted-foreground">
