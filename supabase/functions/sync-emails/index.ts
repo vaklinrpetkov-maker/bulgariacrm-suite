@@ -59,7 +59,7 @@ serve(async (req) => {
 
         try {
           const parsed = await simpleParser(msg.source);
-          const messageId = parsed.messageId || `<imap-${msg.uid}-${Date.now()}@vminvest.bg>`;
+          const messageId = parsed.messageId || `<imap-uid-${msg.uid}@vminvest.bg>`;
           const from = parsed.from?.value?.[0]?.address || "unknown";
           const to = parsed.to ? (Array.isArray(parsed.to) ? parsed.to[0]?.value?.[0]?.address : parsed.to.value?.[0]?.address) : emailUser;
           const subject = parsed.subject || "(без тема)";
