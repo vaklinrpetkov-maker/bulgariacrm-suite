@@ -15,8 +15,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import {
   Send, Mail, ArrowDownLeft, ArrowUpRight, RefreshCw, Search, X, User, Reply,
 } from "lucide-react";
-  Send, Mail, ArrowDownLeft, ArrowUpRight, RefreshCw, Search, X, User,
-} from "lucide-react";
 
 export default function MailPage() {
   const queryClient = useQueryClient();
