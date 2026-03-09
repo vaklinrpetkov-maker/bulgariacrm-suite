@@ -12,6 +12,7 @@ import LeadsPage from "@/pages/crm/LeadsPage";
 import MeetingsPage from "@/pages/crm/MeetingsPage";
 import DealsPage from "@/pages/crm/DealsPage";
 import ContractsPage from "@/pages/crm/ContractsPage";
+import MailPage from "@/pages/MailPage";
 import InventoryPage from "@/pages/InventoryPage";
 import DocumentsPage from "@/pages/DocumentsPage";
 import TasksPage from "@/pages/TasksPage";
