@@ -1,14 +1,20 @@
 
 
-## Plan: Remove recipient check from inbound-email webhook
+## Fix: Update EMAIL_USER secret and fix duplicate sync bug
 
-**What**: Remove "Filter 1: Recipient check" from `supabase/functions/inbound-email/index.ts` — the block that verifies the `to`/`envelope` fields contain `leads@vminvest.bg`. This includes removing the `toRaw` and `envelope` variables since they're only used for that check.
+### Problem
+The `EMAIL_USER` secret is currently set to `contact@vminvest.bg` instead of `office@vminvest.bg`. This is why the sync pulls emails from the wrong mailbox. Additionally, the sync function has a duplication bug — the fallback `message_id` uses `Date.now()`, causing the same message to get a new ID on every sync run.
 
-**Why**: Since the SendGrid Inbound Parse is configured specifically for `parse.vminvest.bg`, only emails routed through that domain will hit the webhook. The recipient filter is redundant.
+### Changes
 
-**Changes in `supabase/functions/inbound-email/index.ts`**:
-- Remove `toRaw` and `envelope` variable declarations
-- Remove reading `to` and `envelope` from formData and JSON body
-- Remove the entire "Filter 1: Recipient check" block (lines ~53-70)
-- Keep Filter 2 (subject must contain "форма") intact
+1. **Update the `EMAIL_USER` secret** to `office@vminvest.bg` (and update `EMAIL_PASSWORD` if the password differs for this account).
+
+2. **Fix `supabase/functions/sync-emails/index.ts`**
+   - Change fallback message_id from `<imap-${msg.uid}-${Date.now()}@vminvest.bg>` to `<imap-uid-${msg.uid}@vminvest.bg>` so upsert deduplication works correctly.
+
+3. **Database cleanup migration**
+   - Delete duplicate email rows that were created by the broken sync, keeping only the earliest entry per unique `(from_address, to_address, subject, sent_at)`.
+
+4. **Update `src/pages/MailPage.tsx`**
+   - The header already says `office@vminvest.bg` — no change needed there.
 
