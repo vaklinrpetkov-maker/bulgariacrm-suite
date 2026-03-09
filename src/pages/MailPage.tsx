@@ -25,6 +25,8 @@ export default function MailPage() {
   const [composeTo, setComposeTo] = useState("");
   const [composeSubject, setComposeSubject] = useState("");
   const [composeBody, setComposeBody] = useState("");
+  const [replyOpen, setReplyOpen] = useState(false);
+  const [replyBody, setReplyBody] = useState("");
 
   // Fetch all emails
   const { data: emails = [], isLoading } = useQuery({
