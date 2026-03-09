@@ -28,6 +28,7 @@ const navItems: NavItem[] = [
       { label: "Договори", path: "/crm/contracts" },
     ],
   },
+  { label: "Поща", path: "/mail", icon: Mail },
   { label: "Имоти", path: "/inventory", icon: Building },
   { label: "Документи", path: "/documents", icon: FolderOpen },
   { label: "Задачи", path: "/tasks", icon: CheckSquare },
