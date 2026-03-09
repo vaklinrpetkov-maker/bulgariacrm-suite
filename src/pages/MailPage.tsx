@@ -99,6 +99,35 @@ export default function MailPage() {
       toast({ title: err instanceof Error ? err.message : "Грешка при изпращане.", variant: "destructive" }),
   });
 
+  // Reply
+  const replyMutation = useMutation({
+    mutationFn: async () => {
+      if (!selected) throw new Error("Няма избран имейл");
+      const replyTo = selected.from_address;
+      const replySubject = selected.subject?.startsWith("Re:") ? selected.subject : `Re: ${selected.subject || ""}`;
+      const { data, error } = await supabase.functions.invoke("send-email", {
+        body: {
+          to: replyTo,
+          subject: replySubject,
+          body: replyBody,
+          contact_id: selected.contact_id,
+          in_reply_to: selected.message_id,
+        },
+      });
+      if (error) throw error;
+      if (!data?.success) throw new Error(data?.error || "Грешка");
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["all-emails"] });
+      setReplyOpen(false);
+      setReplyBody("");
+      toast({ title: "Отговорът е изпратен." });
+    },
+    onError: (err) =>
+      toast({ title: err instanceof Error ? err.message : "Грешка при изпращане.", variant: "destructive" }),
+  });
+
   const contactName = (email: any) => {
     const c = email.contacts;
     if (!c) return null;
