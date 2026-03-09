@@ -1,4 +1,6 @@
 import { NavLink, useLocation } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   Building2, Users, Target, Calendar, Handshake, FileText,
@@ -47,6 +49,20 @@ const AppSidebar = () => {
   const [isDark, setIsDark] = useState(() =>
     document.documentElement.classList.contains("dark")
   );
+
+  const { data: unreadCount = 0 } = useQuery({
+    queryKey: ["unread-emails-count"],
+    queryFn: async () => {
+      const { count, error } = await supabase
+        .from("emails")
+        .select("*", { count: "exact", head: true })
+        .eq("direction", "inbound")
+        .eq("is_read", false);
+      if (error) throw error;
+      return count || 0;
+    },
+    refetchInterval: 60000,
+  });
 
   useEffect(() => {
     document.documentElement.classList.toggle("dark", isDark);
@@ -140,7 +156,12 @@ const AppSidebar = () => {
               }
             >
               <Icon className="h-4 w-4 shrink-0" />
-              <span>{item.label}</span>
+              <span className="flex-1">{item.label}</span>
+              {item.path === "/mail" && unreadCount > 0 && (
+                <span className="ml-auto flex h-5 min-w-5 items-center justify-center rounded-full bg-destructive px-1.5 text-[10px] font-bold text-destructive-foreground">
+                  {unreadCount > 99 ? "99+" : unreadCount}
+                </span>
+              )}
             </NavLink>
           );
         })}
