@@ -12,6 +12,7 @@ import LeadsPage from "@/pages/crm/LeadsPage";
 import MeetingsPage from "@/pages/crm/MeetingsPage";
 import DealsPage from "@/pages/crm/DealsPage";
 import ContractsPage from "@/pages/crm/ContractsPage";
+import MailPage from "@/pages/MailPage";
 import InventoryPage from "@/pages/InventoryPage";
 import DocumentsPage from "@/pages/DocumentsPage";
 import TasksPage from "@/pages/TasksPage";
@@ -47,6 +48,7 @@ const ProtectedRoutes = () => {
         <Route path="/crm/meetings" element={<MeetingsPage />} />
         <Route path="/crm/deals" element={<DealsPage />} />
         <Route path="/crm/contracts" element={<ContractsPage />} />
+        <Route path="/mail" element={<MailPage />} />
         <Route path="/inventory" element={<InventoryPage />} />
         <Route path="/documents" element={<DocumentsPage />} />
         <Route path="/tasks" element={<TasksPage />} />

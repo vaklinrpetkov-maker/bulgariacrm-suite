@@ -4,7 +4,7 @@ import {
   Building2, Users, Target, Calendar, Handshake, FileText,
   FolderOpen, Workflow, CheckSquare, Briefcase, Wallet,
   Percent, Bell, Settings, LogOut, ChevronDown, Home,
-  Building, LayoutGrid, Sun, Moon
+  Building, LayoutGrid, Sun, Moon, Mail
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState, useEffect } from "react";
@@ -28,6 +28,7 @@ const navItems: NavItem[] = [
       { label: "Договори", path: "/crm/contracts" },
     ],
   },
+  { label: "Поща", path: "/mail", icon: Mail },
   { label: "Имоти", path: "/inventory", icon: Building },
   { label: "Документи", path: "/documents", icon: FolderOpen },
   { label: "Задачи", path: "/tasks", icon: CheckSquare },
