@@ -142,7 +142,12 @@ const AppSidebar = () => {
               }
             >
               <Icon className="h-4 w-4 shrink-0" />
-              <span>{item.label}</span>
+              <span className="flex-1">{item.label}</span>
+              {item.path === "/mail" && unreadCount > 0 && (
+                <span className="ml-auto flex h-5 min-w-5 items-center justify-center rounded-full bg-destructive px-1.5 text-[10px] font-bold text-destructive-foreground">
+                  {unreadCount > 99 ? "99+" : unreadCount}
+                </span>
+              )}
             </NavLink>
           );
         })}
