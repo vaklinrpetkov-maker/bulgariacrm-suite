@@ -1,13 +1,13 @@
 import PageHeader from "@/components/PageHeader";
+import EmptyState from "@/components/EmptyState";
+import { Wallet } from "lucide-react";
 
 const BudgetsPage = () => {
   return (
     <div>
       <PageHeader title="Бюджети" description="Планирани vs. реални разходи" />
       <div className="p-6">
-        <div className="rounded-lg border border-border bg-card p-12 text-center">
-          <p className="text-muted-foreground">Няма бюджетни записи.</p>
-        </div>
+        <EmptyState icon={Wallet} title="Няма бюджетни записи" description="Създайте бюджет за проследяване на планирани и реални разходи." />
       </div>
     </div>
   );

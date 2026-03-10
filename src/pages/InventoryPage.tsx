@@ -1,8 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import PageHeader from "@/components/PageHeader";
+import EmptyState from "@/components/EmptyState";
 import { Button } from "@/components/ui/button";
-import { Plus, Download } from "lucide-react";
+import { Plus, Download, Building } from "lucide-react";
 import { exportToExcel } from "@/lib/exportToExcel";
 
 const unitTypeLabels: Record<string, string> = {
@@ -55,14 +56,12 @@ const InventoryPage = () => {
         actions={
           <>
             <Button variant="outline" onClick={handleExport}><Download className="mr-2 h-4 w-4" />Excel</Button>
-            <Button><Plus className="mr-2 h-4 w-4" />Нов комплекс</Button>
+            <Button className="gradient-primary shadow-md shadow-primary/20"><Plus className="mr-2 h-4 w-4" />Нов комплекс</Button>
           </>
         }
       />
       <div className="p-6">
-        <div className="rounded-lg border border-border bg-card p-12 text-center">
-          <p className="text-muted-foreground">Няма добавени комплекси. Създайте първия комплекс.</p>
-        </div>
+        <EmptyState icon={Building} title="Няма комплекси" description="Създайте първия комплекс, за да започнете да управлявате имотите." />
       </div>
     </div>
   );
