@@ -1,9 +1,11 @@
+import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import PageHeader from "@/components/PageHeader";
 import StatCard from "@/components/StatCard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import PeriodSelector, { type Period } from "@/components/dashboard/PeriodSelector";
 import {
   Users, Target, Handshake, FileText, Building, CheckSquare, Mail, Calendar,
 } from "lucide-react";
