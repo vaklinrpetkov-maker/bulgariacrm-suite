@@ -52,7 +52,8 @@ const ContactsPage = () => {
       const { data, error } = await supabase
         .from("contacts")
         .select("*")
-        .order("created_at", { ascending: false });
+        .order("created_at", { ascending: false })
+        .limit(9999);
       if (error) throw error;
       // Fetch owner names
       const ownerIds = [...new Set(data.filter(c => c.owner_id).map(c => c.owner_id!))];
