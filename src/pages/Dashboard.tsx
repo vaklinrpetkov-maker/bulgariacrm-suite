@@ -310,8 +310,9 @@ export default function Dashboard() {
         <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
           {/* Monthly Activity Area Chart */}
           <Card className="xl:col-span-2">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Активност (последни 6 месеца)</CardTitle>
+            <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
+              <CardTitle className="text-sm font-medium text-muted-foreground">Активност ({PERIOD_LABELS[activityPeriod]})</CardTitle>
+              <PeriodSelector value={activityPeriod} onChange={setActivityPeriod} />
             </CardHeader>
             <CardContent>
               <div className="h-64">
