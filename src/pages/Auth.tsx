@@ -36,18 +36,32 @@ const Auth = () => {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background p-4">
-      <Card className="w-full max-w-md animate-fade-in">
-        <CardHeader className="text-center">
-          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-xl bg-primary">
+    <div className="relative flex min-h-screen items-center justify-center bg-background p-4 overflow-hidden">
+      {/* Background effects */}
+      <div className="absolute inset-0 gradient-mesh" />
+      <div className="absolute top-1/4 left-1/4 h-96 w-96 rounded-full bg-primary/5 blur-3xl animate-glow-pulse" />
+      <div className="absolute bottom-1/4 right-1/4 h-72 w-72 rounded-full bg-accent/5 blur-3xl" />
+      
+      {/* Grid pattern */}
+      <div 
+        className="absolute inset-0 opacity-[0.02]"
+        style={{
+          backgroundImage: `linear-gradient(hsl(var(--foreground)) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--foreground)) 1px, transparent 1px)`,
+          backgroundSize: '60px 60px'
+        }}
+      />
+
+      <Card className="relative z-10 w-full max-w-md animate-fade-in glass-strong glow-sm">
+        <CardHeader className="text-center pb-2">
+          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-xl gradient-primary shadow-lg shadow-primary/25">
             <Building2 className="h-7 w-7 text-primary-foreground" />
           </div>
-          <CardTitle className="text-2xl font-bold">BuildCRM</CardTitle>
+          <CardTitle className="text-2xl font-bold tracking-tight">BuildCRM</CardTitle>
           <CardDescription>Система за управление на строителство и имоти</CardDescription>
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="login">
-            <TabsList className="grid w-full grid-cols-2">
+            <TabsList className="grid w-full grid-cols-2 mb-4">
               <TabsTrigger value="login">Вход</TabsTrigger>
               <TabsTrigger value="register">Регистрация</TabsTrigger>
             </TabsList>
@@ -55,13 +69,13 @@ const Auth = () => {
               <form onSubmit={handleLogin} className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="email">Имейл</Label>
-                  <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+                  <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required className="h-11" />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="password">Парола</Label>
-                  <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
+                  <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required className="h-11" />
                 </div>
-                <Button type="submit" className="w-full" disabled={loading}>
+                <Button type="submit" className="w-full h-11 gradient-primary font-semibold shadow-md shadow-primary/20 hover:shadow-lg hover:shadow-primary/30 transition-all" disabled={loading}>
                   {loading ? "Зареждане..." : "Вход"}
                 </Button>
               </form>
@@ -70,17 +84,17 @@ const Auth = () => {
               <form onSubmit={handleSignUp} className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="fullName">Пълно име</Label>
-                  <Input id="fullName" value={fullName} onChange={(e) => setFullName(e.target.value)} required />
+                  <Input id="fullName" value={fullName} onChange={(e) => setFullName(e.target.value)} required className="h-11" />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="regEmail">Имейл</Label>
-                  <Input id="regEmail" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+                  <Input id="regEmail" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required className="h-11" />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="regPassword">Парола</Label>
-                  <Input id="regPassword" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
+                  <Input id="regPassword" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required className="h-11" />
                 </div>
-                <Button type="submit" className="w-full" disabled={loading}>
+                <Button type="submit" className="w-full h-11 gradient-primary font-semibold shadow-md shadow-primary/20 hover:shadow-lg hover:shadow-primary/30 transition-all" disabled={loading}>
                   {loading ? "Зареждане..." : "Регистрация"}
                 </Button>
               </form>
