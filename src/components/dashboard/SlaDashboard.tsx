@@ -159,35 +159,42 @@ export default function SlaDashboard({ leads }: SlaChartProps) {
           <CardTitle className="text-sm font-medium text-muted-foreground">SLA Отговор (2ч)</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
-            {/* Big percentage */}
-            <div className="text-center">
-              <div className={`text-4xl font-bold ${slaStats.slaPercent >= 80 ? "text-green-500" : slaStats.slaPercent >= 50 ? "text-amber-500" : "text-destructive"}`}>
-                {slaStats.slaPercent}%
+          {slaStats.total === 0 ? (
+            <div className="flex flex-col items-center justify-center h-48 text-center">
+              <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-muted">
+                <Clock className="h-6 w-6 text-muted-foreground" />
               </div>
-              <p className="text-xs text-muted-foreground mt-1">в рамките на SLA</p>
+              <p className="text-sm font-medium text-foreground">Няма данни за SLA</p>
+              <p className="text-xs text-muted-foreground mt-1 max-w-[180px]">Имейли с „форма" ще се проследяват тук</p>
             </div>
-            {/* Stats grid */}
-            <div className="grid grid-cols-3 gap-2 text-center">
-              <div>
-                <div className="text-lg font-semibold text-green-500">{slaStats.inSla}</div>
-                <p className="text-[10px] text-muted-foreground">В SLA</p>
+          ) : (
+            <div className="space-y-4">
+              <div className="text-center">
+                <div className={`text-4xl font-bold ${slaStats.slaPercent >= 80 ? "text-green-500" : slaStats.slaPercent >= 50 ? "text-amber-500" : "text-destructive"}`}>
+                  {slaStats.slaPercent}%
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">в рамките на SLA</p>
               </div>
-              <div>
-                <div className="text-lg font-semibold text-destructive">{slaStats.outSla}</div>
-                <p className="text-[10px] text-muted-foreground">Извън SLA</p>
+              <div className="grid grid-cols-3 gap-2 text-center">
+                <div>
+                  <div className="text-lg font-semibold text-green-500">{slaStats.inSla}</div>
+                  <p className="text-[10px] text-muted-foreground">В SLA</p>
+                </div>
+                <div>
+                  <div className="text-lg font-semibold text-destructive">{slaStats.outSla}</div>
+                  <p className="text-[10px] text-muted-foreground">Извън SLA</p>
+                </div>
+                <div>
+                  <div className="text-lg font-semibold text-amber-500">{slaStats.pending}</div>
+                  <p className="text-[10px] text-muted-foreground">Без отговор</p>
+                </div>
               </div>
-              <div>
-                <div className="text-lg font-semibold text-amber-500">{slaStats.pending}</div>
-                <p className="text-[10px] text-muted-foreground">Без отговор</p>
+              <div className="text-center pt-2 border-t border-border/50">
+                <p className="text-xs text-muted-foreground">Средно време</p>
+                <div className="text-xl font-semibold">{slaStats.respondedCount > 0 ? formatAvgTime(slaStats.avgMinutes) : "—"}</div>
               </div>
             </div>
-            {/* Avg response time */}
-            <div className="text-center pt-2 border-t border-border/50">
-              <p className="text-xs text-muted-foreground">Средно време</p>
-              <div className="text-xl font-semibold">{slaStats.respondedCount > 0 ? formatAvgTime(slaStats.avgMinutes) : "—"}</div>
-            </div>
-          </div>
+          )}
         </CardContent>
       </Card>
 
