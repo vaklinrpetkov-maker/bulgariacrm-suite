@@ -333,7 +333,7 @@ export default function Dashboard() {
                       </linearGradient>
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" stroke="hsl(220, 13%, 88%)" strokeOpacity={0.5} />
-                    <XAxis dataKey="month" tick={{ fontSize: 12 }} stroke="hsl(220, 10%, 46%)" />
+                    <XAxis dataKey="period" tick={{ fontSize: 12 }} stroke="hsl(220, 10%, 46%)" />
                     <YAxis tick={{ fontSize: 12 }} stroke="hsl(220, 10%, 46%)" allowDecimals={false} />
                     <Tooltip
                       contentStyle={{
