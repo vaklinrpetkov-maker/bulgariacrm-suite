@@ -44,7 +44,15 @@ const STATUS_LABELS: Record<string, string> = {
 export default function Dashboard() {
   const [activityPeriod, setActivityPeriod] = useState<Period>("month");
   const [emailPeriod, setEmailPeriod] = useState<Period>("week");
-  const { data: contacts = [], isLoading: loadingContacts } = useQuery({
+  const { data: contactsCount = 0, isLoading: loadingContacts } = useQuery({
+    queryKey: ["dash-contacts-count"],
+    queryFn: async () => {
+      const { count } = await supabase.from("contacts").select("*", { count: "exact", head: true });
+      return count || 0;
+    },
+  });
+
+  const { data: contacts = [] } = useQuery({
     queryKey: ["dash-contacts"],
     queryFn: async () => {
       const { data } = await supabase.from("contacts").select("id, created_at").limit(9999);
