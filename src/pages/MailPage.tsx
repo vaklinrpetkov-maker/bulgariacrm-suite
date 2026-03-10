@@ -223,19 +223,22 @@ export default function MailPage() {
                   }`}
                 >
                   <div className="flex items-center gap-2 mb-0.5">
-                    {email.direction === "inbound" ? (
-                      <ArrowDownLeft className="h-3.5 w-3.5 text-blue-500 shrink-0" />
-                    ) : (
-                      <ArrowUpRight className="h-3.5 w-3.5 text-emerald-500 shrink-0" />
+                    {!email.is_read && (
+                      <span className="h-2 w-2 rounded-full bg-primary shrink-0" />
                     )}
-                    <span className="text-xs font-medium truncate flex-1">
+                    {email.direction === "inbound" ? (
+                      <ArrowDownLeft className="h-3.5 w-3.5 text-primary shrink-0" />
+                    ) : (
+                      <ArrowUpRight className="h-3.5 w-3.5 text-accent-foreground shrink-0" />
+                    )}
+                    <span className={`text-xs truncate flex-1 ${!email.is_read ? "font-bold text-foreground" : "font-medium text-muted-foreground"}`}>
                       {email.direction === "inbound" ? email.from_address : email.to_address}
                     </span>
                     <span className="text-[10px] text-muted-foreground shrink-0">
                       {format(new Date(email.sent_at), "dd.MM.yy HH:mm")}
                     </span>
                   </div>
-                  <p className="text-sm font-medium truncate">{email.subject || "(без тема)"}</p>
+                  <p className={`text-sm truncate ${!email.is_read ? "font-semibold text-foreground" : "font-medium"}`}>{email.subject || "(без тема)"}</p>
                   {name && (
                     <div className="flex items-center gap-1 mt-0.5">
                       <User className="h-3 w-3 text-muted-foreground" />
