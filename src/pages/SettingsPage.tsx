@@ -58,6 +58,7 @@ const SettingsPage = () => {
             <TabsTrigger value="titles">Длъжности</TabsTrigger>
             <TabsTrigger value="users">Потребители</TabsTrigger>
             <TabsTrigger value="signature">Имейл подпис</TabsTrigger>
+            <TabsTrigger value="viewer-access">Viewer достъп</TabsTrigger>
           </TabsList>
           <TabsContent value="roles" className="mt-4">
             <Card>
