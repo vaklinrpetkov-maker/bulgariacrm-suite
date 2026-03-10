@@ -462,7 +462,7 @@ export default function Dashboard() {
           {/* Email Volume Bar Chart */}
           <Card>
             <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Имейл активност ({EMAIL_PERIOD_LABELS[emailPeriod]})</CardTitle>
+              <CardTitle className="text-sm font-medium text-muted-foreground">Имейли</CardTitle>
               <PeriodSelector value={emailPeriod} onChange={setEmailPeriod} />
             </CardHeader>
             <CardContent>
