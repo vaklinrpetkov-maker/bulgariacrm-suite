@@ -5,6 +5,7 @@ import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
   CartesianGrid, Legend, PieChart, Pie, Cell,
 } from "recharts";
+import { PieChart as PieChartIcon, BarChart3, Clock } from "lucide-react";
 
 const SLA_MINUTES = 120; // 2 business hours
 
