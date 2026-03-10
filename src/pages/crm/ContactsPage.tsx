@@ -278,6 +278,12 @@ const ContactsPage = () => {
         open={!!createLeadContact}
         onOpenChange={(open) => { if (!open) setCreateLeadContact(null); }}
       />
+
+      <ContactImportDialog
+        open={importOpen}
+        onOpenChange={setImportOpen}
+        onImported={() => queryClient.invalidateQueries({ queryKey: ["contacts"] })}
+      />
     </div>
   );
 };
