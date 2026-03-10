@@ -63,6 +63,25 @@ export default function MailPage() {
     [emails, selectedId]
   );
 
+  // Mark as read mutation
+  const markReadMutation = useMutation({
+    mutationFn: async ({ id, is_read }: { id: string; is_read: boolean }) => {
+      const { error } = await supabase.from("emails").update({ is_read }).eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["all-emails"] });
+      queryClient.invalidateQueries({ queryKey: ["unread-emails-count"] });
+    },
+  });
+
+  // Auto-mark as read when selecting an unread email
+  useEffect(() => {
+    if (selected && !selected.is_read) {
+      markReadMutation.mutate({ id: selected.id, is_read: true });
+    }
+  }, [selectedId]);
+
   // Sync
   const syncMutation = useMutation({
     mutationFn: async () => {
