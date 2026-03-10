@@ -1,13 +1,13 @@
 import PageHeader from "@/components/PageHeader";
+import EmptyState from "@/components/EmptyState";
+import { Percent } from "lucide-react";
 
 const CommissionsPage = () => {
   return (
     <div>
       <PageHeader title="Комисионни" description="Проследяване на комисионни по сделки и договори" />
       <div className="p-6">
-        <div className="rounded-lg border border-border bg-card p-12 text-center">
-          <p className="text-muted-foreground">Няма комисионни записи.</p>
-        </div>
+        <EmptyState icon={Percent} title="Няма комисионни записи" description="Комисионните ще се генерират автоматично при приключване на сделки." />
       </div>
     </div>
   );
