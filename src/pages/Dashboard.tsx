@@ -470,7 +470,7 @@ export default function Dashboard() {
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={emailVolume} barSize={16}>
                     <CartesianGrid strokeDasharray="3 3" stroke="hsl(220, 13%, 88%)" strokeOpacity={0.5} />
-                    <XAxis dataKey="day" tick={{ fontSize: 10 }} stroke="hsl(220, 10%, 46%)" />
+                    <XAxis dataKey="period" tick={{ fontSize: 10 }} stroke="hsl(220, 10%, 46%)" />
                     <YAxis tick={{ fontSize: 11 }} stroke="hsl(220, 10%, 46%)" allowDecimals={false} />
                     <Tooltip
                       contentStyle={{
