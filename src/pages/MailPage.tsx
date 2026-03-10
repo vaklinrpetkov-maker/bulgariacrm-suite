@@ -220,7 +220,7 @@ export default function MailPage() {
                   onClick={() => setSelectedId(email.id)}
                   className={`w-full text-left border-b border-border px-4 py-3 transition-colors ${
                     isSelected ? "bg-accent" : "hover:bg-muted/50"
-                  }`}
+                  } ${email.is_read ? "opacity-60" : ""}`}
                 >
                   <div className="flex items-center gap-2 mb-0.5">
                     {!email.is_read && (
@@ -231,14 +231,14 @@ export default function MailPage() {
                     ) : (
                       <ArrowUpRight className="h-3.5 w-3.5 text-accent-foreground shrink-0" />
                     )}
-                    <span className={`text-xs truncate flex-1 ${!email.is_read ? "font-bold text-foreground" : "font-medium text-muted-foreground"}`}>
+                    <span className={`text-xs truncate flex-1 ${!email.is_read ? "font-bold text-foreground" : "font-normal text-muted-foreground"}`}>
                       {email.direction === "inbound" ? email.from_address : email.to_address}
                     </span>
                     <span className="text-[10px] text-muted-foreground shrink-0">
                       {format(new Date(email.sent_at), "dd.MM.yy HH:mm")}
                     </span>
                   </div>
-                  <p className={`text-sm truncate ${!email.is_read ? "font-semibold text-foreground" : "font-medium"}`}>{email.subject || "(без тема)"}</p>
+                  <p className={`text-sm truncate ${!email.is_read ? "font-semibold text-foreground" : "font-normal text-muted-foreground"}`}>{email.subject || "(без тема)"}</p>
                   {name && (
                     <div className="flex items-center gap-1 mt-0.5">
                       <User className="h-3 w-3 text-muted-foreground" />
