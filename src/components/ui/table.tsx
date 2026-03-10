@@ -1,11 +1,10 @@
 import * as React from "react";
-
 import { cn } from "@/lib/utils";
 
 const Table = React.forwardRef<HTMLTableElement, React.HTMLAttributes<HTMLTableElement>>(
   ({ className, ...props }, ref) => (
     <div className="relative w-full overflow-auto">
-      <table ref={ref} className={cn("w-full caption-bottom text-sm", className)} {...props} />
+      <table ref={ref} className={cn("w-full caption-bottom text-sm table-fixed", className)} {...props} />
     </div>
   ),
 );
@@ -41,23 +40,78 @@ const TableRow = React.forwardRef<HTMLTableRowElement, React.HTMLAttributes<HTML
 );
 TableRow.displayName = "TableRow";
 
-const TableHead = React.forwardRef<HTMLTableCellElement, React.ThHTMLAttributes<HTMLTableCellElement>>(
-  ({ className, ...props }, ref) => (
+const TableHead = React.forwardRef<
+  HTMLTableCellElement,
+  React.ThHTMLAttributes<HTMLTableCellElement> & { resizable?: boolean }
+>(({ className, resizable = true, children, style, ...props }, ref) => {
+  const thRef = React.useRef<HTMLTableCellElement | null>(null);
+  const [width, setWidth] = React.useState<number | undefined>(undefined);
+
+  const handleMouseDown = React.useCallback(
+    (e: React.MouseEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const th = thRef.current;
+      if (!th) return;
+      const startX = e.clientX;
+      const startWidth = th.offsetWidth;
+
+      const onMouseMove = (ev: MouseEvent) => {
+        const newWidth = Math.max(40, startWidth + ev.clientX - startX);
+        setWidth(newWidth);
+      };
+      const onMouseUp = () => {
+        document.removeEventListener("mousemove", onMouseMove);
+        document.removeEventListener("mouseup", onMouseUp);
+        document.body.style.cursor = "";
+        document.body.style.userSelect = "";
+      };
+      document.addEventListener("mousemove", onMouseMove);
+      document.addEventListener("mouseup", onMouseUp);
+      document.body.style.cursor = "col-resize";
+      document.body.style.userSelect = "none";
+    },
+    [],
+  );
+
+  const setRefs = React.useCallback(
+    (node: HTMLTableCellElement | null) => {
+      thRef.current = node;
+      if (typeof ref === "function") ref(node);
+      else if (ref) (ref as React.MutableRefObject<HTMLTableCellElement | null>).current = node;
+    },
+    [ref],
+  );
+
+  return (
     <th
-      ref={ref}
+      ref={setRefs}
       className={cn(
-        "h-9 px-3 text-left align-middle font-medium text-muted-foreground text-xs [&:has([role=checkbox])]:pr-0",
+        "relative h-9 px-3 text-left align-middle font-medium text-muted-foreground text-xs [&:has([role=checkbox])]:pr-0 overflow-hidden text-ellipsis whitespace-nowrap",
         className,
       )}
+      style={{ ...style, ...(width ? { width: `${width}px` } : {}) }}
       {...props}
-    />
-  ),
-);
+    >
+      {children}
+      {resizable && (
+        <span
+          onMouseDown={handleMouseDown}
+          className="absolute right-0 top-0 bottom-0 w-1.5 cursor-col-resize hover:bg-primary/20 active:bg-primary/30 z-10"
+        />
+      )}
+    </th>
+  );
+});
 TableHead.displayName = "TableHead";
 
 const TableCell = React.forwardRef<HTMLTableCellElement, React.TdHTMLAttributes<HTMLTableCellElement>>(
   ({ className, ...props }, ref) => (
-    <td ref={ref} className={cn("px-3 py-2 align-middle text-sm [&:has([role=checkbox])]:pr-0", className)} {...props} />
+    <td
+      ref={ref}
+      className={cn("px-3 py-2 align-middle text-sm [&:has([role=checkbox])]:pr-0 overflow-hidden text-ellipsis whitespace-nowrap", className)}
+      {...props}
+    />
   ),
 );
 TableCell.displayName = "TableCell";
