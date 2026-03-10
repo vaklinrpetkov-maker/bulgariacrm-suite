@@ -6,6 +6,7 @@ import StatCard from "@/components/StatCard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import PeriodSelector, { type Period } from "@/components/dashboard/PeriodSelector";
+import SlaDashboard from "@/components/dashboard/SlaDashboard";
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, Legend,
@@ -54,7 +55,7 @@ export default function Dashboard() {
   const { data: leads = [], isLoading: loadingLeads } = useQuery({
     queryKey: ["dash-leads"],
     queryFn: async () => {
-      const { data } = await supabase.from("leads").select("id, status, created_at, estimated_value");
+      const { data } = await supabase.from("leads").select("id, status, created_at, estimated_value, responded_at, source");
       return data || [];
     },
   });
@@ -486,6 +487,9 @@ export default function Dashboard() {
             </CardContent>
           </Card>
         </div>
+
+        {/* SLA Row */}
+        <SlaDashboard leads={leads as any} />
       </div>
     </div>
   );
