@@ -162,7 +162,19 @@ const ContactsPage = () => {
         description="Управление на клиенти и компании"
         actions={
           <>
-            <Button variant="outline" onClick={handleExport}><Download className="mr-2 h-4 w-4" />Excel</Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline"><FileSpreadsheet className="mr-2 h-4 w-4" />Excel</Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => setImportOpen(true)}>
+                  <Upload className="mr-2 h-4 w-4" />Импорт на контакти
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleExport}>
+                  <Download className="mr-2 h-4 w-4" />Експорт на контакти
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
             <Button onClick={() => setFormOpen(true)}><Plus className="mr-2 h-4 w-4" />Нов контакт</Button>
           </>
         }
