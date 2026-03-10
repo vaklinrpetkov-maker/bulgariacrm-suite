@@ -36,12 +36,15 @@ interface ParsedContact {
 
 function parsePhone(val: any): string | null {
   if (!val) return null;
-  const s = String(val).trim();
+  let s = String(val).trim();
   // Handle scientific notation numbers
   if (/^\d+(\.\d+)?[eE]\+?\d+$/.test(s)) {
-    return String(Math.round(Number(s)));
+    s = String(Math.round(Number(s)));
   }
-  return s || null;
+  if (!s) return null;
+  // Add leading zero if missing
+  if (s[0] !== '0' && s[0] !== '+') s = '0' + s;
+  return s;
 }
 
 function parseName(name: string): { first_name: string | null; last_name: string | null; company_name: string | null; type: "person" | "company" } {
