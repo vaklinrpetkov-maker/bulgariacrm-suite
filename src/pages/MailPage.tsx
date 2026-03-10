@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
@@ -13,7 +13,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import {
-  Send, Mail, ArrowDownLeft, ArrowUpRight, RefreshCw, Search, X, User, Reply,
+  Send, Mail, ArrowDownLeft, ArrowUpRight, RefreshCw, Search, X, User, Reply, MailOpen, MailIcon,
 } from "lucide-react";
 
 export default function MailPage() {
@@ -62,6 +62,25 @@ export default function MailPage() {
     () => (selectedId ? emails.find((e: any) => e.id === selectedId) : null),
     [emails, selectedId]
   );
+
+  // Mark as read mutation
+  const markReadMutation = useMutation({
+    mutationFn: async ({ id, is_read }: { id: string; is_read: boolean }) => {
+      const { error } = await supabase.from("emails").update({ is_read }).eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["all-emails"] });
+      queryClient.invalidateQueries({ queryKey: ["unread-emails-count"] });
+    },
+  });
+
+  // Auto-mark as read when selecting an unread email
+  useEffect(() => {
+    if (selected && !selected.is_read) {
+      markReadMutation.mutate({ id: selected.id, is_read: true });
+    }
+  }, [selectedId]);
 
   // Sync
   const syncMutation = useMutation({
@@ -204,19 +223,22 @@ export default function MailPage() {
                   }`}
                 >
                   <div className="flex items-center gap-2 mb-0.5">
-                    {email.direction === "inbound" ? (
-                      <ArrowDownLeft className="h-3.5 w-3.5 text-blue-500 shrink-0" />
-                    ) : (
-                      <ArrowUpRight className="h-3.5 w-3.5 text-emerald-500 shrink-0" />
+                    {!email.is_read && (
+                      <span className="h-2 w-2 rounded-full bg-primary shrink-0" />
                     )}
-                    <span className="text-xs font-medium truncate flex-1">
+                    {email.direction === "inbound" ? (
+                      <ArrowDownLeft className="h-3.5 w-3.5 text-primary shrink-0" />
+                    ) : (
+                      <ArrowUpRight className="h-3.5 w-3.5 text-accent-foreground shrink-0" />
+                    )}
+                    <span className={`text-xs truncate flex-1 ${!email.is_read ? "font-bold text-foreground" : "font-medium text-muted-foreground"}`}>
                       {email.direction === "inbound" ? email.from_address : email.to_address}
                     </span>
                     <span className="text-[10px] text-muted-foreground shrink-0">
                       {format(new Date(email.sent_at), "dd.MM.yy HH:mm")}
                     </span>
                   </div>
-                  <p className="text-sm font-medium truncate">{email.subject || "(без тема)"}</p>
+                  <p className={`text-sm truncate ${!email.is_read ? "font-semibold text-foreground" : "font-medium"}`}>{email.subject || "(без тема)"}</p>
                   {name && (
                     <div className="flex items-center gap-1 mt-0.5">
                       <User className="h-3 w-3 text-muted-foreground" />
@@ -235,9 +257,9 @@ export default function MailPage() {
             <div className="p-6 space-y-4">
               <div className="flex items-start gap-3">
                 {selected.direction === "inbound" ? (
-                  <ArrowDownLeft className="h-5 w-5 text-blue-500 mt-1 shrink-0" />
+                  <ArrowDownLeft className="h-5 w-5 text-primary mt-1 shrink-0" />
                 ) : (
-                  <ArrowUpRight className="h-5 w-5 text-emerald-500 mt-1 shrink-0" />
+                  <ArrowUpRight className="h-5 w-5 text-accent-foreground mt-1 shrink-0" />
                 )}
                 <div className="flex-1 min-w-0">
                   <h2 className="text-lg font-semibold text-foreground">{selected.subject || "(без тема)"}</h2>
@@ -253,8 +275,16 @@ export default function MailPage() {
                     </Badge>
                   )}
                 </div>
-                {selected.direction === "inbound" && (
-                  <div className="flex">
+                <div className="flex gap-1">
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => markReadMutation.mutate({ id: selected.id, is_read: !selected.is_read })}
+                    title={selected.is_read ? "Маркирай като непрочетен" : "Маркирай като прочетен"}
+                  >
+                    {selected.is_read ? <MailIcon className="h-4 w-4" /> : <MailOpen className="h-4 w-4" />}
+                  </Button>
+                  {selected.direction === "inbound" && (
                     <Button
                       size="sm"
                       variant="outline"
@@ -262,8 +292,8 @@ export default function MailPage() {
                     >
                       <Reply className="h-4 w-4 mr-1" /> Отговори
                     </Button>
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
               <div className="border-t border-border pt-4">
                 {selected.body_html ? (
