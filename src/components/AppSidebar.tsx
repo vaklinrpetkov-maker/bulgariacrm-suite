@@ -16,7 +16,8 @@ interface NavItem {
   label: string;
   path: string;
   icon: React.ElementType;
-  children?: { label: string; path: string }[];
+  module?: string;
+  children?: { label: string; path: string; module?: string }[];
 }
 
 const navItems: NavItem[] = [
@@ -24,21 +25,21 @@ const navItems: NavItem[] = [
   {
     label: "CRM", path: "/crm", icon: Users,
     children: [
-      { label: "Контакти", path: "/crm/contacts" },
-      { label: "Лийдове", path: "/crm/leads" },
-      { label: "Срещи", path: "/crm/meetings" },
-      { label: "Сделки", path: "/crm/deals" },
-      { label: "Договори", path: "/crm/contracts" },
+      { label: "Контакти", path: "/crm/contacts", module: "contacts" },
+      { label: "Лийдове", path: "/crm/leads", module: "leads" },
+      { label: "Срещи", path: "/crm/meetings", module: "meetings" },
+      { label: "Сделки", path: "/crm/deals", module: "deals" },
+      { label: "Договори", path: "/crm/contracts", module: "contracts" },
     ],
   },
-  { label: "Поща", path: "/mail", icon: Mail },
-  { label: "Имоти", path: "/inventory", icon: Building },
-  { label: "Документи", path: "/documents", icon: FolderOpen },
-  { label: "Задачи", path: "/tasks", icon: CheckSquare },
-  { label: "Проекти", path: "/projects", icon: Briefcase },
-  { label: "Бюджети", path: "/budgets", icon: Wallet },
-  { label: "Комисионни", path: "/commissions", icon: Percent },
-  { label: "Работни потоци", path: "/workflows", icon: Workflow },
+  { label: "Поща", path: "/mail", icon: Mail, module: "mail" },
+  { label: "Имоти", path: "/inventory", icon: Building, module: "inventory" },
+  { label: "Документи", path: "/documents", icon: FolderOpen, module: "documents" },
+  { label: "Задачи", path: "/tasks", icon: CheckSquare, module: "tasks" },
+  { label: "Проекти", path: "/projects", icon: Briefcase, module: "projects" },
+  { label: "Бюджети", path: "/budgets", icon: Wallet, module: "budgets" },
+  { label: "Комисионни", path: "/commissions", icon: Percent, module: "commissions" },
+  { label: "Работни потоци", path: "/workflows", icon: Workflow, module: "workflows" },
   { label: "Известия", path: "/notifications", icon: Bell },
   { label: "Настройки", path: "/settings", icon: Settings },
 ];
