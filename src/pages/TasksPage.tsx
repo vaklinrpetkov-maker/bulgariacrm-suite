@@ -196,6 +196,15 @@ const TasksPage = () => {
               <SelectItem value="urgent">Спешен</SelectItem>
             </SelectContent>
           </Select>
+          <Select value={ownerFilter} onValueChange={setOwnerFilter}>
+            <SelectTrigger className="w-[180px]"><SelectValue placeholder="Отговорник" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Всички отговорници</SelectItem>
+              {profiles.map((p) => (
+                <SelectItem key={p.user_id} value={p.user_id}>{p.full_name || p.email || "—"}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           <Tabs value={view} onValueChange={(v) => setView(v as "table" | "kanban")} className="ml-auto">
             <TabsList>
               <TabsTrigger value="table"><LayoutList className="h-4 w-4 mr-1" />Таблица</TabsTrigger>
