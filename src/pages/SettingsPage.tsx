@@ -142,6 +142,9 @@ const SettingsPage = () => {
               </Card>
             </div>
           </TabsContent>
+          <TabsContent value="viewer-access" className="mt-4">
+            <ViewerAccessTab />
+          </TabsContent>
         </Tabs>
       </div>
     </div>
