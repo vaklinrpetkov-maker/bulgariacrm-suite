@@ -7,9 +7,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import PeriodSelector, { type Period } from "@/components/dashboard/PeriodSelector";
 import {
-  Users, Target, Handshake, FileText, Building, CheckSquare, Mail, Calendar,
-} from "lucide-react";
-import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, Legend,
   AreaChart, Area, CartesianGrid,
