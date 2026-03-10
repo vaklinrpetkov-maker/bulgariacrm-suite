@@ -23,6 +23,7 @@ const TasksPage = () => {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [priorityFilter, setPriorityFilter] = useState<string>("all");
+  const [ownerFilter, setOwnerFilter] = useState<string>("all");
   const [view, setView] = useState<"table" | "kanban">("table");
   const [formOpen, setFormOpen] = useState(false);
   const [editTask, setEditTask] = useState<Tables<"tasks"> | null>(null);
