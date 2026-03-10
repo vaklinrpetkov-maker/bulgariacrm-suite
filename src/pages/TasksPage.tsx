@@ -160,13 +160,13 @@ const TasksPage = () => {
           const total = enrichedTasks.length;
           const inProgress = enrichedTasks.filter((t) => t.status === "in_progress").length;
           const overdue = enrichedTasks.filter((t) => t.due_date && new Date(t.due_date) < now && t.status !== "done" && t.status !== "cancelled").length;
-          const doneToday = enrichedTasks.filter((t) => t.status === "done" && new Date(t.updated_at) >= todayStart && new Date(t.updated_at) <= todayEnd).length;
+          const doneOnTime = enrichedTasks.filter((t) => t.status === "done" && (!t.due_date || new Date(t.updated_at) <= new Date(t.due_date))).length;
           return (
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <StatCard emoji="📋" title="Общо задачи" value={total} />
               <StatCard emoji="🔄" title="В процес" value={inProgress} />
               <StatCard emoji="⚠️" title="Просрочени" value={overdue} description={overdue > 0 ? "Изискват внимание" : undefined} />
-              <StatCard emoji="✅" title="Завършени днес" value={doneToday} />
+              <StatCard emoji="✅" title="В срок" value={doneOnTime} description="Завършени навреме" />
             </div>
           );
         })()}
