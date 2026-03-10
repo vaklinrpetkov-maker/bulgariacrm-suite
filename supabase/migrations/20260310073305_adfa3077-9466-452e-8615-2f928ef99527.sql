@@ -1,0 +1,1 @@
+DELETE FROM emails WHERE from_address = 'contact@vminvest.bg';
