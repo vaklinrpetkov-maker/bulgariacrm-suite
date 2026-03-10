@@ -15,38 +15,36 @@ interface ViewerUser {
   modules: string[];
 }
 
+const sb = supabase as any;
+
 const ViewerAccessTab = () => {
   const queryClient = useQueryClient();
   const [changes, setChanges] = useState<Record<string, string[]>>({});
 
-  // Get all viewer users
   const { data: viewers = [], isLoading } = useQuery({
     queryKey: ["viewer-users"],
     queryFn: async () => {
-      // Get users with viewer role
       const { data: viewerRoles } = await supabase
         .from("user_roles")
         .select("user_id")
         .eq("role", "viewer" as any);
 
-      if (!viewerRoles?.length) return [];
+      if (!viewerRoles?.length) return [] as ViewerUser[];
 
       const userIds = viewerRoles.map((r) => r.user_id);
 
-      // Get profiles
       const { data: profiles } = await supabase
         .from("profiles")
         .select("user_id, email, full_name")
         .in("user_id", userIds);
 
-      // Get existing access
-      const { data: access } = await supabase
+      const { data: access } = await sb
         .from("viewer_module_access")
         .select("user_id, module")
         .in("user_id", userIds);
 
       const accessMap: Record<string, string[]> = {};
-      (access || []).forEach((a) => {
+      (access || []).forEach((a: any) => {
         if (!accessMap[a.user_id]) accessMap[a.user_id] = [];
         accessMap[a.user_id].push(a.module);
       });
@@ -74,21 +72,10 @@ const ViewerAccessTab = () => {
 
   const saveMutation = useMutation({
     mutationFn: async ({ userId, modules }: { userId: string; modules: string[] }) => {
-      // Delete existing
-      await supabase
-        .from("viewer_module_access")
-        .delete()
-        .eq("user_id", userId);
-
-      // Insert new
+      await sb.from("viewer_module_access").delete().eq("user_id", userId);
       if (modules.length > 0) {
-        const rows = modules.map((module) => ({
-          user_id: userId,
-          module,
-        }));
-        const { error } = await supabase
-          .from("viewer_module_access")
-          .insert(rows);
+        const rows = modules.map((module) => ({ user_id: userId, module }));
+        const { error } = await sb.from("viewer_module_access").insert(rows);
         if (error) throw error;
       }
     },
