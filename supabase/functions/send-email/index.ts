@@ -33,6 +33,23 @@ serve(async (req) => {
     const emailPass = Deno.env.get("EMAIL_PASSWORD");
     if (!emailUser || !emailPass) throw new Error("Email credentials not configured");
 
+    // Fetch user's email signature
+    const serviceClient = createClient(supabaseUrl, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
+    const { data: sigData } = await serviceClient
+      .from("email_signatures")
+      .select("signature_html")
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    let finalHtml = body;
+    let finalText = body;
+    if (sigData?.signature_html) {
+      finalHtml = `${body}<br><br>--<br>${sigData.signature_html}`;
+      // Strip HTML tags for plain text version
+      const plainSig = sigData.signature_html.replace(/<[^>]*>/g, "");
+      finalText = `${body}\n\n--\n${plainSig}`;
+    }
+
     const transporter = nodemailer.createTransport({
       host: "mail.vminvest.bg",
       port: 465,
@@ -46,20 +63,19 @@ serve(async (req) => {
       from: emailUser,
       to,
       subject,
-      text: body,
-      html: body,
+      text: finalText,
+      html: finalHtml,
       messageId,
     });
 
     // Save to DB
-    const serviceClient = createClient(supabaseUrl, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
     await serviceClient.from("emails").insert({
       direction: "outbound",
       from_address: emailUser,
       to_address: to,
       subject,
-      body_text: body,
-      body_html: body,
+      body_text: finalText,
+      body_html: finalHtml,
       message_id: messageId,
       contact_id: contact_id || null,
       sent_at: new Date().toISOString(),

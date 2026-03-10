@@ -1,30 +1,14 @@
 
 
-## Email Signature Feature
+## Plan: Remove recipient check from inbound-email webhook
 
-### What
-Add an "Email Signature" (Имейл подпис) section in Settings where users can compose and save an HTML email signature. This signature will be automatically appended to every outgoing email sent through the platform.
+**What**: Remove "Filter 1: Recipient check" from `supabase/functions/inbound-email/index.ts` — the block that verifies the `to`/`envelope` fields contain `leads@vminvest.bg`. This includes removing the `toRaw` and `envelope` variables since they're only used for that check.
 
-### Database
-- New table `email_signatures` with columns: `id` (uuid PK), `user_id` (uuid, references auth.users, unique), `signature_html` (text), `created_at`, `updated_at`
-- RLS: users can read/write only their own signature
+**Why**: Since the SendGrid Inbound Parse is configured specifically for `parse.vminvest.bg`, only emails routed through that domain will hit the webhook. The recipient filter is redundant.
 
-### Settings Page
-- Add a new tab "Имейл подпис" in `SettingsPage.tsx`
-- Rich text area (or plain textarea for HTML) where the user types/pastes their signature
-- Live preview below the editor
-- Save button that upserts to `email_signatures`
-
-### Edge Function (`send-email/index.ts`)
-- After authenticating the user, fetch their signature from `email_signatures` table
-- Append the signature HTML (separated by `<br><br>--<br>`) to the `html` field before sending
-- For `text`, append a plain-text version
-
-### Frontend Send Points (no changes needed)
-- `ContactEmailsTab.tsx` and `MailPage.tsx` already send the body to the edge function — the signature append happens server-side, so no UI changes needed at the send call sites
-
-### Summary of files to create/edit
-1. **Migration SQL** -- create `email_signatures` table + RLS policies
-2. **`src/pages/SettingsPage.tsx`** -- add "Имейл подпис" tab with textarea, preview, and save logic
-3. **`supabase/functions/send-email/index.ts`** -- fetch user's signature and append to outgoing emails
+**Changes in `supabase/functions/inbound-email/index.ts`**:
+- Remove `toRaw` and `envelope` variable declarations
+- Remove reading `to` and `envelope` from formData and JSON body
+- Remove the entire "Filter 1: Recipient check" block (lines ~53-70)
+- Keep Filter 2 (subject must contain "форма") intact
 
