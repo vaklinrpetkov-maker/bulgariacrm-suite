@@ -100,7 +100,10 @@ const AppSidebar = () => {
 
       {/* Nav */}
       <nav className="flex-1 overflow-y-auto px-3 py-3 space-y-0.5 relative z-10">
-        {navItems.map((item) => {
+        {navItems.filter((item) => {
+          if (!item.module) return true;
+          return hasModuleAccess(item.module);
+        }).map((item) => {
           const Icon = item.icon;
           const active = isActive(item.path);
           const expanded = expandedItems.includes(item.path);
