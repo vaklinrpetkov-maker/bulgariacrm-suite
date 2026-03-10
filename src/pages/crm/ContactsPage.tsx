@@ -35,6 +35,7 @@ const ContactsPage = () => {
   const [ownerFilter, setOwnerFilter] = useState<string>("all");
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
   const [createLeadContact, setCreateLeadContact] = useState<Tables<"contacts"> | null>(null);
+  const [importOpen, setImportOpen] = useState(false);
 
   const { data: isAdmin } = useQuery({
     queryKey: ["is-admin", user?.id],
