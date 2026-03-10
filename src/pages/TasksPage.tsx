@@ -1,5 +1,4 @@
 import { useState, useMemo } from "react";
-import { startOfDay, endOfDay } from "date-fns";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -23,6 +22,7 @@ const TasksPage = () => {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [priorityFilter, setPriorityFilter] = useState<string>("all");
+  const [ownerFilter, setOwnerFilter] = useState<string>("all");
   const [view, setView] = useState<"table" | "kanban">("table");
   const [formOpen, setFormOpen] = useState(false);
   const [editTask, setEditTask] = useState<Tables<"tasks"> | null>(null);
@@ -123,6 +123,7 @@ const TasksPage = () => {
     if (search && !t.title.toLowerCase().includes(search.toLowerCase()) && !(t.description ?? "").toLowerCase().includes(search.toLowerCase())) return false;
     if (statusFilter !== "all" && t.status !== statusFilter) return false;
     if (priorityFilter !== "all" && t.priority !== priorityFilter) return false;
+    if (ownerFilter !== "all" && t.assignee_id !== ownerFilter) return false;
     return true;
   });
 
@@ -155,12 +156,10 @@ const TasksPage = () => {
         {/* KPI Bar */}
         {(() => {
           const now = new Date();
-          const todayStart = startOfDay(now);
-          const todayEnd = endOfDay(now);
-          const total = enrichedTasks.length;
-          const inProgress = enrichedTasks.filter((t) => t.status === "in_progress").length;
-          const overdue = enrichedTasks.filter((t) => t.due_date && new Date(t.due_date) < now && t.status !== "done" && t.status !== "cancelled").length;
-          const doneOnTime = enrichedTasks.filter((t) => t.status === "done" && (!t.due_date || new Date(t.updated_at) <= new Date(t.due_date))).length;
+          const total = filtered.length;
+          const inProgress = filtered.filter((t) => t.status === "in_progress").length;
+          const overdue = filtered.filter((t) => t.due_date && new Date(t.due_date) < now && t.status !== "done" && t.status !== "cancelled").length;
+          const doneOnTime = filtered.filter((t) => t.status === "done" && (!t.due_date || new Date(t.updated_at) <= new Date(t.due_date))).length;
           return (
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <StatCard emoji="📋" title="Общо задачи" value={total} />
@@ -194,6 +193,15 @@ const TasksPage = () => {
               <SelectItem value="medium">Среден</SelectItem>
               <SelectItem value="high">Висок</SelectItem>
               <SelectItem value="urgent">Спешен</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select value={ownerFilter} onValueChange={setOwnerFilter}>
+            <SelectTrigger className="w-[180px]"><SelectValue placeholder="Отговорник" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Всички отговорници</SelectItem>
+              {profiles.map((p) => (
+                <SelectItem key={p.user_id} value={p.user_id}>{p.full_name || p.email || "—"}</SelectItem>
+              ))}
             </SelectContent>
           </Select>
           <Tabs value={view} onValueChange={(v) => setView(v as "table" | "kanban")} className="ml-auto">
