@@ -487,6 +487,9 @@ export default function Dashboard() {
             </CardContent>
           </Card>
         </div>
+
+        {/* SLA Row */}
+        <SlaDashboard leads={leads as any} />
       </div>
     </div>
   );
