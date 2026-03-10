@@ -317,7 +317,7 @@ export default function Dashboard() {
             <CardContent>
               <div className="h-64">
                 <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={monthlyActivity}>
+                  <AreaChart data={activityData}>
                     <defs>
                       <linearGradient id="colorContacts" x1="0" y1="0" x2="0" y2="1">
                         <stop offset="5%" stopColor={CHART_COLORS[0]} stopOpacity={0.3} />
