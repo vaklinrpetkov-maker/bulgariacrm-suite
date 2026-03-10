@@ -44,7 +44,15 @@ const STATUS_LABELS: Record<string, string> = {
 export default function Dashboard() {
   const [activityPeriod, setActivityPeriod] = useState<Period>("month");
   const [emailPeriod, setEmailPeriod] = useState<Period>("week");
-  const { data: contacts = [], isLoading: loadingContacts } = useQuery({
+  const { data: contactsCount = 0, isLoading: loadingContacts } = useQuery({
+    queryKey: ["dash-contacts-count"],
+    queryFn: async () => {
+      const { count } = await supabase.from("contacts").select("*", { count: "exact", head: true });
+      return count || 0;
+    },
+  });
+
+  const { data: contacts = [] } = useQuery({
     queryKey: ["dash-contacts"],
     queryFn: async () => {
       const { data } = await supabase.from("contacts").select("id, created_at").limit(9999);
@@ -294,7 +302,7 @@ export default function Dashboard() {
       <div className="p-6 space-y-6">
         {/* KPI Row */}
         <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-8 gap-3">
-          <StatCard title="Контакти" value={contacts.length} emoji="👥" description="Общо" />
+          <StatCard title="Контакти" value={contactsCount} emoji="👥" description="Общо" />
           <StatCard title="Лийдове" value={activeLeads.length} emoji="🎯" description={`от ${leads.length}`} />
           <StatCard title="Сделки" value={activeDeals.length} emoji="🤝" description={formatBGN(dealsValue)} />
           <StatCard title="Договори" value={activeContracts.length} emoji="📄" description={formatBGN(contractsValue)} />

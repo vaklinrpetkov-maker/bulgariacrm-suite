@@ -49,20 +49,30 @@ const ContactsPage = () => {
   const { data: contacts = [], isLoading } = useQuery({
     queryKey: ["contacts"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("contacts")
-        .select("*")
-        .order("created_at", { ascending: false })
-        .limit(9999);
-      if (error) throw error;
+      // Fetch all contacts in batches to bypass server max-rows limit
+      const batchSize = 1000;
+      let allData: any[] = [];
+      let from = 0;
+      let hasMore = true;
+      while (hasMore) {
+        const { data, error } = await supabase
+          .from("contacts")
+          .select("*")
+          .order("created_at", { ascending: false })
+          .range(from, from + batchSize - 1);
+        if (error) throw error;
+        allData = allData.concat(data || []);
+        hasMore = (data?.length || 0) === batchSize;
+        from += batchSize;
+      }
       // Fetch owner names
-      const ownerIds = [...new Set(data.filter(c => c.owner_id).map(c => c.owner_id!))];
+      const ownerIds = [...new Set(allData.filter(c => c.owner_id).map(c => c.owner_id!))];
       const ownerMap: Record<string, string> = {};
       if (ownerIds.length > 0) {
         const { data: profiles } = await supabase.from("profiles").select("user_id, full_name").in("user_id", ownerIds);
         profiles?.forEach(p => { ownerMap[p.user_id] = p.full_name || "—"; });
       }
-      return data.map(c => ({ ...c, _ownerName: c.owner_id ? (ownerMap[c.owner_id] || "—") : null }));
+      return allData.map(c => ({ ...c, _ownerName: c.owner_id ? (ownerMap[c.owner_id] || "—") : null }));
     },
   });
 
