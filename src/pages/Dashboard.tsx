@@ -302,7 +302,7 @@ export default function Dashboard() {
       <div className="p-6 space-y-6">
         {/* KPI Row */}
         <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-8 gap-3">
-          <StatCard title="Контакти" value={contacts.length} emoji="👥" description="Общо" />
+          <StatCard title="Контакти" value={contactsCount} emoji="👥" description="Общо" />
           <StatCard title="Лийдове" value={activeLeads.length} emoji="🎯" description={`от ${leads.length}`} />
           <StatCard title="Сделки" value={activeDeals.length} emoji="🤝" description={formatBGN(dealsValue)} />
           <StatCard title="Договори" value={activeContracts.length} emoji="📄" description={formatBGN(contractsValue)} />
