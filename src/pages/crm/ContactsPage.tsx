@@ -21,6 +21,7 @@ import ContactsTable from "@/components/contacts/ContactsTable";
 import ContactProfileDialog from "@/components/contacts/ContactProfileDialog";
 import type { Tables } from "@/integrations/supabase/types";
 import CreateLeadFromContactDialog from "@/components/contacts/CreateLeadFromContactDialog";
+import ContactImportDialog from "@/components/contacts/ContactImportDialog";
 
 const ContactsPage = () => {
   const { user } = useAuth();
