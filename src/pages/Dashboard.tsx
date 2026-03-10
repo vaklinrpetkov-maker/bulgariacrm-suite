@@ -293,14 +293,14 @@ export default function Dashboard() {
       <div className="p-6 space-y-6">
         {/* KPI Row */}
         <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-8 gap-3">
-          <StatCard title="Контакти" value={contacts.length} icon={Users} description="Общо" />
-          <StatCard title="Лийдове" value={activeLeads.length} icon={Target} description={`от ${leads.length}`} />
-          <StatCard title="Сделки" value={activeDeals.length} icon={Handshake} description={formatBGN(dealsValue)} />
-          <StatCard title="Договори" value={activeContracts.length} icon={FileText} description={formatBGN(contractsValue)} />
-          <StatCard title="Имоти" value={availableUnits.length} icon={Building} description={`от ${units.length}`} />
-          <StatCard title="Задачи" value={pendingTasks.length} icon={CheckSquare} description={`от ${tasks.length}`} />
-          <StatCard title="Срещи" value={upcomingMeetings.length} icon={Calendar} description="Предстоящи" />
-          <StatCard title="Поща" value={unreadEmails.length} icon={Mail} description="Непрочетени" />
+          <StatCard title="Контакти" value={contacts.length} emoji="👥" description="Общо" />
+          <StatCard title="Лийдове" value={activeLeads.length} emoji="🎯" description={`от ${leads.length}`} />
+          <StatCard title="Сделки" value={activeDeals.length} emoji="🤝" description={formatBGN(dealsValue)} />
+          <StatCard title="Договори" value={activeContracts.length} emoji="📄" description={formatBGN(contractsValue)} />
+          <StatCard title="Имоти" value={availableUnits.length} emoji="🏢" description={`от ${units.length}`} />
+          <StatCard title="Задачи" value={pendingTasks.length} emoji="✅" description={`от ${tasks.length}`} />
+          <StatCard title="Срещи" value={upcomingMeetings.length} emoji="📅" description="Предстоящи" />
+          <StatCard title="Поща" value={unreadEmails.length} emoji="📬" description="Непрочетени" />
         </div>
 
         {/* Charts Row 1 */}
