@@ -157,12 +157,10 @@ const TasksPage = () => {
         {/* KPI Bar */}
         {(() => {
           const now = new Date();
-          const todayStart = startOfDay(now);
-          const todayEnd = endOfDay(now);
-          const total = enrichedTasks.length;
-          const inProgress = enrichedTasks.filter((t) => t.status === "in_progress").length;
-          const overdue = enrichedTasks.filter((t) => t.due_date && new Date(t.due_date) < now && t.status !== "done" && t.status !== "cancelled").length;
-          const doneOnTime = enrichedTasks.filter((t) => t.status === "done" && (!t.due_date || new Date(t.updated_at) <= new Date(t.due_date))).length;
+          const total = filtered.length;
+          const inProgress = filtered.filter((t) => t.status === "in_progress").length;
+          const overdue = filtered.filter((t) => t.due_date && new Date(t.due_date) < now && t.status !== "done" && t.status !== "cancelled").length;
+          const doneOnTime = filtered.filter((t) => t.status === "done" && (!t.due_date || new Date(t.updated_at) <= new Date(t.due_date))).length;
           return (
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <StatCard emoji="📋" title="Общо задачи" value={total} />
