@@ -11,7 +11,8 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
-import { Plus, Search, CalendarIcon, X, Download } from "lucide-react";
+import { Plus, Search, CalendarIcon, X, Download, Upload, FileSpreadsheet } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import type { DateRange } from "react-day-picker";
 import { exportToExcel } from "@/lib/exportToExcel";
 import ContactFormDialog, { type ContactFormValues } from "@/components/contacts/ContactFormDialog";
@@ -20,6 +21,7 @@ import ContactsTable from "@/components/contacts/ContactsTable";
 import ContactProfileDialog from "@/components/contacts/ContactProfileDialog";
 import type { Tables } from "@/integrations/supabase/types";
 import CreateLeadFromContactDialog from "@/components/contacts/CreateLeadFromContactDialog";
+import ContactImportDialog from "@/components/contacts/ContactImportDialog";
 
 const ContactsPage = () => {
   const { user } = useAuth();
@@ -33,6 +35,7 @@ const ContactsPage = () => {
   const [ownerFilter, setOwnerFilter] = useState<string>("all");
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
   const [createLeadContact, setCreateLeadContact] = useState<Tables<"contacts"> | null>(null);
+  const [importOpen, setImportOpen] = useState(false);
 
   const { data: isAdmin } = useQuery({
     queryKey: ["is-admin", user?.id],
@@ -159,7 +162,19 @@ const ContactsPage = () => {
         description="Управление на клиенти и компании"
         actions={
           <>
-            <Button variant="outline" onClick={handleExport}><Download className="mr-2 h-4 w-4" />Excel</Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline"><FileSpreadsheet className="mr-2 h-4 w-4" />Excel</Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => setImportOpen(true)}>
+                  <Upload className="mr-2 h-4 w-4" />Импорт на контакти
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleExport}>
+                  <Download className="mr-2 h-4 w-4" />Експорт на контакти
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
             <Button onClick={() => setFormOpen(true)}><Plus className="mr-2 h-4 w-4" />Нов контакт</Button>
           </>
         }
@@ -262,6 +277,12 @@ const ContactsPage = () => {
         contactId={createLeadContact?.id || ""}
         open={!!createLeadContact}
         onOpenChange={(open) => { if (!open) setCreateLeadContact(null); }}
+      />
+
+      <ContactImportDialog
+        open={importOpen}
+        onOpenChange={setImportOpen}
+        onImported={() => queryClient.invalidateQueries({ queryKey: ["contacts"] })}
       />
     </div>
   );
