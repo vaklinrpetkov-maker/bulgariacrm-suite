@@ -1,9 +1,11 @@
+import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import PageHeader from "@/components/PageHeader";
 import StatCard from "@/components/StatCard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import PeriodSelector, { type Period } from "@/components/dashboard/PeriodSelector";
 import {
   Users, Target, Handshake, FileText, Building, CheckSquare, Mail, Calendar,
 } from "lucide-react";
@@ -42,6 +44,8 @@ const STATUS_LABELS: Record<string, string> = {
 };
 
 export default function Dashboard() {
+  const [activityPeriod, setActivityPeriod] = useState<Period>("month");
+  const [emailPeriod, setEmailPeriod] = useState<Period>("week");
   const { data: contacts = [], isLoading: loadingContacts } = useQuery({
     queryKey: ["dash-contacts"],
     queryFn: async () => {
@@ -149,37 +153,126 @@ export default function Dashboard() {
     }, {})
   ).map(([status, count]) => ({ name: STATUS_LABELS[status] || status, value: count }));
 
-  // Monthly activity (last 6 months: contacts + leads created)
-  const monthlyActivity = (() => {
-    const months: { month: string; Контакти: number; Лийдове: number; Сделки: number }[] = [];
+  // Activity data based on period
+  const activityData = useMemo(() => {
     const now = new Date();
-    for (let i = 5; i >= 0; i--) {
-      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
-      const label = d.toLocaleDateString("bg-BG", { month: "short", year: "2-digit" });
-      const contactsCount = contacts.filter((c) => c.created_at?.startsWith(key)).length;
-      const leadsCount = leads.filter((l) => l.created_at?.startsWith(key)).length;
-      const dealsCount = deals.filter((dd) => dd.created_at?.startsWith(key)).length;
-      months.push({ month: label, Контакти: contactsCount, Лийдове: leadsCount, Сделки: dealsCount });
+    if (activityPeriod === "week") {
+      // Last 7 days
+      const days: { period: string; Контакти: number; Лийдове: number; Сделки: number }[] = [];
+      for (let i = 6; i >= 0; i--) {
+        const d = new Date(now);
+        d.setDate(d.getDate() - i);
+        const key = d.toISOString().slice(0, 10);
+        const label = d.toLocaleDateString("bg-BG", { weekday: "short", day: "numeric" });
+        days.push({
+          period: label,
+          Контакти: contacts.filter((c) => c.created_at?.startsWith(key)).length,
+          Лийдове: leads.filter((l) => l.created_at?.startsWith(key)).length,
+          Сделки: deals.filter((dd) => dd.created_at?.startsWith(key)).length,
+        });
+      }
+      return days;
+    } else if (activityPeriod === "quarter") {
+      // Last 12 months
+      const months: { period: string; Контакти: number; Лийдове: number; Сделки: number }[] = [];
+      for (let i = 11; i >= 0; i--) {
+        const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+        const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+        const label = d.toLocaleDateString("bg-BG", { month: "short", year: "2-digit" });
+        months.push({
+          period: label,
+          Контакти: contacts.filter((c) => c.created_at?.startsWith(key)).length,
+          Лийдове: leads.filter((l) => l.created_at?.startsWith(key)).length,
+          Сделки: deals.filter((dd) => dd.created_at?.startsWith(key)).length,
+        });
+      }
+      return months;
+    } else {
+      // Last 6 months (default)
+      const months: { period: string; Контакти: number; Лийдове: number; Сделки: number }[] = [];
+      for (let i = 5; i >= 0; i--) {
+        const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+        const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+        const label = d.toLocaleDateString("bg-BG", { month: "short", year: "2-digit" });
+        months.push({
+          period: label,
+          Контакти: contacts.filter((c) => c.created_at?.startsWith(key)).length,
+          Лийдове: leads.filter((l) => l.created_at?.startsWith(key)).length,
+          Сделки: deals.filter((dd) => dd.created_at?.startsWith(key)).length,
+        });
+      }
+      return months;
     }
-    return months;
-  })();
+  }, [activityPeriod, contacts, leads, deals]);
 
-  // Email volume (last 7 days)
-  const emailVolume = (() => {
-    const days: { day: string; Входящи: number; Изходящи: number }[] = [];
+  // Email volume based on period
+  const emailVolume = useMemo(() => {
     const now = new Date();
-    for (let i = 6; i >= 0; i--) {
-      const d = new Date(now);
-      d.setDate(d.getDate() - i);
-      const key = d.toISOString().slice(0, 10);
-      const label = d.toLocaleDateString("bg-BG", { weekday: "short", day: "numeric" });
-      const inbound = emails.filter((e) => e.direction === "inbound" && e.sent_at?.startsWith(key)).length;
-      const outbound = emails.filter((e) => e.direction === "outbound" && e.sent_at?.startsWith(key)).length;
-      days.push({ day: label, Входящи: inbound, Изходящи: outbound });
+    if (emailPeriod === "week") {
+      // Last 7 days
+      const days: { period: string; Входящи: number; Изходящи: number }[] = [];
+      for (let i = 6; i >= 0; i--) {
+        const d = new Date(now);
+        d.setDate(d.getDate() - i);
+        const key = d.toISOString().slice(0, 10);
+        const label = d.toLocaleDateString("bg-BG", { weekday: "short", day: "numeric" });
+        days.push({
+          period: label,
+          Входящи: emails.filter((e) => e.direction === "inbound" && e.sent_at?.startsWith(key)).length,
+          Изходящи: emails.filter((e) => e.direction === "outbound" && e.sent_at?.startsWith(key)).length,
+        });
+      }
+      return days;
+    } else if (emailPeriod === "month") {
+      // Last 30 days grouped by week
+      const weeks: { period: string; Входящи: number; Изходящи: number }[] = [];
+      for (let i = 3; i >= 0; i--) {
+        const weekEnd = new Date(now);
+        weekEnd.setDate(weekEnd.getDate() - i * 7);
+        const weekStart = new Date(weekEnd);
+        weekStart.setDate(weekStart.getDate() - 6);
+        const label = `${weekStart.toLocaleDateString("bg-BG", { day: "numeric", month: "short" })} - ${weekEnd.toLocaleDateString("bg-BG", { day: "numeric", month: "short" })}`;
+        weeks.push({
+          period: label,
+          Входящи: emails.filter((e) => {
+            const d = new Date(e.sent_at);
+            return e.direction === "inbound" && d >= weekStart && d <= weekEnd;
+          }).length,
+          Изходящи: emails.filter((e) => {
+            const d = new Date(e.sent_at);
+            return e.direction === "outbound" && d >= weekStart && d <= weekEnd;
+          }).length,
+        });
+      }
+      return weeks;
+    } else {
+      // Quarter: last 3 months
+      const months: { period: string; Входящи: number; Изходящи: number }[] = [];
+      for (let i = 2; i >= 0; i--) {
+        const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+        const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+        const label = d.toLocaleDateString("bg-BG", { month: "long" });
+        months.push({
+          period: label,
+          Входящи: emails.filter((e) => e.direction === "inbound" && e.sent_at?.startsWith(key)).length,
+          Изходящи: emails.filter((e) => e.direction === "outbound" && e.sent_at?.startsWith(key)).length,
+        });
+      }
+      return months;
     }
-    return days;
-  })();
+  }, [emailPeriod, emails]);
+
+  const PERIOD_LABELS: Record<Period, string> = {
+    week: "7 дни",
+    month: "6 месеца",
+    quarter: "12 месеца",
+  };
+
+  const EMAIL_PERIOD_LABELS: Record<Period, string> = {
+    week: "7 дни",
+    month: "4 седмици",
+    quarter: "3 месеца",
+  };
 
   const formatBGN = (v: number) =>
     v >= 1_000_000 ? `${(v / 1_000_000).toFixed(1)}M лв` : v >= 1000 ? `${(v / 1000).toFixed(0)}K лв` : `${v} лв`;
@@ -217,13 +310,14 @@ export default function Dashboard() {
         <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
           {/* Monthly Activity Area Chart */}
           <Card className="xl:col-span-2">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Активност (последни 6 месеца)</CardTitle>
+            <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
+              <CardTitle className="text-sm font-medium text-muted-foreground">Активност ({PERIOD_LABELS[activityPeriod]})</CardTitle>
+              <PeriodSelector value={activityPeriod} onChange={setActivityPeriod} />
             </CardHeader>
             <CardContent>
               <div className="h-64">
                 <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={monthlyActivity}>
+                  <AreaChart data={activityData}>
                     <defs>
                       <linearGradient id="colorContacts" x1="0" y1="0" x2="0" y2="1">
                         <stop offset="5%" stopColor={CHART_COLORS[0]} stopOpacity={0.3} />
@@ -239,7 +333,7 @@ export default function Dashboard() {
                       </linearGradient>
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" stroke="hsl(220, 13%, 88%)" strokeOpacity={0.5} />
-                    <XAxis dataKey="month" tick={{ fontSize: 12 }} stroke="hsl(220, 10%, 46%)" />
+                    <XAxis dataKey="period" tick={{ fontSize: 12 }} stroke="hsl(220, 10%, 46%)" />
                     <YAxis tick={{ fontSize: 12 }} stroke="hsl(220, 10%, 46%)" allowDecimals={false} />
                     <Tooltip
                       contentStyle={{
@@ -367,15 +461,16 @@ export default function Dashboard() {
 
           {/* Email Volume Bar Chart */}
           <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Имейл активност (7 дни)</CardTitle>
+            <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
+              <CardTitle className="text-sm font-medium text-muted-foreground">Имейл активност ({EMAIL_PERIOD_LABELS[emailPeriod]})</CardTitle>
+              <PeriodSelector value={emailPeriod} onChange={setEmailPeriod} />
             </CardHeader>
             <CardContent>
               <div className="h-56">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={emailVolume} barSize={16}>
                     <CartesianGrid strokeDasharray="3 3" stroke="hsl(220, 13%, 88%)" strokeOpacity={0.5} />
-                    <XAxis dataKey="day" tick={{ fontSize: 10 }} stroke="hsl(220, 10%, 46%)" />
+                    <XAxis dataKey="period" tick={{ fontSize: 10 }} stroke="hsl(220, 10%, 46%)" />
                     <YAxis tick={{ fontSize: 11 }} stroke="hsl(220, 10%, 46%)" allowDecimals={false} />
                     <Tooltip
                       contentStyle={{
