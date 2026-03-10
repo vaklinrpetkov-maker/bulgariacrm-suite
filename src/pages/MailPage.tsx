@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
@@ -13,7 +13,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import {
-  Send, Mail, ArrowDownLeft, ArrowUpRight, RefreshCw, Search, X, User, Reply,
+  Send, Mail, ArrowDownLeft, ArrowUpRight, RefreshCw, Search, X, User, Reply, MailOpen, MailIcon,
 } from "lucide-react";
 
 export default function MailPage() {
