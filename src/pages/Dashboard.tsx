@@ -47,7 +47,7 @@ export default function Dashboard() {
   const { data: contacts = [], isLoading: loadingContacts } = useQuery({
     queryKey: ["dash-contacts"],
     queryFn: async () => {
-      const { data } = await supabase.from("contacts").select("id, created_at");
+      const { data } = await supabase.from("contacts").select("id, created_at").limit(9999);
       return data || [];
     },
   });

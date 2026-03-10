@@ -45,7 +45,7 @@ export default function LeadFormDialog({ open, onOpenChange, lead }: LeadFormDia
   const { data: contacts = [] } = useQuery({
     queryKey: ["contacts-list"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("contacts").select("*").order("created_at", { ascending: false });
+      const { data, error } = await supabase.from("contacts").select("*").order("created_at", { ascending: false }).limit(9999);
       if (error) throw error;
       return data;
     },
