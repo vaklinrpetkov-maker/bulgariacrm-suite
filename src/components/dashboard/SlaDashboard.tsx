@@ -246,24 +246,34 @@ export default function SlaDashboard({ leads }: SlaChartProps) {
         </CardHeader>
         <CardContent>
           <div className="h-56">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={trendData} barSize={16} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(220, 13%, 88%)" strokeOpacity={0.5} />
-                <XAxis dataKey="period" tick={{ fontSize: 10 }} stroke="hsl(220, 10%, 46%)" />
-                <YAxis tick={{ fontSize: 11 }} stroke="hsl(220, 10%, 46%)" allowDecimals={false} />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: "hsl(0, 0%, 100%)",
-                    border: "1px solid hsl(220, 13%, 88%)",
-                    borderRadius: "8px",
-                    fontSize: "13px",
-                  }}
-                />
-                <Bar dataKey="В SLA" fill={COLORS.inSla} radius={[3, 3, 0, 0]} />
-                <Bar dataKey="Извън SLA" fill={COLORS.outSla} radius={[3, 3, 0, 0]} />
-                <Legend iconType="circle" wrapperStyle={{ fontSize: "11px" }} />
-              </BarChart>
-            </ResponsiveContainer>
+            {trendData.every((d) => d["В SLA"] === 0 && d["Извън SLA"] === 0) ? (
+              <div className="flex flex-col h-full items-center justify-center text-center">
+                <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-muted">
+                  <BarChart3 className="h-6 w-6 text-muted-foreground" />
+                </div>
+                <p className="text-sm font-medium text-foreground">Няма тренд данни</p>
+                <p className="text-xs text-muted-foreground mt-1 max-w-[200px]">Тренд данни ще се появят с времето</p>
+              </div>
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={trendData} barSize={16} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(220, 13%, 88%)" strokeOpacity={0.5} />
+                  <XAxis dataKey="period" tick={{ fontSize: 10 }} stroke="hsl(220, 10%, 46%)" />
+                  <YAxis tick={{ fontSize: 11 }} stroke="hsl(220, 10%, 46%)" allowDecimals={false} />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: "hsl(0, 0%, 100%)",
+                      border: "1px solid hsl(220, 13%, 88%)",
+                      borderRadius: "8px",
+                      fontSize: "13px",
+                    }}
+                  />
+                  <Bar dataKey="В SLA" fill={COLORS.inSla} radius={[3, 3, 0, 0]} />
+                  <Bar dataKey="Извън SLA" fill={COLORS.outSla} radius={[3, 3, 0, 0]} />
+                  <Legend iconType="circle" wrapperStyle={{ fontSize: "11px" }} />
+                </BarChart>
+              </ResponsiveContainer>
+            )}
           </div>
         </CardContent>
       </Card>
