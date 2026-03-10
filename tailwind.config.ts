@@ -15,17 +15,38 @@ export default {
   	extend: {
   		fontFamily: {
   			sans: [
-  				'Inter',
+  				'Space Grotesk',
+  				'ui-sans-serif',
   				'system-ui',
   				'-apple-system',
-  				'sans-serif',
+  				'BlinkMacSystemFont',
+  				'Segoe UI',
+  				'Roboto',
+  				'Helvetica Neue',
+  				'Arial',
+  				'Noto Sans',
+  				'sans-serif'
   			],
   			mono: [
-  				'JetBrains Mono',
+  				'Space Mono',
   				'ui-monospace',
   				'SFMono-Regular',
-  				'monospace',
+  				'Menlo',
+  				'Monaco',
+  				'Consolas',
+  				'Liberation Mono',
+  				'Courier New',
+  				'monospace'
   			],
+  			serif: [
+  				'Lora',
+  				'ui-serif',
+  				'Georgia',
+  				'Cambria',
+  				'Times New Roman',
+  				'Times',
+  				'serif'
+  			]
   		},
   		colors: {
   			border: 'hsl(var(--border))',
@@ -36,7 +57,7 @@ export default {
   			primary: {
   				DEFAULT: 'hsl(var(--primary))',
   				foreground: 'hsl(var(--primary-foreground))',
-  				glow: 'hsl(var(--primary-glow))',
+  				glow: 'hsl(var(--primary-glow))'
   			},
   			secondary: {
   				DEFAULT: 'hsl(var(--secondary))',
@@ -89,24 +110,48 @@ export default {
   		},
   		keyframes: {
   			'accordion-down': {
-  				from: { height: '0' },
-  				to: { height: 'var(--radix-accordion-content-height)' }
+  				from: {
+  					height: '0'
+  				},
+  				to: {
+  					height: 'var(--radix-accordion-content-height)'
+  				}
   			},
   			'accordion-up': {
-  				from: { height: 'var(--radix-accordion-content-height)' },
-  				to: { height: '0' }
+  				from: {
+  					height: 'var(--radix-accordion-content-height)'
+  				},
+  				to: {
+  					height: '0'
+  				}
   			},
   			'fade-in': {
-  				from: { opacity: '0', transform: 'translateY(6px)' },
-  				to: { opacity: '1', transform: 'translateY(0)' }
+  				from: {
+  					opacity: '0',
+  					transform: 'translateY(6px)'
+  				},
+  				to: {
+  					opacity: '1',
+  					transform: 'translateY(0)'
+  				}
   			},
   			'slide-up': {
-  				from: { opacity: '0', transform: 'translateY(12px)' },
-  				to: { opacity: '1', transform: 'translateY(0)' }
+  				from: {
+  					opacity: '0',
+  					transform: 'translateY(12px)'
+  				},
+  				to: {
+  					opacity: '1',
+  					transform: 'translateY(0)'
+  				}
   			},
-  			'shimmer': {
-  				'0%': { backgroundPosition: '-200% 0' },
-  				'100%': { backgroundPosition: '200% 0' }
+  			shimmer: {
+  				'0%': {
+  					backgroundPosition: '-200% 0'
+  				},
+  				'100%': {
+  					backgroundPosition: '200% 0'
+  				}
   			}
   		},
   		animation: {
@@ -114,7 +159,16 @@ export default {
   			'accordion-up': 'accordion-up 0.2s ease-out',
   			'fade-in': 'fade-in 0.4s ease-out',
   			'slide-up': 'slide-up 0.5s ease-out',
-  			'shimmer': 'shimmer 2s linear infinite'
+  			shimmer: 'shimmer 2s linear infinite'
+  		},
+  		boxShadow: {
+  			'2xs': 'var(--shadow-2xs)',
+  			xs: 'var(--shadow-xs)',
+  			sm: 'var(--shadow-sm)',
+  			md: 'var(--shadow-md)',
+  			lg: 'var(--shadow-lg)',
+  			xl: 'var(--shadow-xl)',
+  			'2xl': 'var(--shadow-2xl)'
   		}
   	}
   },
