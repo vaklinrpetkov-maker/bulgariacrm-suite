@@ -128,7 +128,7 @@ const AppSidebar = () => {
                 </button>
                 {expanded && (
                   <div className="ml-7 mt-0.5 space-y-0.5 border-l border-sidebar-border/50 pl-3">
-                    {item.children.map((child) => (
+                    {(item.children || []).filter((child) => !child.module || hasModuleAccess(child.module)).map((child) => (
                       <NavLink
                         key={child.path}
                         to={child.path}
