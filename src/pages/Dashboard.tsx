@@ -6,6 +6,7 @@ import StatCard from "@/components/StatCard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import PeriodSelector, { type Period } from "@/components/dashboard/PeriodSelector";
+import SlaDashboard from "@/components/dashboard/SlaDashboard";
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, Legend,
