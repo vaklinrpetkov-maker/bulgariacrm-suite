@@ -124,6 +124,7 @@ const TasksPage = () => {
     if (search && !t.title.toLowerCase().includes(search.toLowerCase()) && !(t.description ?? "").toLowerCase().includes(search.toLowerCase())) return false;
     if (statusFilter !== "all" && t.status !== statusFilter) return false;
     if (priorityFilter !== "all" && t.priority !== priorityFilter) return false;
+    if (ownerFilter !== "all" && t.assignee_id !== ownerFilter) return false;
     return true;
   });
 
