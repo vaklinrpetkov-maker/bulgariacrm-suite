@@ -46,6 +46,7 @@ const navItems: NavItem[] = [
 
 const AppSidebar = () => {
   const { user, signOut } = useAuth();
+  const { isViewer, hasModuleAccess } = useUserRole();
   const location = useLocation();
   const [expandedItems, setExpandedItems] = useState<string[]>(["/crm"]);
   const [isDark, setIsDark] = useState(() =>
