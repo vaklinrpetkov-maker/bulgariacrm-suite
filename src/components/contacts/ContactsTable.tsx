@@ -56,7 +56,7 @@ export default function ContactsTable({ contacts, onEdit, onDelete, onDoubleClic
             <TableHead>Имейл</TableHead>
             <TableHead>Телефон</TableHead>
             <TableHead>Рожден ден</TableHead>
-            <TableHead>Град</TableHead>
+            
             <TableHead>Отговорник</TableHead>
             <TableHead>Създаден</TableHead>
             <TableHead className="w-32">Действия</TableHead>
@@ -103,7 +103,7 @@ export default function ContactsTable({ contacts, onEdit, onDelete, onDoubleClic
                     </span>
                   ) : "—"}
                 </TableCell>
-                <TableCell>{contact.city || "—"}</TableCell>
+                
                 <TableCell>{(contact as any)._ownerName || "—"}</TableCell>
                 <TableCell>{format(new Date(contact.created_at), "dd.MM.yyyy")}</TableCell>
                 <TableCell>
