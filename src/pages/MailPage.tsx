@@ -257,9 +257,9 @@ export default function MailPage() {
             <div className="p-6 space-y-4">
               <div className="flex items-start gap-3">
                 {selected.direction === "inbound" ? (
-                  <ArrowDownLeft className="h-5 w-5 text-blue-500 mt-1 shrink-0" />
+                  <ArrowDownLeft className="h-5 w-5 text-primary mt-1 shrink-0" />
                 ) : (
-                  <ArrowUpRight className="h-5 w-5 text-emerald-500 mt-1 shrink-0" />
+                  <ArrowUpRight className="h-5 w-5 text-accent-foreground mt-1 shrink-0" />
                 )}
                 <div className="flex-1 min-w-0">
                   <h2 className="text-lg font-semibold text-foreground">{selected.subject || "(без тема)"}</h2>
@@ -275,8 +275,16 @@ export default function MailPage() {
                     </Badge>
                   )}
                 </div>
-                {selected.direction === "inbound" && (
-                  <div className="flex">
+                <div className="flex gap-1">
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => markReadMutation.mutate({ id: selected.id, is_read: !selected.is_read })}
+                    title={selected.is_read ? "Маркирай като непрочетен" : "Маркирай като прочетен"}
+                  >
+                    {selected.is_read ? <MailIcon className="h-4 w-4" /> : <MailOpen className="h-4 w-4" />}
+                  </Button>
+                  {selected.direction === "inbound" && (
                     <Button
                       size="sm"
                       variant="outline"
@@ -284,8 +292,8 @@ export default function MailPage() {
                     >
                       <Reply className="h-4 w-4 mr-1" /> Отговори
                     </Button>
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
               <div className="border-t border-border pt-4">
                 {selected.body_html ? (
