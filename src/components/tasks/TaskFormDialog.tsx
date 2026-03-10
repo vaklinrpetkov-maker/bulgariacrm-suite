@@ -150,10 +150,10 @@ export default function TaskFormDialog({ open, onOpenChange, onSubmit, defaultVa
               <FormField control={form.control} name="assignee_id" render={({ field }) => (
                 <FormItem>
                   <FormLabel>Отговорник</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value ?? ""}>
+                  <Select onValueChange={(v) => field.onChange(v === "__none__" ? "" : v)} value={field.value || "__none__"}>
                     <FormControl><SelectTrigger><SelectValue placeholder="Изберете..." /></SelectTrigger></FormControl>
                     <SelectContent>
-                      <SelectItem value="">Без отговорник</SelectItem>
+                      <SelectItem value="__none__">Без отговорник</SelectItem>
                       {profiles.map((p) => (
                         <SelectItem key={p.user_id} value={p.user_id}>
                           {p.full_name || p.email || "—"}
