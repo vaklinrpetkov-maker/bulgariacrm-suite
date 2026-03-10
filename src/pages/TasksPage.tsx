@@ -1,10 +1,12 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
+import { startOfDay, endOfDay } from "date-fns";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";
 import PageHeader from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
+import StatCard from "@/components/StatCard";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus, Search, LayoutList, Kanban } from "lucide-react";
@@ -150,6 +152,24 @@ const TasksPage = () => {
         }
       />
       <div className="p-6 space-y-4">
+        {/* KPI Bar */}
+        {(() => {
+          const now = new Date();
+          const todayStart = startOfDay(now);
+          const todayEnd = endOfDay(now);
+          const total = enrichedTasks.length;
+          const inProgress = enrichedTasks.filter((t) => t.status === "in_progress").length;
+          const overdue = enrichedTasks.filter((t) => t.due_date && new Date(t.due_date) < now && t.status !== "done" && t.status !== "cancelled").length;
+          const doneToday = enrichedTasks.filter((t) => t.status === "done" && new Date(t.updated_at) >= todayStart && new Date(t.updated_at) <= todayEnd).length;
+          return (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <StatCard emoji="📋" title="Общо задачи" value={total} />
+              <StatCard emoji="🔄" title="В процес" value={inProgress} />
+              <StatCard emoji="⚠️" title="Просрочени" value={overdue} description={overdue > 0 ? "Изискват внимание" : undefined} />
+              <StatCard emoji="✅" title="Завършени днес" value={doneToday} />
+            </div>
+          );
+        })()}
         {/* Filters & view toggle */}
         <div className="flex flex-wrap items-center gap-3">
           <div className="relative flex-1 min-w-[200px] max-w-sm">
