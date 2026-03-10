@@ -1,14 +1,18 @@
 
 
-## Plan: Remove recipient check from inbound-email webhook
+## Plan: Add Empty State Illustrations to SLA Charts
 
-**What**: Remove "Filter 1: Recipient check" from `supabase/functions/inbound-email/index.ts` — the block that verifies the `to`/`envelope` fields contain `leads@vminvest.bg`. This includes removing the `toRaw` and `envelope` variables since they're only used for that check.
+Replace the plain "Няма данни" text in the SLA dashboard with styled empty state placeholders using Lucide icons and descriptive hints.
 
-**Why**: Since the SendGrid Inbound Parse is configured specifically for `parse.vminvest.bg`, only emails routed through that domain will hit the webhook. The recipient filter is redundant.
+### Changes in `src/components/dashboard/SlaDashboard.tsx`
 
-**Changes in `supabase/functions/inbound-email/index.ts`**:
-- Remove `toRaw` and `envelope` variable declarations
-- Remove reading `to` and `envelope` from formData and JSON body
-- Remove the entire "Filter 1: Recipient check" block (lines ~53-70)
-- Keep Filter 2 (subject must contain "форма") intact
+1. **Import** `PieChart as PieChartIcon`, `BarChart3`, `Clock` icons from `lucide-react`
+
+2. **SLA KPI Card** (lines ~160-190): When `slaStats.total === 0`, show an empty state with a `Clock` icon, "Няма данни за SLA" title, and hint "Имейли с 'форма' ще се проследяват тук"
+
+3. **Pie Chart** (line 221): Replace the plain text with a centered empty state using `PieChartIcon` icon + hint text "Данните ще се визуализират при получени имейли"
+
+4. **Trend Chart** (lines 234-252): When all trend data values are 0, show empty state with `BarChart3` icon + hint "Тренд данни ще се появят с времето"
+
+Each empty state will use a soft icon (muted color, ~32px), a short title, and a descriptive subtitle — consistent with the existing `EmptyState` component style but inline (smaller).
 
