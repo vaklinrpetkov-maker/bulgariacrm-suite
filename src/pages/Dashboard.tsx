@@ -44,6 +44,8 @@ const STATUS_LABELS: Record<string, string> = {
 };
 
 export default function Dashboard() {
+  const [activityPeriod, setActivityPeriod] = useState<Period>("month");
+  const [emailPeriod, setEmailPeriod] = useState<Period>("week");
   const { data: contacts = [], isLoading: loadingContacts } = useQuery({
     queryKey: ["dash-contacts"],
     queryFn: async () => {
