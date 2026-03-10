@@ -3,7 +3,7 @@ import AppSidebar from "@/components/AppSidebar";
 
 const MIN_WIDTH = 200;
 const MAX_WIDTH = 400;
-const DEFAULT_WIDTH = 256;
+const DEFAULT_WIDTH = 260;
 
 const AppLayout = ({ children }: { children: ReactNode }) => {
   const [sidebarWidth, setSidebarWidth] = useState(DEFAULT_WIDTH);
@@ -38,13 +38,13 @@ const AppLayout = ({ children }: { children: ReactNode }) => {
   }, []);
 
   return (
-    <div className="flex h-screen overflow-hidden">
+    <div className="flex h-screen overflow-hidden bg-background">
       <div style={{ width: sidebarWidth, minWidth: sidebarWidth }} className="relative flex-shrink-0">
         <AppSidebar />
         {/* Resize handle */}
         <div
           onMouseDown={handleMouseDown}
-          className="absolute top-0 right-0 h-full w-1.5 cursor-col-resize z-50 hover:bg-primary/20 active:bg-primary/30 transition-colors"
+          className="absolute top-0 right-0 h-full w-1 cursor-col-resize z-50 hover:bg-primary/30 active:bg-primary/40 transition-colors"
         />
       </div>
       <main className="flex-1 overflow-y-auto">

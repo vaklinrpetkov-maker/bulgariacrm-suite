@@ -6,7 +6,7 @@ import {
   Building2, Users, Target, Calendar, Handshake, FileText,
   FolderOpen, Workflow, CheckSquare, Briefcase, Wallet,
   Percent, Bell, Settings, LogOut, ChevronDown, Home,
-  Building, LayoutGrid, Sun, Moon, Mail
+  Building, Sun, Moon, Mail
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState, useEffect } from "react";
@@ -80,20 +80,23 @@ const AppSidebar = () => {
   };
 
   return (
-    <aside className="flex h-full w-full flex-col sidebar-gradient border-r border-sidebar-border">
+    <aside className="flex h-full w-full flex-col sidebar-gradient border-r border-sidebar-border relative overflow-hidden">
+      {/* Subtle glow accent at top */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 h-32 w-48 bg-sidebar-primary/10 blur-3xl rounded-full pointer-events-none" />
+
       {/* Logo */}
-      <div className="flex items-center gap-3 px-5 py-5 border-b border-sidebar-border">
-        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-sidebar-primary">
-          <Building2 className="h-5 w-5 text-sidebar-primary-foreground" />
+      <div className="flex items-center gap-3 px-5 py-5 border-b border-sidebar-border relative z-10">
+        <div className="flex h-9 w-9 items-center justify-center rounded-lg gradient-primary shadow-md shadow-primary/20">
+          <Building2 className="h-5 w-5 text-primary-foreground" />
         </div>
         <div>
-          <h1 className="text-sm font-semibold text-sidebar-foreground">BuildCRM</h1>
-          <p className="text-xs text-sidebar-muted">Строителство & Имоти</p>
+          <h1 className="text-sm font-bold tracking-tight text-sidebar-foreground">BuildCRM</h1>
+          <p className="text-[11px] text-sidebar-muted">Строителство & Имоти</p>
         </div>
       </div>
 
       {/* Nav */}
-      <nav className="flex-1 overflow-y-auto px-3 py-3 space-y-0.5">
+      <nav className="flex-1 overflow-y-auto px-3 py-3 space-y-0.5 relative z-10">
         {navItems.map((item) => {
           const Icon = item.icon;
           const active = isActive(item.path);
@@ -105,30 +108,30 @@ const AppSidebar = () => {
                 <button
                   onClick={() => toggleExpand(item.path)}
                   className={cn(
-                    "flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors",
+                    "flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm transition-all duration-200",
                     active
-                      ? "bg-sidebar-accent text-sidebar-accent-foreground"
-                      : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                      ? "bg-sidebar-accent text-sidebar-accent-foreground shadow-sm"
+                      : "text-sidebar-foreground/80 hover:bg-sidebar-accent/60 hover:text-sidebar-accent-foreground"
                   )}
                 >
                   <Icon className="h-4 w-4 shrink-0" />
-                  <span className="flex-1 text-left">{item.label}</span>
+                  <span className="flex-1 text-left font-medium">{item.label}</span>
                   <ChevronDown
-                    className={cn("h-3.5 w-3.5 transition-transform", expanded && "rotate-180")}
+                    className={cn("h-3.5 w-3.5 transition-transform duration-200", expanded && "rotate-180")}
                   />
                 </button>
                 {expanded && (
-                  <div className="ml-7 mt-0.5 space-y-0.5 border-l border-sidebar-border pl-3">
+                  <div className="ml-7 mt-0.5 space-y-0.5 border-l border-sidebar-border/50 pl-3">
                     {item.children.map((child) => (
                       <NavLink
                         key={child.path}
                         to={child.path}
                         className={({ isActive }) =>
                           cn(
-                            "block rounded-md px-3 py-1.5 text-sm transition-colors",
+                            "block rounded-lg px-3 py-1.5 text-sm transition-all duration-200",
                             isActive
-                              ? "bg-sidebar-primary/10 text-sidebar-primary font-medium"
-                              : "text-sidebar-muted hover:text-sidebar-foreground"
+                              ? "bg-sidebar-primary/15 text-sidebar-primary font-semibold"
+                              : "text-sidebar-muted hover:text-sidebar-foreground hover:bg-sidebar-accent/40"
                           )
                         }
                       >
@@ -148,17 +151,17 @@ const AppSidebar = () => {
               end={item.path === "/"}
               className={({ isActive }) =>
                 cn(
-                  "flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors",
+                  "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-all duration-200",
                   isActive
-                    ? "bg-sidebar-accent text-sidebar-accent-foreground"
-                    : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                    ? "bg-sidebar-accent text-sidebar-accent-foreground shadow-sm font-medium"
+                    : "text-sidebar-foreground/80 hover:bg-sidebar-accent/60 hover:text-sidebar-accent-foreground"
                 )
               }
             >
               <Icon className="h-4 w-4 shrink-0" />
               <span className="flex-1">{item.label}</span>
               {item.path === "/mail" && unreadCount > 0 && (
-                <span className="ml-auto flex h-5 min-w-5 items-center justify-center rounded-full bg-destructive px-1.5 text-[10px] font-bold text-destructive-foreground">
+                <span className="ml-auto flex h-5 min-w-5 items-center justify-center rounded-full gradient-primary px-1.5 text-[10px] font-bold text-primary-foreground shadow-sm shadow-primary/25">
                   {unreadCount > 99 ? "99+" : unreadCount}
                 </span>
               )}
@@ -168,9 +171,9 @@ const AppSidebar = () => {
       </nav>
 
       {/* User */}
-      <div className="border-t border-sidebar-border p-3">
-        <div className="flex items-center gap-3 rounded-md px-3 py-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-sidebar-accent text-xs font-medium text-sidebar-accent-foreground">
+      <div className="border-t border-sidebar-border p-3 relative z-10">
+        <div className="flex items-center gap-3 rounded-lg px-3 py-2">
+          <div className="flex h-8 w-8 items-center justify-center rounded-full gradient-primary text-xs font-bold text-primary-foreground shadow-sm shadow-primary/20">
             {user?.email?.charAt(0).toUpperCase()}
           </div>
           <div className="flex-1 min-w-0">
@@ -180,14 +183,14 @@ const AppSidebar = () => {
           </div>
           <button
             onClick={() => setIsDark((d) => !d)}
-            className="rounded p-1 text-sidebar-muted hover:text-sidebar-foreground transition-colors"
+            className="rounded-lg p-1.5 text-sidebar-muted hover:text-sidebar-foreground hover:bg-sidebar-accent/60 transition-all"
             title={isDark ? "Светъл режим" : "Тъмен режим"}
           >
             {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
           </button>
           <button
             onClick={signOut}
-            className="rounded p-1 text-sidebar-muted hover:text-sidebar-foreground transition-colors"
+            className="rounded-lg p-1.5 text-sidebar-muted hover:text-sidebar-foreground hover:bg-sidebar-accent/60 transition-all"
             title="Изход"
           >
             <LogOut className="h-4 w-4" />
