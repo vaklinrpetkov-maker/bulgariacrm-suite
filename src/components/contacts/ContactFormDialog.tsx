@@ -22,6 +22,9 @@ const contactSchema = z.object({
   city: z.string().max(100).optional().nullable(),
   address: z.string().max(500).optional().nullable(),
   notes: z.string().max(2000).optional().nullable(),
+  birthdate: z.string().optional().nullable(),
+  egn: z.string().max(20).optional().nullable(),
+  category: z.string().max(50).optional().nullable(),
 }).refine(
   (data) => {
     if (data.type === "person") return !!data.first_name?.trim();
@@ -53,6 +56,9 @@ export default function ContactFormDialog({ open, onOpenChange, onSubmit, contac
       city: "",
       address: "",
       notes: "",
+      birthdate: "",
+      egn: "",
+      category: "client",
     },
   });
 
@@ -70,11 +76,15 @@ export default function ContactFormDialog({ open, onOpenChange, onSubmit, contac
         city: contact.city || "",
         address: contact.address || "",
         notes: contact.notes || "",
+        birthdate: (contact as any).birthdate || "",
+        egn: (contact as any).egn || "",
+        category: (contact as any).category || "client",
       });
     } else {
       form.reset({
         type: "person", first_name: "", last_name: "", company_name: "",
         email: "", phone: "", city: "", address: "", notes: "",
+        birthdate: "", egn: "", category: "client",
       });
     }
   }, [contact, open]);
@@ -90,19 +100,36 @@ export default function ContactFormDialog({ open, onOpenChange, onSubmit, contac
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <FormField control={form.control} name="type" render={({ field }) => (
-              <FormItem>
-                <FormLabel>Тип</FormLabel>
-                <Select onValueChange={field.onChange} value={field.value}>
-                  <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
-                  <SelectContent>
-                    <SelectItem value="person">Физическо лице</SelectItem>
-                    <SelectItem value="company">Компания</SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )} />
+            <div className="grid grid-cols-2 gap-4">
+              <FormField control={form.control} name="type" render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Тип</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
+                    <SelectContent>
+                      <SelectItem value="person">Физическо лице</SelectItem>
+                      <SelectItem value="company">Компания</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )} />
+              <FormField control={form.control} name="category" render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Категория</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value || "client"}>
+                    <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
+                    <SelectContent>
+                      <SelectItem value="client">Клиент</SelectItem>
+                      <SelectItem value="internal">Наш човек</SelectItem>
+                      <SelectItem value="partner">Партньор</SelectItem>
+                      <SelectItem value="other">Друг</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )} />
+            </div>
 
             {contactType === "person" ? (
               <div className="grid grid-cols-2 gap-4">
@@ -143,6 +170,23 @@ export default function ContactFormDialog({ open, onOpenChange, onSubmit, contac
                 <FormItem>
                   <FormLabel>Телефон</FormLabel>
                   <FormControl><Input {...field} value={field.value ?? ""} /></FormControl>
+                  <FormMessage />
+                </FormItem>
+              )} />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <FormField control={form.control} name="birthdate" render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Дата на раждане</FormLabel>
+                  <FormControl><Input type="date" {...field} value={field.value ?? ""} /></FormControl>
+                  <FormMessage />
+                </FormItem>
+              )} />
+              <FormField control={form.control} name="egn" render={({ field }) => (
+                <FormItem>
+                  <FormLabel>ЕГН</FormLabel>
+                  <FormControl><Input {...field} value={field.value ?? ""} placeholder="напр. 8501178725" /></FormControl>
                   <FormMessage />
                 </FormItem>
               )} />
