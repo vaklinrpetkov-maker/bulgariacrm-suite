@@ -303,10 +303,13 @@ export type Database = {
       contacts: {
         Row: {
           address: string | null
+          birthdate: string | null
+          category: string | null
           city: string | null
           company_name: string | null
           created_at: string
           created_by: string | null
+          egn: string | null
           email: string | null
           first_name: string | null
           id: string
@@ -320,10 +323,13 @@ export type Database = {
         }
         Insert: {
           address?: string | null
+          birthdate?: string | null
+          category?: string | null
           city?: string | null
           company_name?: string | null
           created_at?: string
           created_by?: string | null
+          egn?: string | null
           email?: string | null
           first_name?: string | null
           id?: string
@@ -337,10 +343,13 @@ export type Database = {
         }
         Update: {
           address?: string | null
+          birthdate?: string | null
+          category?: string | null
           city?: string | null
           company_name?: string | null
           created_at?: string
           created_by?: string | null
+          egn?: string | null
           email?: string | null
           first_name?: string | null
           id?: string
