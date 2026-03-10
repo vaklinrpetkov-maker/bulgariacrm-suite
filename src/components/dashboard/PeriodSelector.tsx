@@ -1,6 +1,18 @@
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export type Period = "week" | "month" | "quarter";
+
+const PERIOD_OPTIONS: { value: Period; label: string }[] = [
+  { value: "week", label: "Седмица" },
+  { value: "month", label: "Месец" },
+  { value: "quarter", label: "Тримесечие" },
+];
 
 interface PeriodSelectorProps {
   value: Period;
@@ -9,24 +21,18 @@ interface PeriodSelectorProps {
 
 const PeriodSelector = ({ value, onChange }: PeriodSelectorProps) => {
   return (
-    <ToggleGroup
-      type="single"
-      value={value}
-      onValueChange={(v) => v && onChange(v as Period)}
-      size="sm"
-      variant="outline"
-      className="gap-0.5"
-    >
-      <ToggleGroupItem value="week" className="text-xs px-2.5 h-7 rounded-md">
-        Седмица
-      </ToggleGroupItem>
-      <ToggleGroupItem value="month" className="text-xs px-2.5 h-7 rounded-md">
-        Месец
-      </ToggleGroupItem>
-      <ToggleGroupItem value="quarter" className="text-xs px-2.5 h-7 rounded-md">
-        Тримесечие
-      </ToggleGroupItem>
-    </ToggleGroup>
+    <Select value={value} onValueChange={(v) => onChange(v as Period)}>
+      <SelectTrigger className="h-7 w-auto text-xs gap-1 px-2.5 border-border/50">
+        <SelectValue />
+      </SelectTrigger>
+      <SelectContent>
+        {PERIOD_OPTIONS.map((opt) => (
+          <SelectItem key={opt.value} value={opt.value} className="text-xs">
+            {opt.label}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
   );
 };
 
