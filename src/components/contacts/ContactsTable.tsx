@@ -103,7 +103,7 @@ export default function ContactsTable({ contacts, onEdit, onDelete, onDoubleClic
                     </span>
                   ) : "—"}
                 </TableCell>
-                <TableCell>{contact.city || "—"}</TableCell>
+                
                 <TableCell>{(contact as any)._ownerName || "—"}</TableCell>
                 <TableCell>{format(new Date(contact.created_at), "dd.MM.yyyy")}</TableCell>
                 <TableCell>
