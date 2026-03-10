@@ -226,7 +226,13 @@ export default function SlaDashboard({ leads }: SlaChartProps) {
                 </PieChart>
               </ResponsiveContainer>
             ) : (
-              <div className="flex h-full items-center justify-center text-muted-foreground text-sm">Няма данни</div>
+              <div className="flex flex-col h-full items-center justify-center text-center">
+                <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-muted">
+                  <PieChartIcon className="h-6 w-6 text-muted-foreground" />
+                </div>
+                <p className="text-sm font-medium text-foreground">Няма данни</p>
+                <p className="text-xs text-muted-foreground mt-1 max-w-[200px]">Данните ще се визуализират при получени имейли</p>
+              </div>
             )}
           </div>
         </CardContent>
