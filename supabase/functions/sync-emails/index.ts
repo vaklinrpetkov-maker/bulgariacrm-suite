@@ -17,6 +17,7 @@ serve(async (req) => {
   try {
     const emailUser = Deno.env.get("EMAIL_USER");
     const emailPass = Deno.env.get("EMAIL_PASSWORD");
+    console.log("EMAIL_USER from environment:", emailUser);
     if (!emailUser || !emailPass) throw new Error("Email credentials not configured");
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
