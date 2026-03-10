@@ -7,7 +7,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
-import { Save } from "lucide-react";
+import { Save, Eye } from "lucide-react";
+import ViewerAccessTab from "@/components/settings/ViewerAccessTab";
 
 const SettingsPage = () => {
   const { user } = useAuth();
@@ -57,6 +58,7 @@ const SettingsPage = () => {
             <TabsTrigger value="titles">Длъжности</TabsTrigger>
             <TabsTrigger value="users">Потребители</TabsTrigger>
             <TabsTrigger value="signature">Имейл подпис</TabsTrigger>
+            <TabsTrigger value="viewer-access">Viewer достъп</TabsTrigger>
           </TabsList>
           <TabsContent value="roles" className="mt-4">
             <Card>
@@ -139,6 +141,9 @@ const SettingsPage = () => {
                 </CardContent>
               </Card>
             </div>
+          </TabsContent>
+          <TabsContent value="viewer-access" className="mt-4">
+            <ViewerAccessTab />
           </TabsContent>
         </Tabs>
       </div>
