@@ -160,7 +160,7 @@ const ContractsPage = () => {
               </TableHeader>
               <TableBody>
                 {filtered.map((c) => (
-                  <TableRow key={c.id}>
+                  <TableRow key={c.id} className="cursor-pointer" onClick={() => setViewContract(c)}>
                     <TableCell className="font-medium">{c.title}</TableCell>
                     <TableCell>{c.contract_number || "—"}</TableCell>
                     <TableCell>{contactName(c)}</TableCell>
