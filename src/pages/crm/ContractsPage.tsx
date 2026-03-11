@@ -15,6 +15,7 @@ import { Plus, Download, Search, CalendarIcon, X, Sparkles } from "lucide-react"
 import type { DateRange } from "react-day-picker";
 import { exportToExcel } from "@/lib/exportToExcel";
 import ContractExtractDialog from "@/components/contracts/ContractExtractDialog";
+import ContractViewDialog from "@/components/contracts/ContractViewDialog";
 
 const statusLabels: Record<string, string> = {
   draft: "Чернова", active: "Активен", completed: "Завършен", cancelled: "Анулиран",
@@ -29,6 +30,7 @@ const ContractsPage = () => {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
   const [extractOpen, setExtractOpen] = useState(false);
+  const [viewContract, setViewContract] = useState<any | null>(null);
 
   const { data: contracts = [] } = useQuery({
     queryKey: ["contracts"],
@@ -158,7 +160,7 @@ const ContractsPage = () => {
               </TableHeader>
               <TableBody>
                 {filtered.map((c) => (
-                  <TableRow key={c.id}>
+                  <TableRow key={c.id} className="cursor-pointer" onClick={() => setViewContract(c)}>
                     <TableCell className="font-medium">{c.title}</TableCell>
                     <TableCell>{c.contract_number || "—"}</TableCell>
                     <TableCell>{contactName(c)}</TableCell>
@@ -178,6 +180,7 @@ const ContractsPage = () => {
       </div>
 
       <ContractExtractDialog open={extractOpen} onOpenChange={setExtractOpen} />
+      <ContractViewDialog contract={viewContract} open={!!viewContract} onOpenChange={(v) => { if (!v) setViewContract(null); }} />
     </div>
   );
 };
