@@ -3,6 +3,7 @@ import { useLocation } from "react-router-dom";
 import { Bot, X, Send, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
 import ReactMarkdown from "react-markdown";
 
 interface Message {
@@ -80,11 +81,20 @@ const AiAssistant = () => {
     };
 
     try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
+      if (!token) {
+        upsertAssistant("Моля, влезте в системата, за да използвате AI асистента.");
+        setIsLoading(false);
+        return;
+      }
+
       const resp = await fetch(CHAT_URL, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          Authorization: `Bearer ${token}`,
+          apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
         },
         body: JSON.stringify({ messages: newMessages, currentModule }),
       });
@@ -251,11 +261,15 @@ const AiAssistant = () => {
                             });
                           };
                           try {
+                            const { data: { session: s } } = await supabase.auth.getSession();
+                            const tk = s?.access_token;
+                            if (!tk) { upsert("Моля, влезте в системата."); setIsLoading(false); return; }
                             const resp = await fetch(CHAT_URL, {
                               method: "POST",
                               headers: {
                                 "Content-Type": "application/json",
-                                Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+                                Authorization: `Bearer ${tk}`,
+                                apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
                               },
                               body: JSON.stringify({ messages: [userMsg], currentModule }),
                             });
