@@ -23,6 +23,7 @@ interface ContractViewDialogProps {
   contract: any | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onDeleted?: () => void;
 }
 
 function tryParseNotes(notes: string | null): Record<string, string> | null {
