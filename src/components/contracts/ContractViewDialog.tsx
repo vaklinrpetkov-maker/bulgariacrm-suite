@@ -9,7 +9,7 @@ import { Separator } from "@/components/ui/separator";
 import { supabase } from "@/integrations/supabase/client";
 import { useUserRole } from "@/hooks/useUserRole";
 import { toast } from "sonner";
-import { Trash2, FileText, ExternalLink } from "lucide-react";
+import { Trash2, FileText } from "lucide-react";
 import { format } from "date-fns";
 
 const statusLabels: Record<string, string> = {
@@ -65,6 +65,7 @@ const ContractViewDialog = ({ contract, open, onOpenChange, onDeleted }: Contrac
   const [deleting, setDeleting] = useState(false);
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
   const [loadingPdf, setLoadingPdf] = useState(false);
+  const [showPdfViewer, setShowPdfViewer] = useState(false);
 
   const { data: properties = [] } = useQuery({
     queryKey: ["contract-properties", contract?.id],
@@ -109,13 +110,23 @@ const ContractViewDialog = ({ contract, open, onOpenChange, onDeleted }: Contrac
     try {
       const { data, error } = await supabase.storage
         .from("contracts")
-        .createSignedUrl(filePath, 3600);
+        .download(filePath);
       if (error) throw error;
-      window.open(data.signedUrl, "_blank");
+      const url = URL.createObjectURL(data);
+      setPdfUrl(url);
+      setShowPdfViewer(true);
     } catch (err: any) {
       toast.error(`Грешка при отваряне на файла: ${err.message}`);
     } finally {
       setLoadingPdf(false);
+    }
+  };
+
+  const handleClosePdfViewer = () => {
+    setShowPdfViewer(false);
+    if (pdfUrl) {
+      URL.revokeObjectURL(pdfUrl);
+      setPdfUrl(null);
     }
   };
 
@@ -128,6 +139,7 @@ const ContractViewDialog = ({ contract, open, onOpenChange, onDeleted }: Contrac
   const contractInfo = tryParseNotes(contract.notes);
 
   return (
+    <>
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col overflow-hidden">
         <DialogHeader>
@@ -183,7 +195,6 @@ const ContractViewDialog = ({ contract, open, onOpenChange, onDeleted }: Contrac
               <Button variant="outline" size="sm" onClick={handleViewPdf} disabled={loadingPdf} className="w-full">
                 <FileText className="mr-2 h-4 w-4" />
                 {loadingPdf ? "Зареждане..." : "Преглед на оригинален PDF"}
-                <ExternalLink className="ml-auto h-3.5 w-3.5 text-muted-foreground" />
               </Button>
             )}
 
@@ -258,6 +269,26 @@ const ContractViewDialog = ({ contract, open, onOpenChange, onDeleted }: Contrac
         </div>
       </DialogContent>
     </Dialog>
+
+    {/* PDF Viewer Dialog */}
+    <Dialog open={showPdfViewer} onOpenChange={(v) => { if (!v) handleClosePdfViewer(); }}>
+      <DialogContent className="max-w-5xl h-[90vh] flex flex-col p-0">
+        <DialogHeader className="px-6 pt-6 pb-2">
+          <DialogTitle>Оригинален PDF</DialogTitle>
+          <DialogDescription>{contract.title}</DialogDescription>
+        </DialogHeader>
+        <div className="flex-1 min-h-0 px-6 pb-6">
+          {pdfUrl && (
+            <iframe
+              src={pdfUrl}
+              className="w-full h-full rounded-lg border border-border"
+              title="Contract PDF"
+            />
+          )}
+        </div>
+      </DialogContent>
+    </Dialog>
+    </>
   );
 };
 
