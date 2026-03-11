@@ -51,6 +51,7 @@ const AppLayout = ({ children }: { children: ReactNode }) => {
       <main className="flex-1 overflow-y-auto">
         {children}
       </main>
+      <AiAssistant />
     </div>
   );
 };
