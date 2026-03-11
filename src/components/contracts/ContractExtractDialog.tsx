@@ -124,12 +124,17 @@ const ContractExtractDialog = ({ open, onOpenChange }: ContractExtractDialogProp
       try {
         const fileContent = await readFileAsText(file);
 
-        // Upload to storage
-        const filePath = `${crypto.randomUUID()}/${file.name}`;
+        // Upload to storage with sanitized filename (ASCII only)
+        const fileExt = file.name.split('.').pop() || 'pdf';
+        const filePath = `${crypto.randomUUID()}/contract.${fileExt}`;
         const { error: uploadError } = await supabase.storage
           .from("contracts")
           .upload(filePath, file);
-        if (uploadError) console.error("Storage upload error:", uploadError);
+        if (uploadError) {
+          console.error("Storage upload error:", uploadError);
+        } else if (i === 0) {
+          setUploadedFilePath(filePath);
+        }
 
         const { data, error } = await supabase.functions.invoke("extract-contract", {
           body: { fileContent, fileName: file.name, filePath: uploadError ? null : filePath, userId: user?.id },
