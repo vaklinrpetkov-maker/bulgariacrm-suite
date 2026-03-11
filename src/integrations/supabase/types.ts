@@ -1197,6 +1197,33 @@ export type Database = {
         }
         Relationships: []
       }
+      sop_documents: {
+        Row: {
+          id: string
+          module_key: string
+          sections: Json
+          title: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          id?: string
+          module_key: string
+          sections?: Json
+          title: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          id?: string
+          module_key?: string
+          sections?: Json
+          title?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       tasks: {
         Row: {
           assignee_id: string | null
