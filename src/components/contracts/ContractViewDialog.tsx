@@ -63,6 +63,8 @@ const ContractViewDialog = ({ contract, open, onOpenChange, onDeleted }: Contrac
   const { isAdmin } = useUserRole();
   const queryClient = useQueryClient();
   const [deleting, setDeleting] = useState(false);
+  const [pdfUrl, setPdfUrl] = useState<string | null>(null);
+  const [loadingPdf, setLoadingPdf] = useState(false);
 
   const { data: properties = [] } = useQuery({
     queryKey: ["contract-properties", contract?.id],
