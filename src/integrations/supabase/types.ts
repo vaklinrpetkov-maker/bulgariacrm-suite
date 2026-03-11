@@ -514,6 +514,7 @@ export type Database = {
           created_at: string
           created_by: string | null
           deal_id: string | null
+          file_path: string | null
           id: string
           notes: string | null
           owner_id: string | null
@@ -530,6 +531,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           deal_id?: string | null
+          file_path?: string | null
           id?: string
           notes?: string | null
           owner_id?: string | null
@@ -546,6 +548,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           deal_id?: string | null
+          file_path?: string | null
           id?: string
           notes?: string | null
           owner_id?: string | null

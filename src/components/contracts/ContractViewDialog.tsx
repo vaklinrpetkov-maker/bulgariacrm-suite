@@ -9,7 +9,7 @@ import { Separator } from "@/components/ui/separator";
 import { supabase } from "@/integrations/supabase/client";
 import { useUserRole } from "@/hooks/useUserRole";
 import { toast } from "sonner";
-import { Trash2 } from "lucide-react";
+import { Trash2, FileText, ExternalLink } from "lucide-react";
 import { format } from "date-fns";
 
 const statusLabels: Record<string, string> = {
@@ -63,6 +63,8 @@ const ContractViewDialog = ({ contract, open, onOpenChange, onDeleted }: Contrac
   const { isAdmin } = useUserRole();
   const queryClient = useQueryClient();
   const [deleting, setDeleting] = useState(false);
+  const [pdfUrl, setPdfUrl] = useState<string | null>(null);
+  const [loadingPdf, setLoadingPdf] = useState(false);
 
   const { data: properties = [] } = useQuery({
     queryKey: ["contract-properties", contract?.id],
@@ -96,6 +98,26 @@ const ContractViewDialog = ({ contract, open, onOpenChange, onDeleted }: Contrac
   };
 
   if (!contract) return null;
+
+  const handleViewPdf = async () => {
+    const filePath = (contract as any).file_path;
+    if (!filePath) {
+      toast.error("Няма прикачен PDF файл към този договор.");
+      return;
+    }
+    setLoadingPdf(true);
+    try {
+      const { data, error } = await supabase.storage
+        .from("contracts")
+        .createSignedUrl(filePath, 3600);
+      if (error) throw error;
+      window.open(data.signedUrl, "_blank");
+    } catch (err: any) {
+      toast.error(`Грешка при отваряне на файла: ${err.message}`);
+    } finally {
+      setLoadingPdf(false);
+    }
+  };
 
   const contactName = contract.contacts
     ? contract.contacts.type === "company"
@@ -155,6 +177,15 @@ const ContractViewDialog = ({ contract, open, onOpenChange, onDeleted }: Contrac
               <InfoRow label="Подписан" value={contract.signed_at ? format(new Date(contract.signed_at), "dd.MM.yyyy") : "—"} />
               <InfoRow label="Номер" value={contract.contract_number || "—"} />
             </div>
+
+            {/* PDF View Button */}
+            {(contract as any).file_path && (
+              <Button variant="outline" size="sm" onClick={handleViewPdf} disabled={loadingPdf} className="w-full">
+                <FileText className="mr-2 h-4 w-4" />
+                {loadingPdf ? "Зареждане..." : "Преглед на оригинален PDF"}
+                <ExternalLink className="ml-auto h-3.5 w-3.5 text-muted-foreground" />
+              </Button>
+            )}
 
             {/* Contract-level extracted info */}
             {contractInfo && (
