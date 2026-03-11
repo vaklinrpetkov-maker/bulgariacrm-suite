@@ -288,6 +288,7 @@ const ContractExtractDialog = ({ open, onOpenChange }: ContractExtractDialogProp
     setSelectedFiles([]);
     setExtractedData(null);
     setIsProcessing(false);
+    setUploadedFilePath(null);
   };
 
   return (
