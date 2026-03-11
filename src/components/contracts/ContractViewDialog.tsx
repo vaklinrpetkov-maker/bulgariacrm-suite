@@ -65,6 +65,7 @@ const ContractViewDialog = ({ contract, open, onOpenChange, onDeleted }: Contrac
   const [deleting, setDeleting] = useState(false);
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
   const [loadingPdf, setLoadingPdf] = useState(false);
+  const [showPdfViewer, setShowPdfViewer] = useState(false);
 
   const { data: properties = [] } = useQuery({
     queryKey: ["contract-properties", contract?.id],
@@ -109,13 +110,23 @@ const ContractViewDialog = ({ contract, open, onOpenChange, onDeleted }: Contrac
     try {
       const { data, error } = await supabase.storage
         .from("contracts")
-        .createSignedUrl(filePath, 3600);
+        .download(filePath);
       if (error) throw error;
-      window.open(data.signedUrl, "_blank");
+      const url = URL.createObjectURL(data);
+      setPdfUrl(url);
+      setShowPdfViewer(true);
     } catch (err: any) {
       toast.error(`Грешка при отваряне на файла: ${err.message}`);
     } finally {
       setLoadingPdf(false);
+    }
+  };
+
+  const handleClosePdfViewer = () => {
+    setShowPdfViewer(false);
+    if (pdfUrl) {
+      URL.revokeObjectURL(pdfUrl);
+      setPdfUrl(null);
     }
   };
 
