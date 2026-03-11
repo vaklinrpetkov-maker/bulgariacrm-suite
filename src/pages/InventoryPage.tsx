@@ -156,10 +156,10 @@ const InventoryPage = () => {
       <div className="p-6 space-y-6">
         {/* KPIs */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <StatCard title="Общо единици" value={totalUnits} />
-          <StatCard title="Свободни" value={availableCount} />
-          <StatCard title="Запазени" value={reservedCount} />
-          <StatCard title="Продадени" value={soldCount} />
+          <StatCard title="Общо единици" value={totalUnits} emoji="🏠" />
+          <StatCard title="Свободни" value={availableCount} emoji="🟢" />
+          <StatCard title="Запазени" value={reservedCount} emoji="🟡" />
+          <StatCard title="Продадени" value={soldCount} emoji="🔴" />
         </div>
 
         {/* Filter */}
