@@ -66,6 +66,7 @@ const ContractExtractDialog = ({ open, onOpenChange }: ContractExtractDialogProp
   const [processProgress, setProcessProgress] = useState({ current: 0, total: 0 });
   const [extractedData, setExtractedData] = useState<ContractProperty[] | null>(null);
   const [saving, setSaving] = useState(false);
+  const [uploadedFilePath, setUploadedFilePath] = useState<string | null>(null);
 
   const acceptFile = (file: File) =>
     file.type === "application/pdf" || file.name.endsWith(".docx");
