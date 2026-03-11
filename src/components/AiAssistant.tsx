@@ -261,11 +261,15 @@ const AiAssistant = () => {
                             });
                           };
                           try {
+                            const { data: { session: s } } = await supabase.auth.getSession();
+                            const tk = s?.access_token;
+                            if (!tk) { upsert("Моля, влезте в системата."); setIsLoading(false); return; }
                             const resp = await fetch(CHAT_URL, {
                               method: "POST",
                               headers: {
                                 "Content-Type": "application/json",
-                                Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+                                Authorization: `Bearer ${tk}`,
+                                apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
                               },
                               body: JSON.stringify({ messages: [userMsg], currentModule }),
                             });
