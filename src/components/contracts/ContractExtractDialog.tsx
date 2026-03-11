@@ -168,61 +168,103 @@ const ContractExtractDialog = ({ open, onOpenChange }: ContractExtractDialogProp
     setSaving(true);
 
     try {
-      for (const property of extractedData) {
-        const totalValue = parseNumeric(property["Продажна цена"]);
-        const title = `Договор - ${property["Купувач"] || "N/A"} - ${property["Имот №"] || "N/A"}`;
+      // Use first property for shared contract-level fields
+      const first = extractedData[0];
 
-        // Check if contact exists by EGN or create one
-        let contactId: string | null = null;
-        if (property["Купувач"] && property["Купувач"] !== "N/A") {
-          const nameParts = property["Купувач"].split(" ");
-          const firstName = nameParts[0] || null;
-          const lastName = nameParts.slice(1).join(" ") || null;
+      // Sum total value across all properties
+      const totalValue = extractedData.reduce((sum, p) => {
+        const v = parseNumeric(p["Продажна цена"]);
+        return v ? sum + v : sum;
+      }, 0) || null;
 
-          // Try to find existing contact by EGN
-          if (property["ЕГН"] && property["ЕГН"] !== "N/A") {
-            const { data: existing } = await supabase
-              .from("contacts")
-              .select("id")
-              .eq("egn", property["ЕГН"])
-              .maybeSingle();
-            if (existing) contactId = existing.id;
-          }
+      const propertyList = extractedData.map(p => p["Имот №"] || "N/A").join(", ");
+      const title = `Договор - ${first["Купувач"] || "N/A"} - ${propertyList}`;
 
-          // Create contact if not found
-          if (!contactId) {
-            const { data: newContact } = await supabase
-              .from("contacts")
-              .insert({
-                first_name: firstName,
-                last_name: lastName,
-                egn: property["ЕГН"] !== "N/A" ? property["ЕГН"] : null,
-                email: property["e-mail"] !== "N/A" ? property["e-mail"] : null,
-                phone: property["Телефон"] !== "N/A" ? property["Телефон"] : null,
-                address: property["Адрес"] !== "N/A" ? property["Адрес"] : null,
-                type: "person",
-                created_by: user.id,
-                owner_id: user.id,
-              })
-              .select("id")
-              .single();
-            if (newContact) contactId = newContact.id;
-          }
+      // Find or create contact (once, shared across properties)
+      let contactId: string | null = null;
+      if (first["Купувач"] && first["Купувач"] !== "N/A") {
+        const nameParts = first["Купувач"].split(" ");
+        const firstName = nameParts[0] || null;
+        const lastName = nameParts.slice(1).join(" ") || null;
+
+        if (first["ЕГН"] && first["ЕГН"] !== "N/A") {
+          const { data: existing } = await supabase
+            .from("contacts")
+            .select("id")
+            .eq("egn", first["ЕГН"])
+            .maybeSingle();
+          if (existing) contactId = existing.id;
         }
 
-        // Create contract
-        await supabase.from("contracts").insert({
+        if (!contactId) {
+          const { data: newContact } = await supabase
+            .from("contacts")
+            .insert({
+              first_name: firstName,
+              last_name: lastName,
+              egn: first["ЕГН"] !== "N/A" ? first["ЕГН"] : null,
+              email: first["e-mail"] !== "N/A" ? first["e-mail"] : null,
+              phone: first["Телефон"] !== "N/A" ? first["Телефон"] : null,
+              address: first["Адрес"] !== "N/A" ? first["Адрес"] : null,
+              type: "person",
+              created_by: user.id,
+              owner_id: user.id,
+            })
+            .select("id")
+            .single();
+          if (newContact) contactId = newContact.id;
+        }
+      }
+
+      // Create ONE parent contract
+      const contractNotes = {
+        buyer: first["Купувач"],
+        egn: first["ЕГН"],
+        seller: first["Продавач"],
+        building: first["Сграда"],
+        date: first["Дата"],
+        credit: first["Кредит"],
+        address: first["Адрес"],
+        email: first["e-mail"],
+        phone: first["Телефон"],
+      };
+
+      const { data: newContract, error: contractError } = await supabase
+        .from("contracts")
+        .insert({
           title,
           total_value: totalValue,
-          status: "draft",
+          status: "draft" as const,
           contact_id: contactId,
           created_by: user.id,
           owner_id: user.id,
-          notes: JSON.stringify(property, null, 2),
-        });
-      }
+          notes: JSON.stringify(contractNotes, null, 2),
+        })
+        .select("id")
+        .single();
 
-      toast.success(`${extractedData.length} договор(а) записани успешно!`);
+      if (contractError) throw contractError;
+
+      // Create child properties
+      const propertyRows = extractedData.map((p) => ({
+        contract_id: newContract.id,
+        property_type: p["Имот №"]?.split(" ")[0] || null,
+        property_number: p["Имот №"] || null,
+        floor: p["Етаж"] !== "N/A" ? p["Етаж"] : null,
+        entrance: p["Вход"] !== "N/A" ? p["Вход"] : null,
+        built_area: p["Застроена площ"] !== "N/A" ? p["Застроена площ"] : null,
+        total_area: p["Обща площ"] !== "N/A" ? p["Обща площ"] : null,
+        sale_price: p["Продажна цена"] !== "N/A" ? p["Продажна цена"] : null,
+        installment_1: p["Първа вноска"] !== "N/A" ? p["Първа вноска"] : null,
+        installment_2: p["Втора вноска"] !== "N/A" ? p["Втора вноска"] : null,
+        installment_3: p["Трета вноска"] !== "N/A" ? p["Трета вноска"] : null,
+        installment_4: p["Четвърта вноска"] !== "N/A" ? p["Четвърта вноска"] : null,
+        notes: p,
+      }));
+
+      await (supabase as any).from("contract_properties").insert(propertyRows);
+
+      toast.success(`Договор с ${extractedData.length} имот(а) записан успешно!`);
       queryClient.invalidateQueries({ queryKey: ["contracts"] });
       resetState();
       onOpenChange(false);
