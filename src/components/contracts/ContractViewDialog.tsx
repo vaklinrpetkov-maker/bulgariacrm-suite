@@ -59,7 +59,11 @@ const PROPERTY_LABELS: { key: string; label: string }[] = [
   { key: "installment_4", label: "Четвърта вноска" },
 ];
 
-const ContractViewDialog = ({ contract, open, onOpenChange }: ContractViewDialogProps) => {
+const ContractViewDialog = ({ contract, open, onOpenChange, onDeleted }: ContractViewDialogProps) => {
+  const { isAdmin } = useUserRole();
+  const queryClient = useQueryClient();
+  const [deleting, setDeleting] = useState(false);
+
   const { data: properties = [] } = useQuery({
     queryKey: ["contract-properties", contract?.id],
     queryFn: async () => {
@@ -73,6 +77,23 @@ const ContractViewDialog = ({ contract, open, onOpenChange }: ContractViewDialog
     },
     enabled: !!contract?.id && open,
   });
+
+  const handleDelete = async () => {
+    if (!contract) return;
+    setDeleting(true);
+    try {
+      const { error } = await supabase.from("contracts").delete().eq("id", contract.id);
+      if (error) throw error;
+      toast.success("Договорът беше изтрит.");
+      queryClient.invalidateQueries({ queryKey: ["contracts"] });
+      onOpenChange(false);
+      onDeleted?.();
+    } catch (err: any) {
+      toast.error(`Грешка: ${err.message}`);
+    } finally {
+      setDeleting(false);
+    }
+  };
 
   if (!contract) return null;
 
