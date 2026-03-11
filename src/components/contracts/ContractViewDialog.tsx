@@ -99,6 +99,26 @@ const ContractViewDialog = ({ contract, open, onOpenChange, onDeleted }: Contrac
 
   if (!contract) return null;
 
+  const handleViewPdf = async () => {
+    const filePath = (contract as any).file_path;
+    if (!filePath) {
+      toast.error("Няма прикачен PDF файл към този договор.");
+      return;
+    }
+    setLoadingPdf(true);
+    try {
+      const { data, error } = await supabase.storage
+        .from("contracts")
+        .createSignedUrl(filePath, 3600);
+      if (error) throw error;
+      window.open(data.signedUrl, "_blank");
+    } catch (err: any) {
+      toast.error(`Грешка при отваряне на файла: ${err.message}`);
+    } finally {
+      setLoadingPdf(false);
+    }
+  };
+
   const contactName = contract.contacts
     ? contract.contacts.type === "company"
       ? contract.contacts.company_name
