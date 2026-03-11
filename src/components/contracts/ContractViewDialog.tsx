@@ -268,6 +268,26 @@ const ContractViewDialog = ({ contract, open, onOpenChange, onDeleted }: Contrac
         </div>
       </DialogContent>
     </Dialog>
+
+    {/* PDF Viewer Dialog */}
+    <Dialog open={showPdfViewer} onOpenChange={(v) => { if (!v) handleClosePdfViewer(); }}>
+      <DialogContent className="max-w-5xl h-[90vh] flex flex-col p-0">
+        <DialogHeader className="px-6 pt-6 pb-2">
+          <DialogTitle>Оригинален PDF</DialogTitle>
+          <DialogDescription>{contract.title}</DialogDescription>
+        </DialogHeader>
+        <div className="flex-1 min-h-0 px-6 pb-6">
+          {pdfUrl && (
+            <iframe
+              src={pdfUrl}
+              className="w-full h-full rounded-lg border border-border"
+              title="Contract PDF"
+            />
+          )}
+        </div>
+      </DialogContent>
+    </Dialog>
+    </>
   );
 };
 
