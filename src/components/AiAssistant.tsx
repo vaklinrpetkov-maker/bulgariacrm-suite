@@ -234,11 +234,62 @@ const AiAssistant = () => {
                     <button
                       key={q}
                       onClick={() => {
-                        setInput(q);
-                        setTimeout(() => {
-                          setInput(q);
-                          sendMessage();
-                        }, 50);
+                        const userMsg: Message = { role: "user", content: q };
+                        setMessages([userMsg]);
+                        setIsLoading(true);
+                        // Trigger send directly
+                        (async () => {
+                          let assistantSoFar = "";
+                          const upsert = (chunk: string) => {
+                            assistantSoFar += chunk;
+                            setMessages((prev) => {
+                              const last = prev[prev.length - 1];
+                              if (last?.role === "assistant") {
+                                return prev.map((m, i) => i === prev.length - 1 ? { ...m, content: assistantSoFar } : m);
+                              }
+                              return [...prev, { role: "assistant", content: assistantSoFar }];
+                            });
+                          };
+                          try {
+                            const resp = await fetch(CHAT_URL, {
+                              method: "POST",
+                              headers: {
+                                "Content-Type": "application/json",
+                                Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+                              },
+                              body: JSON.stringify({ messages: [userMsg], currentModule }),
+                            });
+                            if (!resp.ok || !resp.body) {
+                              const err = await resp.json().catch(() => ({ error: "Грешка" }));
+                              upsert(err.error || "Грешка.");
+                              setIsLoading(false);
+                              return;
+                            }
+                            const reader = resp.body.getReader();
+                            const decoder = new TextDecoder();
+                            let buf = "";
+                            while (true) {
+                              const { done, value } = await reader.read();
+                              if (done) break;
+                              buf += decoder.decode(value, { stream: true });
+                              let idx: number;
+                              while ((idx = buf.indexOf("\n")) !== -1) {
+                                let line = buf.slice(0, idx);
+                                buf = buf.slice(idx + 1);
+                                if (line.endsWith("\r")) line = line.slice(0, -1);
+                                if (!line.startsWith("data: ")) continue;
+                                const js = line.slice(6).trim();
+                                if (js === "[DONE]") break;
+                                try {
+                                  const p = JSON.parse(js);
+                                  const c = p.choices?.[0]?.delta?.content;
+                                  if (c) upsert(c);
+                                } catch { buf = line + "\n" + buf; break; }
+                              }
+                            }
+                          } catch { upsert("Грешка при свързването."); }
+                          setIsLoading(false);
+                        })();
                       }}
                       className="text-xs px-3 py-1.5 rounded-full border border-border bg-background hover:bg-muted transition-colors text-foreground"
                     >
