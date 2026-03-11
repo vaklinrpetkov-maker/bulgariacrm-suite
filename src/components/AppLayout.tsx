@@ -1,5 +1,6 @@
 import { ReactNode, useState, useCallback, useRef, useEffect } from "react";
 import AppSidebar from "@/components/AppSidebar";
+import AiAssistant from "@/components/AiAssistant";
 
 const MIN_WIDTH = 200;
 const MAX_WIDTH = 400;
@@ -50,6 +51,7 @@ const AppLayout = ({ children }: { children: ReactNode }) => {
       <main className="flex-1 overflow-y-auto">
         {children}
       </main>
+      <AiAssistant />
     </div>
   );
 };
