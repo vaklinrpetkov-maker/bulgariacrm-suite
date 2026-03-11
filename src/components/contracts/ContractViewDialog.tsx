@@ -1,9 +1,15 @@
-import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { supabase } from "@/integrations/supabase/client";
+import { useUserRole } from "@/hooks/useUserRole";
+import { toast } from "sonner";
+import { Trash2 } from "lucide-react";
 import { format } from "date-fns";
 
 const statusLabels: Record<string, string> = {
@@ -17,6 +23,7 @@ interface ContractViewDialogProps {
   contract: any | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onDeleted?: () => void;
 }
 
 function tryParseNotes(notes: string | null): Record<string, string> | null {
@@ -52,7 +59,11 @@ const PROPERTY_LABELS: { key: string; label: string }[] = [
   { key: "installment_4", label: "Четвърта вноска" },
 ];
 
-const ContractViewDialog = ({ contract, open, onOpenChange }: ContractViewDialogProps) => {
+const ContractViewDialog = ({ contract, open, onOpenChange, onDeleted }: ContractViewDialogProps) => {
+  const { isAdmin } = useUserRole();
+  const queryClient = useQueryClient();
+  const [deleting, setDeleting] = useState(false);
+
   const { data: properties = [] } = useQuery({
     queryKey: ["contract-properties", contract?.id],
     queryFn: async () => {
@@ -66,6 +77,23 @@ const ContractViewDialog = ({ contract, open, onOpenChange }: ContractViewDialog
     },
     enabled: !!contract?.id && open,
   });
+
+  const handleDelete = async () => {
+    if (!contract) return;
+    setDeleting(true);
+    try {
+      const { error } = await supabase.from("contracts").delete().eq("id", contract.id);
+      if (error) throw error;
+      toast.success("Договорът беше изтрит.");
+      queryClient.invalidateQueries({ queryKey: ["contracts"] });
+      onOpenChange(false);
+      onDeleted?.();
+    } catch (err: any) {
+      toast.error(`Грешка: ${err.message}`);
+    } finally {
+      setDeleting(false);
+    }
+  };
 
   if (!contract) return null;
 
@@ -81,11 +109,36 @@ const ContractViewDialog = ({ contract, open, onOpenChange }: ContractViewDialog
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col">
         <DialogHeader>
-          <div className="flex items-center gap-3">
-            <DialogTitle className="text-lg">{contract.title}</DialogTitle>
-            <Badge variant={statusVariant[contract.status] || "secondary"}>
-              {statusLabels[contract.status] || contract.status}
-            </Badge>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <DialogTitle className="text-lg">{contract.title}</DialogTitle>
+              <Badge variant={statusVariant[contract.status] || "secondary"}>
+                {statusLabels[contract.status] || contract.status}
+              </Badge>
+            </div>
+            {isAdmin && (
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive hover:bg-destructive/10 mr-6">
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Изтриване на договор</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Сигурни ли сте, че искате да изтриете „{contract.title}"? Всички свързани имоти също ще бъдат изтрити. Действието е необратимо.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Отказ</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleDelete} disabled={deleting} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                      {deleting ? "Изтриване..." : "Изтрий"}
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            )}
           </div>
           <DialogDescription>
             {contract.contract_number ? `№ ${contract.contract_number} · ` : ""}

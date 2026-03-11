@@ -180,7 +180,7 @@ const ContractsPage = () => {
       </div>
 
       <ContractExtractDialog open={extractOpen} onOpenChange={setExtractOpen} />
-      <ContractViewDialog contract={viewContract} open={!!viewContract} onOpenChange={(v) => { if (!v) setViewContract(null); }} />
+      <ContractViewDialog contract={viewContract} open={!!viewContract} onOpenChange={(v) => { if (!v) setViewContract(null); }} onDeleted={() => setViewContract(null)} />
     </div>
   );
 };
