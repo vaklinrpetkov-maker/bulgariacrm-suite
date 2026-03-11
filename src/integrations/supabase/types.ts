@@ -445,6 +445,68 @@ export type Database = {
           },
         ]
       }
+      contract_properties: {
+        Row: {
+          built_area: string | null
+          contract_id: string
+          created_at: string
+          entrance: string | null
+          floor: string | null
+          id: string
+          installment_1: string | null
+          installment_2: string | null
+          installment_3: string | null
+          installment_4: string | null
+          notes: Json | null
+          property_number: string | null
+          property_type: string | null
+          sale_price: string | null
+          total_area: string | null
+        }
+        Insert: {
+          built_area?: string | null
+          contract_id: string
+          created_at?: string
+          entrance?: string | null
+          floor?: string | null
+          id?: string
+          installment_1?: string | null
+          installment_2?: string | null
+          installment_3?: string | null
+          installment_4?: string | null
+          notes?: Json | null
+          property_number?: string | null
+          property_type?: string | null
+          sale_price?: string | null
+          total_area?: string | null
+        }
+        Update: {
+          built_area?: string | null
+          contract_id?: string
+          created_at?: string
+          entrance?: string | null
+          floor?: string | null
+          id?: string
+          installment_1?: string | null
+          installment_2?: string | null
+          installment_3?: string | null
+          installment_4?: string | null
+          notes?: Json | null
+          property_number?: string | null
+          property_type?: string | null
+          sale_price?: string | null
+          total_area?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contract_properties_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "contracts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       contracts: {
         Row: {
           contact_id: string | null
