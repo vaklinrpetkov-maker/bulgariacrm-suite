@@ -295,7 +295,7 @@ export default function Dashboard() {
   if (isLoading) {
     return (
       <div>
-        <PageHeader title="Табло" description="Преглед на ключови показатели" />
+        <PageHeader title="Табло" description="Преглед на ключови показатели" sopKey="dashboard" />
         <div className="p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {Array.from({ length: 8 }).map((_, i) => (
             <Skeleton key={i} className="h-28 w-full rounded-lg" />
