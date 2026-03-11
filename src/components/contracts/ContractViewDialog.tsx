@@ -1,7 +1,9 @@
+import { useQuery } from "@tanstack/react-query";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
+import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 
 const statusLabels: Record<string, string> = {
@@ -17,38 +19,54 @@ interface ContractViewDialogProps {
   onOpenChange: (open: boolean) => void;
 }
 
-const EXTRACTED_LABELS: { key: string; label: string }[] = [
-  { key: "Дата", label: "Дата" },
-  { key: "Продавач", label: "Продавач" },
-  { key: "Купувач", label: "Купувач" },
-  { key: "ЕГН", label: "ЕГН" },
-  { key: "Сграда", label: "Сграда" },
-  { key: "Имот №", label: "Имот №" },
-  { key: "Етаж", label: "Етаж" },
-  { key: "Вход", label: "Вход" },
-  { key: "Застроена площ", label: "Застроена площ (кв.м.)" },
-  { key: "Обща площ", label: "Обща площ (кв.м.)" },
-  { key: "Продажна цена", label: "Продажна цена" },
-  { key: "Първа вноска", label: "Първа вноска" },
-  { key: "Втора вноска", label: "Втора вноска" },
-  { key: "Трета вноска", label: "Трета вноска" },
-  { key: "Четвърта вноска", label: "Четвърта вноска" },
-  { key: "Кредит", label: "Кредит" },
-  { key: "Адрес", label: "Адрес" },
-  { key: "e-mail", label: "e-mail" },
-  { key: "Телефон", label: "Телефон" },
-];
-
-function tryParseExtracted(notes: string | null): Record<string, string> | null {
+function tryParseNotes(notes: string | null): Record<string, string> | null {
   if (!notes) return null;
   try {
-    const parsed = JSON.parse(notes);
-    if (typeof parsed === "object" && !Array.isArray(parsed) && parsed["Купувач"]) return parsed;
+    return JSON.parse(notes);
   } catch {}
   return null;
 }
 
+const CONTRACT_INFO_LABELS: { key: string; label: string }[] = [
+  { key: "buyer", label: "Купувач" },
+  { key: "egn", label: "ЕГН" },
+  { key: "seller", label: "Продавач" },
+  { key: "building", label: "Сграда" },
+  { key: "date", label: "Дата на договор" },
+  { key: "credit", label: "Кредит" },
+  { key: "address", label: "Адрес" },
+  { key: "email", label: "e-mail" },
+  { key: "phone", label: "Телефон" },
+];
+
+const PROPERTY_LABELS: { key: string; label: string }[] = [
+  { key: "property_number", label: "Имот №" },
+  { key: "floor", label: "Етаж" },
+  { key: "entrance", label: "Вход" },
+  { key: "built_area", label: "Застроена площ (кв.м.)" },
+  { key: "total_area", label: "Обща площ (кв.м.)" },
+  { key: "sale_price", label: "Продажна цена" },
+  { key: "installment_1", label: "Първа вноска" },
+  { key: "installment_2", label: "Втора вноска" },
+  { key: "installment_3", label: "Трета вноска" },
+  { key: "installment_4", label: "Четвърта вноска" },
+];
+
 const ContractViewDialog = ({ contract, open, onOpenChange }: ContractViewDialogProps) => {
+  const { data: properties = [] } = useQuery({
+    queryKey: ["contract-properties", contract?.id],
+    queryFn: async () => {
+      const { data, error } = await (supabase as any)
+        .from("contract_properties")
+        .select("*")
+        .eq("contract_id", contract!.id)
+        .order("created_at", { ascending: true });
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!contract?.id && open,
+  });
+
   if (!contract) return null;
 
   const contactName = contract.contacts
@@ -57,7 +75,7 @@ const ContractViewDialog = ({ contract, open, onOpenChange }: ContractViewDialog
       : [contract.contacts.first_name, contract.contacts.last_name].filter(Boolean).join(" ")
     : null;
 
-  const extracted = tryParseExtracted(contract.notes);
+  const contractInfo = tryParseNotes(contract.notes);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -80,20 +98,20 @@ const ContractViewDialog = ({ contract, open, onOpenChange }: ContractViewDialog
             {/* Basic info */}
             <div className="grid grid-cols-2 gap-4">
               <InfoRow label="Контакт" value={contactName || "—"} />
-              <InfoRow label="Стойност" value={contract.total_value != null ? `${Number(contract.total_value).toLocaleString("bg-BG")} лв.` : "—"} />
+              <InfoRow label="Обща стойност" value={contract.total_value != null ? `${Number(contract.total_value).toLocaleString("bg-BG")} лв.` : "—"} />
               <InfoRow label="Подписан" value={contract.signed_at ? format(new Date(contract.signed_at), "dd.MM.yyyy") : "—"} />
               <InfoRow label="Номер" value={contract.contract_number || "—"} />
             </div>
 
-            {/* AI-extracted fields */}
-            {extracted && (
+            {/* Contract-level extracted info */}
+            {contractInfo && (
               <>
                 <Separator />
                 <div>
-                  <h3 className="text-sm font-semibold mb-3 text-muted-foreground uppercase tracking-wide">Извлечени данни от AI</h3>
+                  <h3 className="text-sm font-semibold mb-3 text-muted-foreground uppercase tracking-wide">Данни от договор</h3>
                   <div className="rounded-lg border border-border divide-y divide-border">
-                    {EXTRACTED_LABELS.map((field) => {
-                      const val = extracted[field.key];
+                    {CONTRACT_INFO_LABELS.map((field) => {
+                      const val = contractInfo[field.key];
                       if (!val || val === "N/A") return null;
                       return (
                         <div key={field.key} className="flex items-center px-4 py-2.5 hover:bg-secondary/30 transition-colors">
@@ -107,8 +125,43 @@ const ContractViewDialog = ({ contract, open, onOpenChange }: ContractViewDialog
               </>
             )}
 
+            {/* Properties */}
+            {properties.length > 0 && (
+              <>
+                <Separator />
+                <div>
+                  <h3 className="text-sm font-semibold mb-3 text-muted-foreground uppercase tracking-wide">
+                    Имоти ({properties.length})
+                  </h3>
+                  <div className="space-y-3">
+                    {properties.map((prop: any, idx: number) => (
+                      <div key={prop.id} className="rounded-lg border border-border overflow-hidden">
+                        <div className="px-4 py-2 bg-primary/10 border-b border-border">
+                          <span className="text-sm font-medium text-primary">
+                            {prop.property_number || `Имот ${idx + 1}`}
+                          </span>
+                        </div>
+                        <div className="divide-y divide-border">
+                          {PROPERTY_LABELS.map((field) => {
+                            const val = prop[field.key];
+                            if (!val) return null;
+                            return (
+                              <div key={field.key} className="flex items-center px-4 py-2 hover:bg-secondary/30 transition-colors">
+                                <span className="w-2/5 text-sm text-muted-foreground font-medium">{field.label}</span>
+                                <span className="w-3/5 text-sm">{val}</span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </>
+            )}
+
             {/* Plain notes fallback */}
-            {!extracted && contract.notes && (
+            {!contractInfo && !properties.length && contract.notes && (
               <>
                 <Separator />
                 <div>
