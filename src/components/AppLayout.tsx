@@ -1,5 +1,6 @@
 import { ReactNode, useState, useCallback, useRef, useEffect } from "react";
 import AppSidebar from "@/components/AppSidebar";
+import AiAssistant from "@/components/AiAssistant";
 
 const MIN_WIDTH = 200;
 const MAX_WIDTH = 400;
