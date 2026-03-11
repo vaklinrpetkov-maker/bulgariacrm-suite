@@ -109,11 +109,36 @@ const ContractViewDialog = ({ contract, open, onOpenChange, onDeleted }: Contrac
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col">
         <DialogHeader>
-          <div className="flex items-center gap-3">
-            <DialogTitle className="text-lg">{contract.title}</DialogTitle>
-            <Badge variant={statusVariant[contract.status] || "secondary"}>
-              {statusLabels[contract.status] || contract.status}
-            </Badge>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <DialogTitle className="text-lg">{contract.title}</DialogTitle>
+              <Badge variant={statusVariant[contract.status] || "secondary"}>
+                {statusLabels[contract.status] || contract.status}
+              </Badge>
+            </div>
+            {isAdmin && (
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive hover:bg-destructive/10 mr-6">
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Изтриване на договор</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Сигурни ли сте, че искате да изтриете „{contract.title}"? Всички свързани имоти също ще бъдат изтрити. Действието е необратимо.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Отказ</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleDelete} disabled={deleting} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                      {deleting ? "Изтриване..." : "Изтрий"}
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            )}
           </div>
           <DialogDescription>
             {contract.contract_number ? `№ ${contract.contract_number} · ` : ""}
