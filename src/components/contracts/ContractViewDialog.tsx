@@ -9,7 +9,7 @@ import { Separator } from "@/components/ui/separator";
 import { supabase } from "@/integrations/supabase/client";
 import { useUserRole } from "@/hooks/useUserRole";
 import { toast } from "sonner";
-import { Trash2, FileText, ExternalLink } from "lucide-react";
+import { Trash2, FileText } from "lucide-react";
 import { format } from "date-fns";
 
 const statusLabels: Record<string, string> = {
