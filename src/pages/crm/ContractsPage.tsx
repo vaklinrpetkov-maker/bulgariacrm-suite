@@ -30,6 +30,7 @@ const ContractsPage = () => {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
   const [extractOpen, setExtractOpen] = useState(false);
+  const [viewContract, setViewContract] = useState<any | null>(null);
 
   const { data: contracts = [] } = useQuery({
     queryKey: ["contracts"],
