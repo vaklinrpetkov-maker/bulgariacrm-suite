@@ -224,7 +224,7 @@ const ContractViewDialog = ({ contract, open, onOpenChange, onDeleted }: Contrac
               </>
             )}
           </div>
-        </ScrollArea>
+        </div>
       </DialogContent>
     </Dialog>
   );
