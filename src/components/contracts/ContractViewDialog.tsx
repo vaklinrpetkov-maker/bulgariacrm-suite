@@ -178,6 +178,15 @@ const ContractViewDialog = ({ contract, open, onOpenChange, onDeleted }: Contrac
               <InfoRow label="Номер" value={contract.contract_number || "—"} />
             </div>
 
+            {/* PDF View Button */}
+            {(contract as any).file_path && (
+              <Button variant="outline" size="sm" onClick={handleViewPdf} disabled={loadingPdf} className="w-full">
+                <FileText className="mr-2 h-4 w-4" />
+                {loadingPdf ? "Зареждане..." : "Преглед на оригинален PDF"}
+                <ExternalLink className="ml-auto h-3.5 w-3.5 text-muted-foreground" />
+              </Button>
+            )}
+
             {/* Contract-level extracted info */}
             {contractInfo && (
               <>
