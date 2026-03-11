@@ -5,7 +5,7 @@ import { Wallet } from "lucide-react";
 const BudgetsPage = () => {
   return (
     <div>
-      <PageHeader title="Бюджети" description="Планирани vs. реални разходи" />
+      <PageHeader title="Бюджети" description="Планирани vs. реални разходи" sopKey="budgets" />
       <div className="p-6">
         <EmptyState icon={Wallet} title="Няма бюджетни записи" description="Създайте бюджет за проследяване на планирани и реални разходи." />
       </div>

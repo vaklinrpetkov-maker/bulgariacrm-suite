@@ -307,7 +307,7 @@ export default function Dashboard() {
 
   return (
     <div>
-      <PageHeader title="Табло" description="Преглед на ключови показатели" />
+      <PageHeader title="Табло" description="Преглед на ключови показатели" sopKey="dashboard" />
       <div className="p-6 space-y-6">
         {/* KPI Row */}
         <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-8 gap-3">

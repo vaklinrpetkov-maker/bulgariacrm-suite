@@ -56,6 +56,7 @@ const DealsPage = () => {
       <PageHeader
         title="Сделки"
         description="Управление на търговски сделки"
+        sopKey="deals"
         actions={
           <>
             <Button variant="outline" onClick={handleExport}><Download className="mr-2 h-4 w-4" />Excel</Button>

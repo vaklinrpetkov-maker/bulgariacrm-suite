@@ -93,6 +93,7 @@ const NotificationsPage = () => {
       <PageHeader
         title="Известия"
         description="Вашите известия и напомняния"
+        sopKey="notifications"
         actions={
           unreadCount > 0 ? (
             <Button variant="outline" onClick={() => markAllReadMutation.mutate()}>

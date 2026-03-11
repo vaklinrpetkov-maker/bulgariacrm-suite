@@ -53,6 +53,7 @@ const InventoryPage = () => {
       <PageHeader
         title="Имоти"
         description="Комплекси → Сгради → Единици"
+        sopKey="inventory"
         actions={
           <>
             <Button variant="outline" onClick={handleExport}><Download className="mr-2 h-4 w-4" />Excel</Button>

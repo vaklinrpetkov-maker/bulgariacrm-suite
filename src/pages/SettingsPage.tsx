@@ -49,7 +49,7 @@ const SettingsPage = () => {
 
   return (
     <div>
-      <PageHeader title="Настройки" description="Системни настройки и RBAC" />
+      <PageHeader title="Настройки" description="Системни настройки и RBAC" sopKey="settings" />
       <div className="p-6">
         <Tabs defaultValue="roles">
           <TabsList>
