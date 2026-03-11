@@ -178,10 +178,10 @@ const ContractExtractDialog = ({ open, onOpenChange }: ContractExtractDialogProp
       const first = extractedData[0];
 
       // Sum total value across all properties
-      const totalValue = extractedData.reduce((sum, p) => {
-        const v = parseNumeric(p["Продажна цена"]);
-        return v ? sum + v : sum;
-      }, 0) || null;
+      // If all properties share the same sale price, it's the contract total — don't sum
+      const prices = extractedData.map(p => parseNumeric(p["Продажна цена"])).filter(Boolean) as number[];
+      const allSame = prices.length > 0 && prices.every(p => p === prices[0]);
+      const totalValue = prices.length === 0 ? null : allSame ? prices[0] : prices.reduce((a, b) => a + b, 0);
 
       const propertyList = extractedData.map(p => p["Имот №"] || "N/A").join(", ");
       const title = `Договор - ${first["Купувач"] || "N/A"} - ${propertyList}`;
