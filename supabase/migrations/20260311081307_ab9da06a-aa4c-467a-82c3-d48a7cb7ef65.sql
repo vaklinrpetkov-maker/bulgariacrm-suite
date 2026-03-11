@@ -1,0 +1,1 @@
+ALTER TABLE public.contracts ADD COLUMN file_path text DEFAULT NULL;
