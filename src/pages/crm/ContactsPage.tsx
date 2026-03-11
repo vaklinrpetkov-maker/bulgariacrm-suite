@@ -134,8 +134,8 @@ const ContactsPage = () => {
      return matchesSearch && matchesType && matchesOwner && matchesDateFrom && matchesDateTo;
   });
 
-  const handleExport = () => {
-    exportToExcel(
+  const handleExport = async () => {
+    await exportToExcel(
       filtered.map(c => ({
         type: c.type === "company" ? "Компания" : "Лице",
         category: { client: "Клиент", internal: "Наш човек", partner: "Партньор", other: "Друг" }[(c as any).category || "client"] || "",

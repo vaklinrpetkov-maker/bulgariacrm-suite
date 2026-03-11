@@ -20,8 +20,8 @@ const InventoryPage = () => {
     },
   });
 
-  const handleExport = () => {
-    exportToExcel(
+  const handleExport = async () => {
+    await exportToExcel(
       units.map((u: any) => ({
         complex: u.buildings?.complexes?.name || "",
         building: u.buildings?.name || "",

@@ -57,8 +57,8 @@ const ContractsPage = () => {
     return c.contacts.type === "company" ? c.contacts.company_name : [c.contacts.first_name, c.contacts.last_name].filter(Boolean).join(" ");
   };
 
-  const handleExport = () => {
-    exportToExcel(
+  const handleExport = async () => {
+    await exportToExcel(
       filtered.map(c => ({
         title: c.title,
         contract_number: c.contract_number || "",

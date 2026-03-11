@@ -86,7 +86,8 @@ const MeetingsPage = () => {
     return matchesSearch && matchesStatus && matchesDateFrom && matchesDateTo;
   });
 
-  const handleExport = () => {
+  const handleExport = async () => {
+    await
     exportToExcel(
       filtered.map((m) => ({
         title: m.title,
