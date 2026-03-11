@@ -3,6 +3,7 @@ import { useLocation } from "react-router-dom";
 import { Bot, X, Send, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
 import ReactMarkdown from "react-markdown";
 
 interface Message {
