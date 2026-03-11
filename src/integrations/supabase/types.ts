@@ -371,6 +371,36 @@ export type Database = {
           },
         ]
       }
+      contract_extractions: {
+        Row: {
+          created_at: string
+          extracted_data: Json
+          file_name: string
+          file_path: string | null
+          id: string
+          status: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          extracted_data?: Json
+          file_name: string
+          file_path?: string | null
+          id?: string
+          status?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          extracted_data?: Json
+          file_name?: string
+          file_path?: string | null
+          id?: string
+          status?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       contract_payments: {
         Row: {
           contract_id: string
