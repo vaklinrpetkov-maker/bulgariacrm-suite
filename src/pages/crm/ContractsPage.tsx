@@ -164,7 +164,7 @@ const ContractsPage = () => {
                     <TableCell className="font-medium">{c.title}</TableCell>
                     <TableCell>{c.contract_number || "—"}</TableCell>
                     <TableCell>{contactName(c)}</TableCell>
-                    <TableCell>{c.total_value != null ? `${Number(c.total_value).toLocaleString("bg-BG")} лв.` : "—"}</TableCell>
+                    <TableCell>{c.total_value != null ? `${Number(c.total_value).toLocaleString("bg-BG")} €` : "—"}</TableCell>
                     <TableCell>
                       <Badge variant={statusVariant[c.status] || "secondary"}>
                         {statusLabels[c.status] || c.status}

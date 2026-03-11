@@ -151,7 +151,7 @@ const ContractViewDialog = ({ contract, open, onOpenChange, onDeleted }: Contrac
             {/* Basic info */}
             <div className="grid grid-cols-2 gap-4">
               <InfoRow label="Контакт" value={contactName || "—"} />
-              <InfoRow label="Обща стойност" value={contract.total_value != null ? `${Number(contract.total_value).toLocaleString("bg-BG")} лв.` : "—"} />
+              <InfoRow label="Обща стойност" value={contract.total_value != null ? `${Number(contract.total_value).toLocaleString("bg-BG")} €` : "—"} />
               <InfoRow label="Подписан" value={contract.signed_at ? format(new Date(contract.signed_at), "dd.MM.yyyy") : "—"} />
               <InfoRow label="Номер" value={contract.contract_number || "—"} />
             </div>
