@@ -171,6 +171,7 @@ const ContactsPage = () => {
       <PageHeader
         title="Контакти"
         description="Управление на клиенти и компании"
+        sopKey="contacts"
         actions={
           <>
             <DropdownMenu>

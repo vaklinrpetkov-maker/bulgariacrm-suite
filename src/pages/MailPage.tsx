@@ -159,6 +159,7 @@ export default function MailPage() {
       <PageHeader
         title="Поща"
         description="office@vminvest.bg"
+        sopKey="mail"
         actions={
           <div className="flex gap-2">
             <Button size="sm" variant="outline" onClick={() => syncMutation.mutate()} disabled={syncMutation.isPending}>

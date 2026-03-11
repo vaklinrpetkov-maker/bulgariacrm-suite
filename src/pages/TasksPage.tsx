@@ -146,6 +146,7 @@ const TasksPage = () => {
       <PageHeader
         title="Задачи"
         description="Ежедневни задачи и операции"
+        sopKey="tasks"
         actions={
           <Button className="gradient-primary shadow-md shadow-primary/20" onClick={() => { setEditTask(null); setFormOpen(true); }}>
             <Plus className="mr-2 h-4 w-4" />Нова задача

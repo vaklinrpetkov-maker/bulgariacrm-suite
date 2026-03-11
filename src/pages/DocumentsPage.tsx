@@ -9,6 +9,7 @@ const DocumentsPage = () => {
       <PageHeader
         title="Документи"
         description="Хранилище за документи, процеси и SOP"
+        sopKey="documents"
         actions={<Button className="gradient-primary shadow-md shadow-primary/20"><Plus className="mr-2 h-4 w-4" />Качване</Button>}
       />
       <div className="p-6">

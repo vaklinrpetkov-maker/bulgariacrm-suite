@@ -9,6 +9,7 @@ const ProjectsPage = () => {
       <PageHeader
         title="Проекти"
         description="Управление на строителни проекти"
+        sopKey="projects"
         actions={<Button className="gradient-primary shadow-md shadow-primary/20"><Plus className="mr-2 h-4 w-4" />Нов проект</Button>}
       />
       <div className="p-6">
