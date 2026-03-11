@@ -118,7 +118,7 @@ const LeadsPage = () => {
     return matchesSearch && matchesStatus && matchesOwner && matchesDateFrom && matchesDateTo;
   });
 
-  const handleExport = () => {
+  const handleExport = async () => {
     const contactName = (l: any) => l.contacts ? getContactName(l.contacts) : "";
     exportToExcel(
       filtered.map(l => ({

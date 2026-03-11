@@ -31,7 +31,7 @@ const DealsPage = () => {
     },
   });
 
-  const handleExport = () => {
+  const handleExport = async () => {
     exportToExcel(
       deals.map(d => ({
         title: d.title,
