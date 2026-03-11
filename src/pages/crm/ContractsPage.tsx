@@ -63,7 +63,7 @@ const ContractsPage = () => {
         title: c.title,
         contract_number: c.contract_number || "",
         contact: contactName(c),
-        total_value: c.total_value != null ? `${c.total_value} лв.` : "",
+        total_value: c.total_value != null ? `${c.total_value} €` : "",
         status: statusLabels[c.status] || c.status,
         signed_at: c.signed_at ? format(new Date(c.signed_at), "dd.MM.yyyy") : "",
         created_at: format(new Date(c.created_at), "dd.MM.yyyy"),
