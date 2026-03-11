@@ -55,8 +55,17 @@ export default function Dashboard() {
   const { data: contacts = [] } = useQuery({
     queryKey: ["dash-contacts"],
     queryFn: async () => {
-      const { data } = await supabase.from("contacts").select("id, created_at").limit(9999);
-      return data || [];
+      const all: { id: string; created_at: string }[] = [];
+      const PAGE = 1000;
+      let from = 0;
+      while (true) {
+        const { data } = await supabase.from("contacts").select("id, created_at").range(from, from + PAGE - 1);
+        if (!data || data.length === 0) break;
+        all.push(...data);
+        if (data.length < PAGE) break;
+        from += PAGE;
+      }
+      return all;
     },
   });
 
