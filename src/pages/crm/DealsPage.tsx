@@ -32,7 +32,7 @@ const DealsPage = () => {
   });
 
   const handleExport = async () => {
-    exportToExcel(
+    await exportToExcel(
       deals.map(d => ({
         title: d.title,
         contact: d.contacts ? (d.contacts.type === "company" ? d.contacts.company_name : [d.contacts.first_name, d.contacts.last_name].filter(Boolean).join(" ")) : "",

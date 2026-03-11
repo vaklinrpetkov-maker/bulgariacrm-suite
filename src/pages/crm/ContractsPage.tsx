@@ -58,7 +58,7 @@ const ContractsPage = () => {
   };
 
   const handleExport = async () => {
-    exportToExcel(
+    await exportToExcel(
       filtered.map(c => ({
         title: c.title,
         contract_number: c.contract_number || "",

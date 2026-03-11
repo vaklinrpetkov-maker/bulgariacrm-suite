@@ -135,7 +135,7 @@ const ContactsPage = () => {
   });
 
   const handleExport = async () => {
-    exportToExcel(
+    await exportToExcel(
       filtered.map(c => ({
         type: c.type === "company" ? "Компания" : "Лице",
         category: { client: "Клиент", internal: "Наш човек", partner: "Партньор", other: "Друг" }[(c as any).category || "client"] || "",
