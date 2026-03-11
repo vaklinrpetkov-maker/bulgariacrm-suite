@@ -15,6 +15,7 @@ import { Plus, Download, Search, CalendarIcon, X, Sparkles } from "lucide-react"
 import type { DateRange } from "react-day-picker";
 import { exportToExcel } from "@/lib/exportToExcel";
 import ContractExtractDialog from "@/components/contracts/ContractExtractDialog";
+import ContractViewDialog from "@/components/contracts/ContractViewDialog";
 
 const statusLabels: Record<string, string> = {
   draft: "Чернова", active: "Активен", completed: "Завършен", cancelled: "Анулиран",
