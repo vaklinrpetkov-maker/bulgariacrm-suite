@@ -66,6 +66,7 @@ const ContractExtractDialog = ({ open, onOpenChange }: ContractExtractDialogProp
   const [processProgress, setProcessProgress] = useState({ current: 0, total: 0 });
   const [extractedData, setExtractedData] = useState<ContractProperty[] | null>(null);
   const [saving, setSaving] = useState(false);
+  const [uploadedFilePath, setUploadedFilePath] = useState<string | null>(null);
 
   const acceptFile = (file: File) =>
     file.type === "application/pdf" || file.name.endsWith(".docx");
@@ -123,12 +124,17 @@ const ContractExtractDialog = ({ open, onOpenChange }: ContractExtractDialogProp
       try {
         const fileContent = await readFileAsText(file);
 
-        // Upload to storage
-        const filePath = `${crypto.randomUUID()}/${file.name}`;
+        // Upload to storage with sanitized filename (ASCII only)
+        const fileExt = file.name.split('.').pop() || 'pdf';
+        const filePath = `${crypto.randomUUID()}/contract.${fileExt}`;
         const { error: uploadError } = await supabase.storage
           .from("contracts")
           .upload(filePath, file);
-        if (uploadError) console.error("Storage upload error:", uploadError);
+        if (uploadError) {
+          console.error("Storage upload error:", uploadError);
+        } else if (i === 0) {
+          setUploadedFilePath(filePath);
+        }
 
         const { data, error } = await supabase.functions.invoke("extract-contract", {
           body: { fileContent, fileName: file.name, filePath: uploadError ? null : filePath, userId: user?.id },
@@ -229,22 +235,7 @@ const ContractExtractDialog = ({ open, onOpenChange }: ContractExtractDialogProp
         phone: first["Телефон"],
       };
 
-      // Get the file path from storage (use first uploaded file)
-      const filePath = `${crypto.randomUUID()}/${selectedFiles[0].name}`;
-      let storedFilePath: string | null = null;
-      
-      // Check if file was already uploaded during processing - we'll store the path from the extraction
-      // The file was uploaded in handleProcess, so we need to track it
-      // For now, we'll use the contract_extractions to find the file_path
-      const { data: extraction } = await supabase
-        .from("contract_extractions")
-        .select("file_path")
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
-      
-      storedFilePath = extraction?.file_path || null;
+      const storedFilePath = uploadedFilePath;
 
       const { data: newContract, error: contractError } = await supabase
         .from("contracts")
@@ -297,6 +288,7 @@ const ContractExtractDialog = ({ open, onOpenChange }: ContractExtractDialogProp
     setSelectedFiles([]);
     setExtractedData(null);
     setIsProcessing(false);
+    setUploadedFilePath(null);
   };
 
   return (
