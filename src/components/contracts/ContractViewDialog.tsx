@@ -146,7 +146,7 @@ const ContractViewDialog = ({ contract, open, onOpenChange, onDeleted }: Contrac
           </DialogDescription>
         </DialogHeader>
 
-        <ScrollArea className="flex-1 pr-4">
+        <ScrollArea className="flex-1 min-h-0 pr-4">
           <div className="space-y-5">
             {/* Basic info */}
             <div className="grid grid-cols-2 gap-4">
