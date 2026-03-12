@@ -156,10 +156,18 @@ const InventoryPage = () => {
       <div className="p-6 space-y-6">
         {/* KPIs */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <StatCard title="Общо единици" value={totalUnits} emoji="🏠" />
-          <StatCard title="Свободни" value={availableCount} emoji="🟢" />
-          <StatCard title="Запазени" value={reservedCount} emoji="🟡" />
-          <StatCard title="Продадени" value={soldCount} emoji="🔴" />
+          <div onClick={() => setStatusFilter("all")} className="cursor-pointer">
+            <StatCard title="Общо единици" value={totalUnits} emoji="🏠" description={statusFilter === "all" ? "● Активен филтър" : undefined} />
+          </div>
+          <div onClick={() => setStatusFilter("available")} className="cursor-pointer">
+            <StatCard title="Свободни" value={availableCount} emoji="🟢" description={statusFilter === "available" ? "● Активен филтър" : undefined} />
+          </div>
+          <div onClick={() => setStatusFilter("reserved")} className="cursor-pointer">
+            <StatCard title="Запазени" value={reservedCount} emoji="🟡" description={statusFilter === "reserved" ? "● Активен филтър" : undefined} />
+          </div>
+          <div onClick={() => setStatusFilter("sold")} className="cursor-pointer">
+            <StatCard title="Продадени" value={soldCount} emoji="🔴" description={statusFilter === "sold" ? "● Активен филтър" : undefined} />
+          </div>
         </div>
 
         {/* Filter */}
