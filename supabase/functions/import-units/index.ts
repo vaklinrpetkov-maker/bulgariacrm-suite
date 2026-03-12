@@ -94,6 +94,9 @@ Deno.serve(async (req) => {
 
   function mapType(t: string): { type: string; rooms: number | null } {
     const lower = t.toLowerCase();
+    if (lower.includes("гараж")) return { type: "garage", rooms: null };
+    if (lower.includes("впм")) return { type: "parking_inside", rooms: null };
+    if (lower.includes("пм") && !lower.includes("впм")) return { type: "parking_outside", rooms: null };
     if (lower.includes("офис")) return { type: "office", rooms: null };
     if (lower.includes("едностаен")) return { type: "apartment", rooms: 1 };
     if (lower.includes("двустаен")) return { type: "apartment", rooms: 2 };
