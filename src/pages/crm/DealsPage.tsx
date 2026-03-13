@@ -60,7 +60,19 @@ const DealsPage = () => {
         sopKey="deals"
         actions={
           <>
-            <Button variant="outline" onClick={handleExport}><Download className="mr-2 h-4 w-4" />Excel</Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline"><FileSpreadsheet className="mr-2 h-4 w-4" />Excel</Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuItem onClick={() => {/* TODO: import */}}>
+                  <Upload className="mr-2 h-4 w-4" />Импорт
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleExport}>
+                  <Download className="mr-2 h-4 w-4" />Експорт
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
             <Button><Plus className="mr-2 h-4 w-4" />Нова сделка</Button>
           </>
         }
