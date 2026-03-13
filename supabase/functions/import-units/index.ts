@@ -83,13 +83,8 @@ Deno.serve(async (req) => {
   }
 
   function mapStatus(s: string): string {
-    const lower = s.toLowerCase();
-    if (lower.includes("свободен")) return "available";
-    if (lower.includes("запазен")) return "reserved";
-    if (lower.includes("депозит")) return "reserved";
-    if (lower.includes("предварителен")) return "reserved";
-    if (lower.includes("продаден")) return "sold";
-    return "available";
+    // Preserve original status as-is from Excel
+    return s.trim() || "Свободен";
   }
 
   function mapType(t: string): { type: string; rooms: number | null } {

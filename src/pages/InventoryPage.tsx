@@ -20,16 +20,20 @@ const unitTypeLabels: Record<string, string> = {
   garage: "Гараж",
 };
 
-const statusLabels: Record<string, string> = {
-  available: "Свободен",
-  reserved: "Запазен",
-  sold: "Продаден",
+const statusVariant: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
+  "Свободен": "outline",
+  "Запазен": "secondary",
+  "Депозит": "secondary",
+  "Предварителен договор": "secondary",
+  "Продаден НА": "default",
 };
 
-const statusVariant: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
-  available: "outline",
-  reserved: "secondary",
-  sold: "default",
+const statusEmoji: Record<string, string> = {
+  "Свободен": "🟢",
+  "Запазен": "🟡",
+  "Депозит": "🟠",
+  "Предварителен договор": "🔵",
+  "Продаден НА": "🔴",
 };
 
 const InventoryPage = () => {
