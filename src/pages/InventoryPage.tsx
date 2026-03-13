@@ -4,13 +4,14 @@ import { supabase } from "@/integrations/supabase/client";
 import PageHeader from "@/components/PageHeader";
 import EmptyState from "@/components/EmptyState";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Download, Building, ChevronDown, ChevronRight, User, Filter } from "lucide-react";
+import { Plus, Download, Building, ChevronDown, ChevronRight, Filter } from "lucide-react";
 import { exportToExcel } from "@/lib/exportToExcel";
 import StatCard from "@/components/StatCard";
+import EditableUnitRow from "@/components/inventory/EditableUnitRow";
+import { useUserRole } from "@/hooks/useUserRole";
 
 const unitTypeLabels: Record<string, string> = {
   apartment: "Апартамент",
