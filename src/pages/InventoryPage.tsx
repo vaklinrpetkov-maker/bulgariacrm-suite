@@ -82,10 +82,12 @@ const InventoryPage = () => {
     ? units
     : units.filter((u: any) => u.status === statusFilter);
 
-  const totalUnits = units.length;
-  const availableCount = units.filter((u: any) => u.status === "available").length;
-  const reservedCount = units.filter((u: any) => u.status === "reserved").length;
-  const soldCount = units.filter((u: any) => u.status === "sold").length;
+  // Group counts by actual status
+  const statusCounts = units.reduce((acc: Record<string, number>, u: any) => {
+    acc[u.status] = (acc[u.status] || 0) + 1;
+    return acc;
+  }, {} as Record<string, number>);
+  const allStatuses = Object.keys(statusCounts).sort();
 
   const handleExport = async () => {
     await exportToExcel(
