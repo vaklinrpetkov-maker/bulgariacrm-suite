@@ -33,6 +33,8 @@ const statusEmoji: Record<string, string> = {
 const InventoryPage = () => {
   const [expandedComplex, setExpandedComplex] = useState<string | null>(null);
   const [expandedBuilding, setExpandedBuilding] = useState<string | null>(null);
+  const { isAdmin, isManager } = useUserRole();
+  const canEdit = isAdmin || isManager;
   const [statusFilter, setStatusFilter] = useState<string>("all");
 
   const { data: complexes = [] } = useQuery({
