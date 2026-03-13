@@ -7,7 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Download, Building, ChevronDown, ChevronRight, Filter } from "lucide-react";
+import { Plus, Download, Upload, Building, ChevronDown, ChevronRight, Filter, FileSpreadsheet } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { exportToExcel } from "@/lib/exportToExcel";
 import StatCard from "@/components/StatCard";
 import EditableUnitRow from "@/components/inventory/EditableUnitRow";
@@ -152,10 +153,19 @@ const InventoryPage = () => {
         sopKey="inventory"
         actions={
           <>
-            <Button variant="outline" onClick={handleExport}>
-              <Download className="mr-2 h-4 w-4" />
-              Excel
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline"><FileSpreadsheet className="mr-2 h-4 w-4" />Excel</Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuItem onClick={() => {/* TODO: import */}}>
+                  <Upload className="mr-2 h-4 w-4" />Импорт
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleExport}>
+                  <Download className="mr-2 h-4 w-4" />Експорт
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
             <Button className="gradient-primary shadow-md shadow-primary/20">
               <Plus className="mr-2 h-4 w-4" />
               Нов комплекс
