@@ -292,38 +292,14 @@ const InventoryPage = () => {
                                           </TableCell>
                                         </TableRow>
                                       ) : (
-                                        bUnits.map((unit: any) => {
-                                          const contactName = getContactName(unit.contacts);
-                                          return (
-                                            <TableRow key={unit.id}>
-                                              <TableCell className="font-medium">{unit.unit_number}</TableCell>
-                                              <TableCell>{unitTypeLabels[unit.type] || unit.type}</TableCell>
-                                              <TableCell>{unit.floor ?? "—"}</TableCell>
-                                              <TableCell>{unit.rooms ?? "—"}</TableCell>
-                                              <TableCell>{unit.area_sqm ? Number(unit.area_sqm).toFixed(2) : "—"}</TableCell>
-                                              <TableCell>
-                                                {unit.price != null
-                                                  ? Number(unit.price).toLocaleString("bg-BG")
-                                                  : "—"}
-                                              </TableCell>
-                                              <TableCell>
-                                                <Badge className={statusColors[unit.status] || "bg-muted text-muted-foreground"}>
-                                                  {unit.status}
-                                                </Badge>
-                                              </TableCell>
-                                              <TableCell>
-                                                {contactName ? (
-                                                  <div className="flex items-center gap-1.5">
-                                                    <User className="h-3.5 w-3.5 text-muted-foreground" />
-                                                    <span className="text-sm">{contactName}</span>
-                                                  </div>
-                                                ) : (
-                                                  <span className="text-muted-foreground">—</span>
-                                                )}
-                                              </TableCell>
-                                            </TableRow>
-                                          );
-                                        })
+                                        bUnits.map((unit: any) => (
+                                          <EditableUnitRow
+                                            key={unit.id}
+                                            unit={unit}
+                                            canEdit={canEdit}
+                                            contactName={getContactName(unit.contacts)}
+                                          />
+                                        ))
                                       )}
                                     </TableBody>
                                   </Table>
