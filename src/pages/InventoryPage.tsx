@@ -20,16 +20,20 @@ const unitTypeLabels: Record<string, string> = {
   garage: "Гараж",
 };
 
-const statusLabels: Record<string, string> = {
-  available: "Свободен",
-  reserved: "Запазен",
-  sold: "Продаден",
+const statusVariant: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
+  "Свободен": "outline",
+  "Запазен": "secondary",
+  "Депозит": "secondary",
+  "Предварителен договор": "secondary",
+  "Продаден НА": "default",
 };
 
-const statusVariant: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
-  available: "outline",
-  reserved: "secondary",
-  sold: "default",
+const statusEmoji: Record<string, string> = {
+  "Свободен": "🟢",
+  "Запазен": "🟡",
+  "Депозит": "🟠",
+  "Предварителен договор": "🔵",
+  "Продаден НА": "🔴",
 };
 
 const InventoryPage = () => {
@@ -78,10 +82,13 @@ const InventoryPage = () => {
     ? units
     : units.filter((u: any) => u.status === statusFilter);
 
+  // Group counts by actual status
+  const statusCounts = units.reduce((acc: Record<string, number>, u: any) => {
+    acc[u.status] = (acc[u.status] || 0) + 1;
+    return acc;
+  }, {} as Record<string, number>);
+  const allStatuses = Object.keys(statusCounts).sort();
   const totalUnits = units.length;
-  const availableCount = units.filter((u: any) => u.status === "available").length;
-  const reservedCount = units.filter((u: any) => u.status === "reserved").length;
-  const soldCount = units.filter((u: any) => u.status === "sold").length;
 
   const handleExport = async () => {
     await exportToExcel(
@@ -94,7 +101,7 @@ const InventoryPage = () => {
         area: u.area_sqm ? `${u.area_sqm} кв.м` : "",
         rooms: u.rooms ?? "",
         price: u.price != null ? `${Number(u.price).toLocaleString("bg-BG")} лв.` : "",
-        status: statusLabels[u.status] || u.status,
+        status: u.status,
         contact: u.contacts
           ? u.contacts.company_name || `${u.contacts.first_name || ""} ${u.contacts.last_name || ""}`.trim()
           : "",
@@ -155,33 +162,29 @@ const InventoryPage = () => {
 
       <div className="p-6 space-y-6">
         {/* KPIs */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
           <div onClick={() => setStatusFilter("all")} className="cursor-pointer">
             <StatCard title="Общо единици" value={totalUnits} emoji="🏠" description={statusFilter === "all" ? "● Активен филтър" : undefined} />
           </div>
-          <div onClick={() => setStatusFilter("available")} className="cursor-pointer">
-            <StatCard title="Свободни" value={availableCount} emoji="🟢" description={statusFilter === "available" ? "● Активен филтър" : undefined} />
-          </div>
-          <div onClick={() => setStatusFilter("reserved")} className="cursor-pointer">
-            <StatCard title="Запазени" value={reservedCount} emoji="🟡" description={statusFilter === "reserved" ? "● Активен филтър" : undefined} />
-          </div>
-          <div onClick={() => setStatusFilter("sold")} className="cursor-pointer">
-            <StatCard title="Продадени" value={soldCount} emoji="🔴" description={statusFilter === "sold" ? "● Активен филтър" : undefined} />
-          </div>
+          {allStatuses.map((s) => (
+            <div key={s} onClick={() => setStatusFilter(s)} className="cursor-pointer">
+              <StatCard title={s} value={statusCounts[s] || 0} emoji={statusEmoji[s] || "⚪"} description={statusFilter === s ? "● Активен филтър" : undefined} />
+            </div>
+          ))}
         </div>
 
         {/* Filter */}
         <div className="flex items-center gap-3">
           <Filter className="h-4 w-4 text-muted-foreground" />
           <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-[180px]">
+            <SelectTrigger className="w-[220px]">
               <SelectValue placeholder="Филтър по статус" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Всички</SelectItem>
-              <SelectItem value="available">Свободни</SelectItem>
-              <SelectItem value="reserved">Запазени</SelectItem>
-              <SelectItem value="sold">Продадени</SelectItem>
+              {allStatuses.map((s) => (
+                <SelectItem key={s} value={s}>{s}</SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
@@ -301,7 +304,7 @@ const InventoryPage = () => {
                                               </TableCell>
                                               <TableCell>
                                                 <Badge variant={statusVariant[unit.status] || "outline"}>
-                                                  {statusLabels[unit.status] || unit.status}
+                                                  {unit.status}
                                                 </Badge>
                                               </TableCell>
                                               <TableCell>
