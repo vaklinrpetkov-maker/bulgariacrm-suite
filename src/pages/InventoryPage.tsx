@@ -161,33 +161,29 @@ const InventoryPage = () => {
 
       <div className="p-6 space-y-6">
         {/* KPIs */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
           <div onClick={() => setStatusFilter("all")} className="cursor-pointer">
             <StatCard title="Общо единици" value={totalUnits} emoji="🏠" description={statusFilter === "all" ? "● Активен филтър" : undefined} />
           </div>
-          <div onClick={() => setStatusFilter("available")} className="cursor-pointer">
-            <StatCard title="Свободни" value={availableCount} emoji="🟢" description={statusFilter === "available" ? "● Активен филтър" : undefined} />
-          </div>
-          <div onClick={() => setStatusFilter("reserved")} className="cursor-pointer">
-            <StatCard title="Запазени" value={reservedCount} emoji="🟡" description={statusFilter === "reserved" ? "● Активен филтър" : undefined} />
-          </div>
-          <div onClick={() => setStatusFilter("sold")} className="cursor-pointer">
-            <StatCard title="Продадени" value={soldCount} emoji="🔴" description={statusFilter === "sold" ? "● Активен филтър" : undefined} />
-          </div>
+          {allStatuses.map((s) => (
+            <div key={s} onClick={() => setStatusFilter(s)} className="cursor-pointer">
+              <StatCard title={s} value={statusCounts[s] || 0} emoji={statusEmoji[s] || "⚪"} description={statusFilter === s ? "● Активен филтър" : undefined} />
+            </div>
+          ))}
         </div>
 
         {/* Filter */}
         <div className="flex items-center gap-3">
           <Filter className="h-4 w-4 text-muted-foreground" />
           <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-[180px]">
+            <SelectTrigger className="w-[220px]">
               <SelectValue placeholder="Филтър по статус" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Всички</SelectItem>
-              <SelectItem value="available">Свободни</SelectItem>
-              <SelectItem value="reserved">Запазени</SelectItem>
-              <SelectItem value="sold">Продадени</SelectItem>
+              {allStatuses.map((s) => (
+                <SelectItem key={s} value={s}>{s}</SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
