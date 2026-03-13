@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -23,6 +23,8 @@ import LeadResponseTimer, { getTimerRowClass } from "@/components/leads/LeadResp
 import LeadsKpiBar from "@/components/leads/LeadsKpiBar";
 import LeadsOverdueAlert from "@/components/leads/LeadsOverdueAlert";
 import LeadMessageHoverCard from "@/components/leads/LeadMessageHoverCard";
+import { ColumnFilter } from "@/components/ui/column-filter";
+import { useColumnFilters } from "@/hooks/useColumnFilters";
 import type { Tables } from "@/integrations/supabase/types";
 
 const statusLabels: Record<string, string> = {
@@ -33,6 +35,17 @@ function getContactName(c: { type: string; company_name: string | null; first_na
   if (c.type === "company") return c.company_name || "—";
   return [c.first_name, c.last_name].filter(Boolean).join(" ") || "—";
 }
+
+const filterColumns = [
+  { key: "title", getValue: (l: any) => l.title || "—" },
+  { key: "contact", getValue: (l: any) => l.contacts ? getContactName(l.contacts) : "—" },
+  { key: "project", getValue: (l: any) => l.project_name || "—" },
+  { key: "status", getValue: (l: any) => statusLabels[l.status] || l.status || "—" },
+  { key: "value", getValue: (l: any) => l.estimated_value != null ? `${l.estimated_value} €` : "—" },
+  { key: "source", getValue: (l: any) => l.source || "—" },
+  { key: "owner", getValue: (l: any) => l._ownerName || "—" },
+  { key: "created", getValue: (l: any) => format(new Date(l.created_at), "dd.MM.yyyy") },
+];
 
 const LeadsPage = () => {
   const { user } = useAuth();
@@ -65,7 +78,6 @@ const LeadsPage = () => {
         .select("*, contacts(type, company_name, first_name, last_name)")
         .order("created_at", { ascending: false });
       if (error) throw error;
-      // Fetch owner names
       const ownerIds = [...new Set(data.filter(l => l.owner_id).map(l => l.owner_id!))];
       const ownerMap: Record<string, string> = {};
       if (ownerIds.length > 0) {
@@ -104,7 +116,7 @@ const LeadsPage = () => {
     },
   });
 
-  const filtered = leads.filter((l) => {
+  const preFiltered = leads.filter((l) => {
     const contactName = l.contacts ? getContactName(l.contacts as any) : "";
     const matchesSearch = !search ||
       l.title.toLowerCase().includes(search.toLowerCase()) ||
@@ -118,6 +130,9 @@ const LeadsPage = () => {
     const matchesDateTo = !dateRange?.to || createdDate <= new Date(format(dateRange.to, "yyyy-MM-dd") + "T23:59:59");
     return matchesSearch && matchesStatus && matchesOwner && matchesDateFrom && matchesDateTo;
   });
+
+  const { filters, uniqueValues, toggleFilter, setColumnFilter, clearFilter, filteredData: filtered } =
+    useColumnFilters(preFiltered, filterColumns);
 
   const handleExport = async () => {
     const contactName = (l: any) => l.contacts ? getContactName(l.contacts) : "";
@@ -246,15 +261,31 @@ const LeadsPage = () => {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Заглавие</TableHead>
-                    <TableHead>Контакт</TableHead>
-                    <TableHead>Проект</TableHead>
-                    <TableHead>Статус</TableHead>
+                    <TableHead>
+                      <ColumnFilter title="Заглавие" columnKey="title" values={uniqueValues["title"] || []} selected={filters["title"]} onToggle={toggleFilter} onSetFilter={setColumnFilter} onClear={clearFilter} />
+                    </TableHead>
+                    <TableHead>
+                      <ColumnFilter title="Контакт" columnKey="contact" values={uniqueValues["contact"] || []} selected={filters["contact"]} onToggle={toggleFilter} onSetFilter={setColumnFilter} onClear={clearFilter} />
+                    </TableHead>
+                    <TableHead>
+                      <ColumnFilter title="Проект" columnKey="project" values={uniqueValues["project"] || []} selected={filters["project"]} onToggle={toggleFilter} onSetFilter={setColumnFilter} onClear={clearFilter} />
+                    </TableHead>
+                    <TableHead>
+                      <ColumnFilter title="Статус" columnKey="status" values={uniqueValues["status"] || []} selected={filters["status"]} onToggle={toggleFilter} onSetFilter={setColumnFilter} onClear={clearFilter} />
+                    </TableHead>
                     <TableHead>Време за отговор</TableHead>
-                    <TableHead>Търсене €</TableHead>
-                    <TableHead>Източник</TableHead>
-                    <TableHead>Отговорник</TableHead>
-                    <TableHead>Създаден</TableHead>
+                    <TableHead>
+                      <ColumnFilter title="Търсене €" columnKey="value" values={uniqueValues["value"] || []} selected={filters["value"]} onToggle={toggleFilter} onSetFilter={setColumnFilter} onClear={clearFilter} />
+                    </TableHead>
+                    <TableHead>
+                      <ColumnFilter title="Източник" columnKey="source" values={uniqueValues["source"] || []} selected={filters["source"]} onToggle={toggleFilter} onSetFilter={setColumnFilter} onClear={clearFilter} />
+                    </TableHead>
+                    <TableHead>
+                      <ColumnFilter title="Отговорник" columnKey="owner" values={uniqueValues["owner"] || []} selected={filters["owner"]} onToggle={toggleFilter} onSetFilter={setColumnFilter} onClear={clearFilter} />
+                    </TableHead>
+                    <TableHead>
+                      <ColumnFilter title="Създаден" columnKey="created" values={uniqueValues["created"] || []} selected={filters["created"]} onToggle={toggleFilter} onSetFilter={setColumnFilter} onClear={clearFilter} />
+                    </TableHead>
                     <TableHead className="w-24">Действия</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -303,7 +334,6 @@ const LeadsPage = () => {
                 </TableBody>
               </Table>
             </div>
-            {/* Pagination */}
             {(() => {
               const totalPages = Math.ceil(filtered.length / pageSize);
               return (

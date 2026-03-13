@@ -17,6 +17,8 @@ import type { DateRange } from "react-day-picker";
 import { exportToExcel } from "@/lib/exportToExcel";
 import ContractExtractDialog from "@/components/contracts/ContractExtractDialog";
 import ContractViewDialog from "@/components/contracts/ContractViewDialog";
+import { ColumnFilter } from "@/components/ui/column-filter";
+import { useColumnFilters } from "@/hooks/useColumnFilters";
 
 const statusLabels: Record<string, string> = {
   draft: "Чернова", active: "Активен", completed: "Завършен", cancelled: "Анулиран",
@@ -25,6 +27,20 @@ const statusLabels: Record<string, string> = {
 const statusVariant: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
   draft: "secondary", active: "default", completed: "outline", cancelled: "destructive",
 };
+
+const contactNameFn = (c: any) => {
+  if (!c.contacts) return "—";
+  return c.contacts.type === "company" ? c.contacts.company_name : [c.contacts.first_name, c.contacts.last_name].filter(Boolean).join(" ");
+};
+
+const filterColumns = [
+  { key: "title", getValue: (c: any) => c.title || "—" },
+  { key: "number", getValue: (c: any) => c.contract_number || "—" },
+  { key: "contact", getValue: (c: any) => contactNameFn(c) || "—" },
+  { key: "value", getValue: (c: any) => c.total_value != null ? `${Number(c.total_value).toLocaleString("bg-BG")} €` : "—" },
+  { key: "status", getValue: (c: any) => statusLabels[c.status] || c.status || "—" },
+  { key: "created", getValue: (c: any) => format(new Date(c.created_at), "dd.MM.yyyy") },
+];
 
 const ContractsPage = () => {
   const [search, setSearch] = useState("");
@@ -42,7 +58,7 @@ const ContractsPage = () => {
     },
   });
 
-  const filtered = contracts.filter((c) => {
+  const preFiltered = contracts.filter((c) => {
     if (search && !c.title.toLowerCase().includes(search.toLowerCase())) return false;
     if (statusFilter !== "all" && c.status !== statusFilter) return false;
     if (dateRange?.from) {
@@ -53,17 +69,15 @@ const ContractsPage = () => {
     return true;
   });
 
-  const contactName = (c: any) => {
-    if (!c.contacts) return "—";
-    return c.contacts.type === "company" ? c.contacts.company_name : [c.contacts.first_name, c.contacts.last_name].filter(Boolean).join(" ");
-  };
+  const { filters, uniqueValues, toggleFilter, setColumnFilter, clearFilter, filteredData: filtered } =
+    useColumnFilters(preFiltered, filterColumns);
 
   const handleExport = async () => {
     await exportToExcel(
       filtered.map(c => ({
         title: c.title,
         contract_number: c.contract_number || "",
-        contact: contactName(c),
+        contact: contactNameFn(c),
         total_value: c.total_value != null ? `${c.total_value} €` : "",
         status: statusLabels[c.status] || c.status,
         signed_at: c.signed_at ? format(new Date(c.signed_at), "dd.MM.yyyy") : "",
@@ -163,12 +177,24 @@ const ContractsPage = () => {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Заглавие</TableHead>
-                  <TableHead>Номер</TableHead>
-                  <TableHead>Контакт</TableHead>
-                  <TableHead>Стойност</TableHead>
-                  <TableHead>Статус</TableHead>
-                  <TableHead>Създаден</TableHead>
+                  <TableHead>
+                    <ColumnFilter title="Заглавие" columnKey="title" values={uniqueValues["title"] || []} selected={filters["title"]} onToggle={toggleFilter} onSetFilter={setColumnFilter} onClear={clearFilter} />
+                  </TableHead>
+                  <TableHead>
+                    <ColumnFilter title="Номер" columnKey="number" values={uniqueValues["number"] || []} selected={filters["number"]} onToggle={toggleFilter} onSetFilter={setColumnFilter} onClear={clearFilter} />
+                  </TableHead>
+                  <TableHead>
+                    <ColumnFilter title="Контакт" columnKey="contact" values={uniqueValues["contact"] || []} selected={filters["contact"]} onToggle={toggleFilter} onSetFilter={setColumnFilter} onClear={clearFilter} />
+                  </TableHead>
+                  <TableHead>
+                    <ColumnFilter title="Стойност" columnKey="value" values={uniqueValues["value"] || []} selected={filters["value"]} onToggle={toggleFilter} onSetFilter={setColumnFilter} onClear={clearFilter} />
+                  </TableHead>
+                  <TableHead>
+                    <ColumnFilter title="Статус" columnKey="status" values={uniqueValues["status"] || []} selected={filters["status"]} onToggle={toggleFilter} onSetFilter={setColumnFilter} onClear={clearFilter} />
+                  </TableHead>
+                  <TableHead>
+                    <ColumnFilter title="Създаден" columnKey="created" values={uniqueValues["created"] || []} selected={filters["created"]} onToggle={toggleFilter} onSetFilter={setColumnFilter} onClear={clearFilter} />
+                  </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -176,7 +202,7 @@ const ContractsPage = () => {
                   <TableRow key={c.id} className="cursor-pointer" onClick={() => setViewContract(c)}>
                     <TableCell className="font-medium">{c.title}</TableCell>
                     <TableCell>{c.contract_number || "—"}</TableCell>
-                    <TableCell>{contactName(c)}</TableCell>
+                    <TableCell>{contactNameFn(c)}</TableCell>
                     <TableCell>{c.total_value != null ? `${Number(c.total_value).toLocaleString("bg-BG")} €` : "—"}</TableCell>
                     <TableCell>
                       <Badge variant={statusVariant[c.status] || "secondary"}>

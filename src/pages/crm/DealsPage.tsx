@@ -9,14 +9,31 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
 import { Plus, Download, Upload, Search, CalendarIcon, X, FileSpreadsheet } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import type { DateRange } from "react-day-picker";
 import { exportToExcel } from "@/lib/exportToExcel";
+import { ColumnFilter } from "@/components/ui/column-filter";
+import { useColumnFilters } from "@/hooks/useColumnFilters";
 
 const statusLabels: Record<string, string> = {
   negotiation: "Преговори", proposal: "Предложение", won: "Спечелена", lost: "Загубена",
 };
+
+const contactNameFn = (d: any) => {
+  if (!d.contacts) return "—";
+  return d.contacts.type === "company" ? (d.contacts.company_name || "—") : [d.contacts.first_name, d.contacts.last_name].filter(Boolean).join(" ") || "—";
+};
+
+const filterColumns = [
+  { key: "title", getValue: (d: any) => d.title || "—" },
+  { key: "contact", getValue: (d: any) => contactNameFn(d) },
+  { key: "value", getValue: (d: any) => d.value != null ? `${Number(d.value).toLocaleString("bg-BG")} лв.` : "—" },
+  { key: "status", getValue: (d: any) => statusLabels[d.status] || d.status || "—" },
+  { key: "created", getValue: (d: any) => format(new Date(d.created_at), "dd.MM.yyyy") },
+];
 
 const DealsPage = () => {
   const [search, setSearch] = useState("");
@@ -32,11 +49,25 @@ const DealsPage = () => {
     },
   });
 
+  const preFiltered = deals.filter((d) => {
+    if (search && !d.title.toLowerCase().includes(search.toLowerCase())) return false;
+    if (statusFilter !== "all" && d.status !== statusFilter) return false;
+    if (dateRange?.from) {
+      const created = new Date(d.created_at);
+      if (created < dateRange.from) return false;
+      if (dateRange.to && created > dateRange.to) return false;
+    }
+    return true;
+  });
+
+  const { filters, uniqueValues, toggleFilter, setColumnFilter, clearFilter, filteredData: filtered } =
+    useColumnFilters(preFiltered, filterColumns);
+
   const handleExport = async () => {
     await exportToExcel(
-      deals.map(d => ({
+      filtered.map(d => ({
         title: d.title,
-        contact: d.contacts ? (d.contacts.type === "company" ? d.contacts.company_name : [d.contacts.first_name, d.contacts.last_name].filter(Boolean).join(" ")) : "",
+        contact: contactNameFn(d),
         value: d.value != null ? `${d.value} лв.` : "",
         status: statusLabels[d.status] || d.status,
         created_at: format(new Date(d.created_at), "dd.MM.yyyy"),
@@ -127,9 +158,48 @@ const DealsPage = () => {
             </Button>
           )}
         </div>
-        <div className="rounded-lg border border-border bg-card p-12 text-center">
-          <p className="text-muted-foreground">Няма сделки.</p>
-        </div>
+        {filtered.length === 0 ? (
+          <div className="rounded-lg border border-border bg-card p-12 text-center">
+            <p className="text-muted-foreground">Няма сделки.</p>
+          </div>
+        ) : (
+          <div className="rounded-lg border border-border bg-card">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>
+                    <ColumnFilter title="Заглавие" columnKey="title" values={uniqueValues["title"] || []} selected={filters["title"]} onToggle={toggleFilter} onSetFilter={setColumnFilter} onClear={clearFilter} />
+                  </TableHead>
+                  <TableHead>
+                    <ColumnFilter title="Контакт" columnKey="contact" values={uniqueValues["contact"] || []} selected={filters["contact"]} onToggle={toggleFilter} onSetFilter={setColumnFilter} onClear={clearFilter} />
+                  </TableHead>
+                  <TableHead>
+                    <ColumnFilter title="Стойност" columnKey="value" values={uniqueValues["value"] || []} selected={filters["value"]} onToggle={toggleFilter} onSetFilter={setColumnFilter} onClear={clearFilter} />
+                  </TableHead>
+                  <TableHead>
+                    <ColumnFilter title="Статус" columnKey="status" values={uniqueValues["status"] || []} selected={filters["status"]} onToggle={toggleFilter} onSetFilter={setColumnFilter} onClear={clearFilter} />
+                  </TableHead>
+                  <TableHead>
+                    <ColumnFilter title="Създадена" columnKey="created" values={uniqueValues["created"] || []} selected={filters["created"]} onToggle={toggleFilter} onSetFilter={setColumnFilter} onClear={clearFilter} />
+                  </TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filtered.map((d) => (
+                  <TableRow key={d.id}>
+                    <TableCell className="font-medium">{d.title}</TableCell>
+                    <TableCell>{contactNameFn(d)}</TableCell>
+                    <TableCell>{d.value != null ? `${Number(d.value).toLocaleString("bg-BG")} лв.` : "—"}</TableCell>
+                    <TableCell>
+                      <Badge variant="secondary">{statusLabels[d.status] || d.status}</Badge>
+                    </TableCell>
+                    <TableCell>{format(new Date(d.created_at), "dd.MM.yyyy")}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        )}
       </div>
     </div>
   );
