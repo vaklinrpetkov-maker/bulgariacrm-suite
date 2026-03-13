@@ -311,7 +311,7 @@ const InventoryPage = () => {
                                                   : "—"}
                                               </TableCell>
                                               <TableCell>
-                                                <Badge variant={statusVariant[unit.status] || "outline"}>
+                                                <Badge className={statusColors[unit.status] || "bg-muted text-muted-foreground"}>
                                                   {unit.status}
                                                 </Badge>
                                               </TableCell>
