@@ -88,6 +88,7 @@ const InventoryPage = () => {
     return acc;
   }, {} as Record<string, number>);
   const allStatuses = Object.keys(statusCounts).sort();
+  const totalUnits = units.length;
 
   const handleExport = async () => {
     await exportToExcel(
