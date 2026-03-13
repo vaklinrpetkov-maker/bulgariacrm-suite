@@ -108,7 +108,7 @@ const InventoryPage = () => {
         floor: u.floor ?? "",
         area: u.area_sqm ? `${u.area_sqm} кв.м` : "",
         rooms: u.rooms ?? "",
-        price: u.price != null ? `${Number(u.price).toLocaleString("bg-BG")} лв.` : "",
+        price: u.price != null ? `${Number(u.price).toLocaleString("bg-BG")} €` : "",
         status: u.status,
         contact: u.contacts
           ? u.contacts.company_name || `${u.contacts.first_name || ""} ${u.contacts.last_name || ""}`.trim()
