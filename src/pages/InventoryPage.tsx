@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import PageHeader from "@/components/PageHeader";
@@ -13,6 +13,8 @@ import { exportToExcel } from "@/lib/exportToExcel";
 import StatCard from "@/components/StatCard";
 import EditableUnitRow from "@/components/inventory/EditableUnitRow";
 import { useUserRole } from "@/hooks/useUserRole";
+import { useColumnFilters } from "@/hooks/useColumnFilters";
+import { ColumnFilter } from "@/components/ui/column-filter";
 
 const unitTypeLabels: Record<string, string> = {
   apartment: "Апартамент",
@@ -22,7 +24,6 @@ const unitTypeLabels: Record<string, string> = {
   garage: "Гараж",
 };
 
-
 const statusEmoji: Record<string, string> = {
   "Свободен": "🟢",
   "Запазен": "🟡",
@@ -30,6 +31,22 @@ const statusEmoji: Record<string, string> = {
   "Предварителен договор": "🔵",
   "Продаден НА": "🔴",
 };
+
+const filterColumns = [
+  { key: "unit_number", getValue: (u: any) => u.unit_number || "—" },
+  { key: "type", getValue: (u: any) => unitTypeLabels[u.type] || u.type || "—" },
+  { key: "floor", getValue: (u: any) => u.floor != null ? String(u.floor) : "—" },
+  { key: "rooms", getValue: (u: any) => u.rooms != null ? String(u.rooms) : "—" },
+  { key: "area", getValue: (u: any) => u.area_sqm ? Number(u.area_sqm).toFixed(2) : "—" },
+  { key: "price", getValue: (u: any) => u.price != null ? Number(u.price).toLocaleString("bg-BG") : "—" },
+  { key: "status", getValue: (u: any) => u.status || "—" },
+  { key: "contact", getValue: (u: any) => {
+    const c = u.contacts;
+    if (!c) return "—";
+    if (c.company_name) return c.company_name;
+    return `${c.first_name || ""} ${c.last_name || ""}`.trim() || "—";
+  }},
+];
 
 const InventoryPage = () => {
   const [expandedComplex, setExpandedComplex] = useState<string | null>(null);
@@ -41,10 +58,7 @@ const InventoryPage = () => {
   const { data: complexes = [] } = useQuery({
     queryKey: ["complexes"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("complexes")
-        .select("*")
-        .order("name");
+      const { data, error } = await supabase.from("complexes").select("*").order("name");
       if (error) throw error;
       return data;
     },
@@ -53,10 +67,7 @@ const InventoryPage = () => {
   const { data: buildings = [] } = useQuery({
     queryKey: ["buildings"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("buildings")
-        .select("*, complexes(name)")
-        .order("name");
+      const { data, error } = await supabase.from("buildings").select("*, complexes(name)").order("name");
       if (error) throw error;
       return data;
     },
@@ -75,11 +86,14 @@ const InventoryPage = () => {
     },
   });
 
-  const filteredUnits = statusFilter === "all"
+  const statusFilteredUnits = statusFilter === "all"
     ? units
     : units.filter((u: any) => u.status === statusFilter);
 
-  // Group counts by status, deduplicating by contact_id per status
+  const { filters, uniqueValues, toggleFilter, setColumnFilter, clearFilter, filteredData: filteredUnits } =
+    useColumnFilters(statusFilteredUnits, filterColumns);
+
+  // Group counts by status
   const statusCounts = (() => {
     const seen: Record<string, Set<string>> = {};
     const counts: Record<string, number> = {};
@@ -284,14 +298,30 @@ const InventoryPage = () => {
                                   <Table>
                                     <TableHeader>
                                       <TableRow>
-                                        <TableHead>Номер</TableHead>
-                                        <TableHead>Тип</TableHead>
-                                        <TableHead>Етаж</TableHead>
-                                        <TableHead>Стаи</TableHead>
-                                        <TableHead>Площ (кв.м)</TableHead>
-                                        <TableHead>Цена (€)</TableHead>
-                                        <TableHead>Статус</TableHead>
-                                        <TableHead>Купувач</TableHead>
+                                        <TableHead>
+                                          <ColumnFilter title="Номер" columnKey="unit_number" values={uniqueValues["unit_number"] || []} selected={filters["unit_number"]} onToggle={toggleFilter} onSetFilter={setColumnFilter} onClear={clearFilter} />
+                                        </TableHead>
+                                        <TableHead>
+                                          <ColumnFilter title="Тип" columnKey="type" values={uniqueValues["type"] || []} selected={filters["type"]} onToggle={toggleFilter} onSetFilter={setColumnFilter} onClear={clearFilter} />
+                                        </TableHead>
+                                        <TableHead>
+                                          <ColumnFilter title="Етаж" columnKey="floor" values={uniqueValues["floor"] || []} selected={filters["floor"]} onToggle={toggleFilter} onSetFilter={setColumnFilter} onClear={clearFilter} />
+                                        </TableHead>
+                                        <TableHead>
+                                          <ColumnFilter title="Стаи" columnKey="rooms" values={uniqueValues["rooms"] || []} selected={filters["rooms"]} onToggle={toggleFilter} onSetFilter={setColumnFilter} onClear={clearFilter} />
+                                        </TableHead>
+                                        <TableHead>
+                                          <ColumnFilter title="Площ (кв.м)" columnKey="area" values={uniqueValues["area"] || []} selected={filters["area"]} onToggle={toggleFilter} onSetFilter={setColumnFilter} onClear={clearFilter} />
+                                        </TableHead>
+                                        <TableHead>
+                                          <ColumnFilter title="Цена (€)" columnKey="price" values={uniqueValues["price"] || []} selected={filters["price"]} onToggle={toggleFilter} onSetFilter={setColumnFilter} onClear={clearFilter} />
+                                        </TableHead>
+                                        <TableHead>
+                                          <ColumnFilter title="Статус" columnKey="status" values={uniqueValues["status"] || []} selected={filters["status"]} onToggle={toggleFilter} onSetFilter={setColumnFilter} onClear={clearFilter} />
+                                        </TableHead>
+                                        <TableHead>
+                                          <ColumnFilter title="Купувач" columnKey="contact" values={uniqueValues["contact"] || []} selected={filters["contact"]} onToggle={toggleFilter} onSetFilter={setColumnFilter} onClear={clearFilter} />
+                                        </TableHead>
                                       </TableRow>
                                     </TableHeader>
                                     <TableBody>

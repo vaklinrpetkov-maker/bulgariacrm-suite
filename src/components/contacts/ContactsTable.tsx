@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { format } from "date-fns";
 import { Pencil, Trash2, Building2, User, Plus, Cake } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
@@ -5,6 +6,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import ContactAuditHoverCard from "./ContactAuditHoverCard";
+import { ColumnFilter } from "@/components/ui/column-filter";
+import { useColumnFilters } from "@/hooks/useColumnFilters";
 import type { Tables } from "@/integrations/supabase/types";
 
 const CATEGORY_LABELS: Record<string, string> = {
@@ -36,7 +39,21 @@ function isBirthdaySoon(birthdate: string | null): boolean {
   return diff >= 0 && diff <= 7;
 }
 
+const filterColumns = [
+  { key: "type", getValue: (c: any) => c.type === "company" ? "Компания" : "Лице" },
+  { key: "category", getValue: (c: any) => CATEGORY_LABELS[c.category || "client"] || "—" },
+  { key: "name", getValue: (c: any) => getContactName(c) },
+  { key: "email", getValue: (c: any) => c.email || "—" },
+  { key: "phone", getValue: (c: any) => c.phone || "—" },
+  { key: "birthday", getValue: (c: any) => c.birthdate ? format(new Date(c.birthdate), "dd.MM.yyyy") : "—" },
+  { key: "owner", getValue: (c: any) => c._ownerName || "—" },
+  { key: "created", getValue: (c: any) => format(new Date(c.created_at), "dd.MM.yyyy") },
+];
+
 export default function ContactsTable({ contacts, onEdit, onDelete, onDoubleClick, onCreateLead }: ContactsTableProps) {
+  const { filters, uniqueValues, toggleFilter, setColumnFilter, clearFilter, filteredData } =
+    useColumnFilters(contacts, filterColumns);
+
   if (contacts.length === 0) {
     return (
       <div className="rounded-lg border border-border bg-card p-12 text-center">
@@ -50,20 +67,35 @@ export default function ContactsTable({ contacts, onEdit, onDelete, onDoubleClic
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Тип</TableHead>
-            <TableHead>Категория</TableHead>
-            <TableHead>Име</TableHead>
-            <TableHead>Имейл</TableHead>
-            <TableHead>Телефон</TableHead>
-            <TableHead>Рожден ден</TableHead>
-            
-            <TableHead>Отговорник</TableHead>
-            <TableHead>Създаден</TableHead>
+            <TableHead>
+              <ColumnFilter title="Тип" columnKey="type" values={uniqueValues["type"] || []} selected={filters["type"]} onToggle={toggleFilter} onSetFilter={setColumnFilter} onClear={clearFilter} />
+            </TableHead>
+            <TableHead>
+              <ColumnFilter title="Категория" columnKey="category" values={uniqueValues["category"] || []} selected={filters["category"]} onToggle={toggleFilter} onSetFilter={setColumnFilter} onClear={clearFilter} />
+            </TableHead>
+            <TableHead>
+              <ColumnFilter title="Име" columnKey="name" values={uniqueValues["name"] || []} selected={filters["name"]} onToggle={toggleFilter} onSetFilter={setColumnFilter} onClear={clearFilter} />
+            </TableHead>
+            <TableHead>
+              <ColumnFilter title="Имейл" columnKey="email" values={uniqueValues["email"] || []} selected={filters["email"]} onToggle={toggleFilter} onSetFilter={setColumnFilter} onClear={clearFilter} />
+            </TableHead>
+            <TableHead>
+              <ColumnFilter title="Телефон" columnKey="phone" values={uniqueValues["phone"] || []} selected={filters["phone"]} onToggle={toggleFilter} onSetFilter={setColumnFilter} onClear={clearFilter} />
+            </TableHead>
+            <TableHead>
+              <ColumnFilter title="Рожден ден" columnKey="birthday" values={uniqueValues["birthday"] || []} selected={filters["birthday"]} onToggle={toggleFilter} onSetFilter={setColumnFilter} onClear={clearFilter} />
+            </TableHead>
+            <TableHead>
+              <ColumnFilter title="Отговорник" columnKey="owner" values={uniqueValues["owner"] || []} selected={filters["owner"]} onToggle={toggleFilter} onSetFilter={setColumnFilter} onClear={clearFilter} />
+            </TableHead>
+            <TableHead>
+              <ColumnFilter title="Създаден" columnKey="created" values={uniqueValues["created"] || []} selected={filters["created"]} onToggle={toggleFilter} onSetFilter={setColumnFilter} onClear={clearFilter} />
+            </TableHead>
             <TableHead className="w-32">Действия</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {contacts.map((contact) => {
+          {filteredData.map((contact) => {
             const birthdate = (contact as any).birthdate as string | null;
             const bdSoon = isBirthdaySoon(birthdate);
             return (
@@ -103,7 +135,6 @@ export default function ContactsTable({ contacts, onEdit, onDelete, onDoubleClic
                     </span>
                   ) : "—"}
                 </TableCell>
-                
                 <TableCell>{(contact as any)._ownerName || "—"}</TableCell>
                 <TableCell>{format(new Date(contact.created_at), "dd.MM.yyyy")}</TableCell>
                 <TableCell>

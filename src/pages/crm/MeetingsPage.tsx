@@ -20,6 +20,8 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import type { DateRange } from "react-day-picker";
 import { exportToExcel } from "@/lib/exportToExcel";
 import MeetingFormDialog from "@/components/meetings/MeetingFormDialog";
+import { ColumnFilter } from "@/components/ui/column-filter";
+import { useColumnFilters } from "@/hooks/useColumnFilters";
 import type { Tables } from "@/integrations/supabase/types";
 
 const statusLabels: Record<string, string> = {
@@ -30,6 +32,15 @@ const statusColors: Record<string, string> = {
   completed: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400",
   cancelled: "bg-red-500/15 text-red-700 dark:text-red-400",
 };
+
+const filterColumns = [
+  { key: "title", getValue: (m: any) => m.title || "—" },
+  { key: "datetime", getValue: (m: any) => format(new Date(m.scheduled_at), "dd.MM.yyyy HH:mm") },
+  { key: "duration", getValue: (m: any) => m.duration_minutes ? `${m.duration_minutes} мин.` : "—" },
+  { key: "location", getValue: (m: any) => m.location || "—" },
+  { key: "lead", getValue: (m: any) => m.leads?.title || "—" },
+  { key: "status", getValue: (m: any) => statusLabels[m.status] || m.status || "—" },
+];
 
 const MeetingsPage = () => {
   const { user } = useAuth();
@@ -78,7 +89,7 @@ const MeetingsPage = () => {
     onError: () => toast({ title: "Грешка при изтриване.", variant: "destructive" }),
   });
 
-  const filtered = meetings.filter((m) => {
+  const preFiltered = meetings.filter((m) => {
     const matchesSearch = !search || m.title.toLowerCase().includes(search.toLowerCase()) || (m.location || "").toLowerCase().includes(search.toLowerCase());
     const matchesStatus = statusFilter === "all" || m.status === statusFilter;
     const d = new Date(m.scheduled_at);
@@ -87,9 +98,11 @@ const MeetingsPage = () => {
     return matchesSearch && matchesStatus && matchesDateFrom && matchesDateTo;
   });
 
+  const { filters, uniqueValues, toggleFilter, setColumnFilter, clearFilter, filteredData: filtered } =
+    useColumnFilters(preFiltered, filterColumns);
+
   const handleExport = async () => {
-    await
-    exportToExcel(
+    await exportToExcel(
       filtered.map((m) => ({
         title: m.title,
         scheduled_at: format(new Date(m.scheduled_at), "dd.MM.yyyy HH:mm"),
@@ -147,7 +160,6 @@ const MeetingsPage = () => {
         }
       />
       <div className="p-6 space-y-4">
-        {/* Filters */}
         <div className="flex gap-3 items-center flex-wrap">
           <div className="relative flex-1 max-w-sm">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -181,7 +193,6 @@ const MeetingsPage = () => {
           </div>
         </div>
 
-        {/* Table View */}
         {view === "table" && (
           isLoading ? (
             <div className="text-center py-12 text-muted-foreground">Зареждане...</div>
@@ -194,12 +205,24 @@ const MeetingsPage = () => {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Заглавие</TableHead>
-                    <TableHead>Дата/час</TableHead>
-                    <TableHead>Продължителност</TableHead>
-                    <TableHead>Локация</TableHead>
-                    <TableHead>Лийд</TableHead>
-                    <TableHead>Статус</TableHead>
+                    <TableHead>
+                      <ColumnFilter title="Заглавие" columnKey="title" values={uniqueValues["title"] || []} selected={filters["title"]} onToggle={toggleFilter} onSetFilter={setColumnFilter} onClear={clearFilter} />
+                    </TableHead>
+                    <TableHead>
+                      <ColumnFilter title="Дата/час" columnKey="datetime" values={uniqueValues["datetime"] || []} selected={filters["datetime"]} onToggle={toggleFilter} onSetFilter={setColumnFilter} onClear={clearFilter} />
+                    </TableHead>
+                    <TableHead>
+                      <ColumnFilter title="Продължителност" columnKey="duration" values={uniqueValues["duration"] || []} selected={filters["duration"]} onToggle={toggleFilter} onSetFilter={setColumnFilter} onClear={clearFilter} />
+                    </TableHead>
+                    <TableHead>
+                      <ColumnFilter title="Локация" columnKey="location" values={uniqueValues["location"] || []} selected={filters["location"]} onToggle={toggleFilter} onSetFilter={setColumnFilter} onClear={clearFilter} />
+                    </TableHead>
+                    <TableHead>
+                      <ColumnFilter title="Лийд" columnKey="lead" values={uniqueValues["lead"] || []} selected={filters["lead"]} onToggle={toggleFilter} onSetFilter={setColumnFilter} onClear={clearFilter} />
+                    </TableHead>
+                    <TableHead>
+                      <ColumnFilter title="Статус" columnKey="status" values={uniqueValues["status"] || []} selected={filters["status"]} onToggle={toggleFilter} onSetFilter={setColumnFilter} onClear={clearFilter} />
+                    </TableHead>
                     <TableHead className="w-24">Действия</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -228,7 +251,6 @@ const MeetingsPage = () => {
           )
         )}
 
-        {/* Calendar View */}
         {view === "calendar" && (
           <div className="rounded-lg border border-border bg-card">
             <div className="flex items-center justify-between p-4 border-b border-border">
