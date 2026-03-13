@@ -283,7 +283,7 @@ const InventoryPage = () => {
                                         <TableHead>Етаж</TableHead>
                                         <TableHead>Стаи</TableHead>
                                         <TableHead>Площ (кв.м)</TableHead>
-                                        <TableHead>Цена (лв.)</TableHead>
+                                        <TableHead>Цена (€)</TableHead>
                                         <TableHead>Статус</TableHead>
                                         <TableHead>Купувач</TableHead>
                                       </TableRow>
