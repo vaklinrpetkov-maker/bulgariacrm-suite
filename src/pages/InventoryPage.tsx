@@ -303,7 +303,7 @@ const InventoryPage = () => {
                                               </TableCell>
                                               <TableCell>
                                                 <Badge variant={statusVariant[unit.status] || "outline"}>
-                                                  {statusLabels[unit.status] || unit.status}
+                                                  {unit.status}
                                                 </Badge>
                                               </TableCell>
                                               <TableCell>
