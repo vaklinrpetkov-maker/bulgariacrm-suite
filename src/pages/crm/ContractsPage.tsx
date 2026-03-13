@@ -11,7 +11,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Plus, Download, Search, CalendarIcon, X, Sparkles } from "lucide-react";
+import { Plus, Download, Upload, Search, CalendarIcon, X, Sparkles, FileSpreadsheet } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import type { DateRange } from "react-day-picker";
 import { exportToExcel } from "@/lib/exportToExcel";
 import ContractExtractDialog from "@/components/contracts/ContractExtractDialog";
