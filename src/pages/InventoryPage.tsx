@@ -82,13 +82,21 @@ const InventoryPage = () => {
     ? units
     : units.filter((u: any) => u.status === statusFilter);
 
-  // Group counts by actual status
-  const statusCounts = units.reduce((acc: Record<string, number>, u: any) => {
-    acc[u.status] = (acc[u.status] || 0) + 1;
-    return acc;
-  }, {} as Record<string, number>);
+  // Group counts by status, deduplicating by contact_id per status
+  const statusCounts = (() => {
+    const seen: Record<string, Set<string>> = {};
+    const counts: Record<string, number> = {};
+    for (const u of units as any[]) {
+      const s = u.status;
+      if (!counts[s]) { counts[s] = 0; seen[s] = new Set(); }
+      if (u.contact_id && seen[s].has(u.contact_id)) continue;
+      if (u.contact_id) seen[s].add(u.contact_id);
+      counts[s]++;
+    }
+    return counts;
+  })();
   const allStatuses = Object.keys(statusCounts).sort();
-  const totalUnits = units.length;
+  const totalUnits = Object.values(statusCounts).reduce((a, b) => a + b, 0);
 
   const handleExport = async () => {
     await exportToExcel(
