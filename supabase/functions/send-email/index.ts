@@ -29,12 +29,22 @@ serve(async (req) => {
     const { to, subject, body, contact_id } = await req.json();
     if (!to || !subject || !body) throw new Error("Missing required fields: to, subject, body");
 
-    const emailUser = Deno.env.get("EMAIL_USER");
-    const emailPass = Deno.env.get("EMAIL_PASSWORD");
-    if (!emailUser || !emailPass) throw new Error("Email credentials not configured");
+    // Get user's email credentials from user_email_accounts table
+    const serviceClient = createClient(supabaseUrl, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
+    const { data: emailAccount, error: accountError } = await serviceClient
+      .from("user_email_accounts")
+      .select("email_address, email_password")
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    if (accountError || !emailAccount) {
+      throw new Error("Няма конфигуриран имейл акаунт. Моля добавете го в Настройки.");
+    }
+
+    const emailUser = emailAccount.email_address;
+    const emailPass = emailAccount.email_password;
 
     // Fetch user's email signature
-    const serviceClient = createClient(supabaseUrl, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
     const { data: sigData } = await serviceClient
       .from("email_signatures")
       .select("signature_html")
@@ -45,7 +55,6 @@ serve(async (req) => {
     let finalText = body;
     if (sigData?.signature_html) {
       finalHtml = `${body}<br><br>--<br>${sigData.signature_html}`;
-      // Strip HTML tags for plain text version
       const plainSig = sigData.signature_html.replace(/<[^>]*>/g, "");
       finalText = `${body}\n\n--\n${plainSig}`;
     }
@@ -68,7 +77,7 @@ serve(async (req) => {
       messageId,
     });
 
-    // Save to DB
+    // Save to DB with created_by for RLS scoping
     await serviceClient.from("emails").insert({
       direction: "outbound",
       from_address: emailUser,
