@@ -210,8 +210,8 @@ const SettingsPage = () => {
                     </div>
                   </div>
                   {hasEmailAccount && (
-                    <div className="flex items-center gap-2 text-sm text-green-600">
-                      <div className="h-2 w-2 rounded-full bg-green-500" />
+                    <div className="flex items-center gap-2 text-sm text-primary">
+                      <div className="h-2 w-2 rounded-full bg-primary" />
                       Акаунтът е конфигуриран
                     </div>
                   )}
