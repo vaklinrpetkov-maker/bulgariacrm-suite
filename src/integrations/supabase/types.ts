@@ -1514,6 +1514,33 @@ export type Database = {
           },
         ]
       }
+      user_email_accounts: {
+        Row: {
+          created_at: string
+          email_address: string
+          email_password: string
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email_address: string
+          email_password: string
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email_address?: string
+          email_password?: string
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           id: string

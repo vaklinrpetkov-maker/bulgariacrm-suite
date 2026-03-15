@@ -50,19 +50,16 @@ async function findOrCreateContact(
   contactPhone: string | null,
   contactByEmail: Record<string, string>
 ): Promise<string | null> {
-  // 1. Check in-memory cache
   if (contactEmail && contactByEmail[contactEmail.toLowerCase()]) {
     return contactByEmail[contactEmail.toLowerCase()];
   }
 
-  // 2. DB lookup by email
   if (contactEmail) {
     const { data: byEmail } = await supabase
       .from("contacts").select("id").eq("email", contactEmail).maybeSingle();
     if (byEmail) return byEmail.id;
   }
 
-  // 3. DB lookup by name
   if (contactFullName) {
     const nameParts = contactFullName.split(/\s+/);
     const firstName = nameParts[0];
@@ -81,7 +78,6 @@ async function findOrCreateContact(
     }
   }
 
-  // 4. Create new contact
   const nameParts = contactFullName.split(/\s+/);
   const firstName = nameParts[0] || (contactEmail ? contactEmail.split("@")[0] : "Unknown");
   const lastName = nameParts.length > 1 ? nameParts.slice(1).join(" ") : null;
@@ -105,14 +101,36 @@ serve(async (req) => {
   }
 
   try {
-    const emailUser = Deno.env.get("EMAIL_USER");
-    const emailPass = Deno.env.get("EMAIL_PASSWORD");
-    console.log("EMAIL_USER from environment:", emailUser);
-    if (!emailUser || !emailPass) throw new Error("Email credentials not configured");
+    // Authenticate user
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader) throw new Error("Missing authorization header");
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const supabase = createClient(supabaseUrl, serviceKey);
+
+    const userClient = createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: authHeader } },
+    });
+
+    const { data: { user }, error: authError } = await userClient.auth.getUser();
+    if (authError || !user) throw new Error("Unauthorized");
+
+    // Get user's email credentials from user_email_accounts table
+    const serviceClient = createClient(supabaseUrl, serviceKey);
+    const { data: emailAccount, error: accountError } = await serviceClient
+      .from("user_email_accounts")
+      .select("email_address, email_password")
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    if (accountError || !emailAccount) {
+      throw new Error("Няма конфигуриран имейл акаунт. Моля добавете го в Настройки.");
+    }
+
+    const emailUser = emailAccount.email_address;
+    const emailPass = emailAccount.email_password;
+    console.log("Syncing emails for:", emailUser);
 
     const client = new ImapFlow({
       host: "mail.vminvest.bg",
@@ -129,8 +147,7 @@ serve(async (req) => {
     let leadsCreated = 0;
 
     try {
-      // Get all contacts for matching
-      const { data: contacts } = await supabase.from("contacts").select("id, email");
+      const { data: contacts } = await serviceClient.from("contacts").select("id, email");
       const contactByEmail: Record<string, string> = {};
       contacts?.forEach((c: any) => {
         if (c.email) contactByEmail[c.email.toLowerCase()] = c.id;
@@ -159,7 +176,7 @@ serve(async (req) => {
 
           const contactId = contactByEmail[from.toLowerCase()] || null;
 
-          const { error, data: upsertedEmail } = await supabase.from("emails").upsert(
+          const { error, data: upsertedEmail } = await serviceClient.from("emails").upsert(
             {
               direction: "inbound",
               from_address: from,
@@ -171,6 +188,7 @@ serve(async (req) => {
               contact_id: contactId,
               sent_at: sentAt,
               is_read: false,
+              created_by: user.id,
             },
             { onConflict: "message_id", ignoreDuplicates: true }
           ).select("id");
@@ -183,27 +201,24 @@ serve(async (req) => {
             upsertedEmail?.length > 0 &&
             subject.toLowerCase().includes("форма")
           ) {
-            // Check if a lead was already created for this email (by checking existing leads with same email message_id in notes)
             const emailIdTag = `[email:${messageId}]`;
-            const { data: existingLead } = await supabase
+            const { data: existingLead } = await serviceClient
               .from("leads")
               .select("id")
               .ilike("notes", `%${emailIdTag}%`)
               .maybeSingle();
 
             if (!existingLead) {
-              // Parse structured body
               const fields = parseStructuredBody(bodyText);
               const contactEmail = fields.email || from;
               const contactFullName = fields.fullName || "";
               const contactPhone = fields.phone || null;
 
               const leadContactId = await findOrCreateContact(
-                supabase, contactEmail, contactFullName, contactPhone, contactByEmail
+                serviceClient, contactEmail, contactFullName, contactPhone, contactByEmail
               );
 
               if (leadContactId) {
-                // Update cache
                 if (contactEmail) contactByEmail[contactEmail.toLowerCase()] = leadContactId;
 
                 const now = new Date();
@@ -211,7 +226,7 @@ serve(async (req) => {
                 const leadTitle = `${pad(now.getDate())}.${pad(now.getMonth() + 1)}.${now.getFullYear()} ${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
 
                 const notesText = bodyText ? bodyText.substring(0, 1900) : "";
-                const { error: leadError } = await supabase.from("leads").insert({
+                const { error: leadError } = await serviceClient.from("leads").insert({
                   contact_id: leadContactId,
                   title: leadTitle,
                   source: "email",

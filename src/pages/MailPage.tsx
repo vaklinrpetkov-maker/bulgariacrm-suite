@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 import { format } from "date-fns";
 import { toast } from "@/hooks/use-toast";
 import PageHeader from "@/components/PageHeader";
@@ -13,10 +14,12 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import {
-  Send, Mail, ArrowDownLeft, ArrowUpRight, RefreshCw, Search, X, User, Reply, MailOpen, MailIcon,
+  Send, Mail, ArrowDownLeft, ArrowUpRight, RefreshCw, Search, X, User, Reply, MailOpen, MailIcon, Settings,
 } from "lucide-react";
+import { Link } from "react-router-dom";
 
 export default function MailPage() {
+  const { user } = useAuth();
   const queryClient = useQueryClient();
   const [filter, setFilter] = useState<"all" | "inbound" | "outbound">("all");
   const [search, setSearch] = useState("");
@@ -28,7 +31,22 @@ export default function MailPage() {
   const [replyOpen, setReplyOpen] = useState(false);
   const [replyBody, setReplyBody] = useState("");
 
-  // Fetch all emails
+  // Fetch user's email account
+  const { data: emailAccount, isLoading: accountLoading } = useQuery({
+    queryKey: ["user-email-account"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("user_email_accounts")
+        .select("email_address")
+        .eq("user_id", user?.id)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user,
+  });
+
+  // Fetch emails (RLS scopes to current user's created_by)
   const { data: emails = [], isLoading } = useQuery({
     queryKey: ["all-emails"],
     queryFn: async () => {
@@ -40,6 +58,7 @@ export default function MailPage() {
       if (error) throw error;
       return data;
     },
+    enabled: !!emailAccount,
   });
 
   // Filtered + searched
@@ -82,7 +101,7 @@ export default function MailPage() {
     }
   }, [selectedId]);
 
-  // Sync
+  // Sync - now uses per-user credentials
   const syncMutation = useMutation({
     mutationFn: async () => {
       const { data, error } = await supabase.functions.invoke("sync-emails");
@@ -93,7 +112,7 @@ export default function MailPage() {
       queryClient.invalidateQueries({ queryKey: ["all-emails"] });
       toast({ title: `Синхронизирани ${data?.synced || 0} нови имейла.` });
     },
-    onError: () => toast({ title: "Грешка при синхронизация.", variant: "destructive" }),
+    onError: (err) => toast({ title: err instanceof Error ? err.message : "Грешка при синхронизация.", variant: "destructive" }),
   });
 
   // Send
@@ -154,11 +173,35 @@ export default function MailPage() {
     return c.company_name || null;
   };
 
+  // No email account configured
+  if (!accountLoading && !emailAccount) {
+    return (
+      <div className="flex h-full flex-col">
+        <PageHeader title="Поща" description="Конфигурирайте имейл акаунта си" sopKey="mail" />
+        <div className="flex flex-1 items-center justify-center">
+          <div className="text-center max-w-md space-y-4">
+            <Mail className="h-16 w-16 mx-auto text-muted-foreground opacity-30" />
+            <h2 className="text-lg font-semibold text-foreground">Няма конфигуриран имейл акаунт</h2>
+            <p className="text-sm text-muted-foreground">
+              За да използвате пощата, първо добавете вашия @vminvest.bg имейл акаунт в настройките.
+            </p>
+            <Button asChild>
+              <Link to="/settings">
+                <Settings className="h-4 w-4 mr-2" />
+                Отиди в Настройки
+              </Link>
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex h-full flex-col">
       <PageHeader
         title="Поща"
-        description="office@vminvest.bg"
+        description={emailAccount?.email_address || ""}
         sopKey="mail"
         actions={
           <div className="flex gap-2">
@@ -203,7 +246,7 @@ export default function MailPage() {
       <div className="flex flex-1 overflow-hidden">
         {/* List */}
         <div className="w-[420px] shrink-0 overflow-y-auto border-r border-border">
-          {isLoading ? (
+          {isLoading || accountLoading ? (
             <div className="space-y-2 p-4">
               {Array.from({ length: 6 }).map((_, i) => (
                 <Skeleton key={i} className="h-16 w-full" />
