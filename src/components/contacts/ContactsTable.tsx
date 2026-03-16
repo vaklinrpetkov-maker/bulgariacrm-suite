@@ -5,6 +5,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import ContactAuditHoverCard from "./ContactAuditHoverCard";
 import { ColumnFilter } from "@/components/ui/column-filter";
 import { useColumnFilters } from "@/hooks/useColumnFilters";
@@ -23,6 +24,11 @@ interface ContactsTableProps {
   onDelete?: (contact: Tables<"contacts">) => void;
   onDoubleClick?: (contact: Tables<"contacts">) => void;
   onCreateLead?: (contact: Tables<"contacts">) => void;
+  selectedIds?: Set<string>;
+  onToggle?: (id: string) => void;
+  onToggleAll?: () => void;
+  allSelected?: boolean;
+  someSelected?: boolean;
 }
 
 function getContactName(c: Tables<"contacts">) {
@@ -50,9 +56,11 @@ const filterColumns = [
   { key: "created", getValue: (c: any) => format(new Date(c.created_at), "dd.MM.yyyy") },
 ];
 
-export default function ContactsTable({ contacts, onEdit, onDelete, onDoubleClick, onCreateLead }: ContactsTableProps) {
+export default function ContactsTable({ contacts, onEdit, onDelete, onDoubleClick, onCreateLead, selectedIds, onToggle, onToggleAll, allSelected, someSelected }: ContactsTableProps) {
   const { filters, uniqueValues, toggleFilter, setColumnFilter, clearFilter, filteredData } =
     useColumnFilters(contacts, filterColumns);
+
+  const hasSelection = !!selectedIds && !!onToggle;
 
   if (contacts.length === 0) {
     return (
@@ -67,6 +75,14 @@ export default function ContactsTable({ contacts, onEdit, onDelete, onDoubleClic
       <Table>
         <TableHeader>
           <TableRow>
+            {hasSelection && (
+              <TableHead style={{ width: "40px" }} resizable={false}>
+                <Checkbox
+                  checked={allSelected ? true : someSelected ? "indeterminate" : false}
+                  onCheckedChange={() => onToggleAll?.()}
+                />
+              </TableHead>
+            )}
             <TableHead>
               <ColumnFilter title="Тип" columnKey="type" values={uniqueValues["type"] || []} selected={filters["type"]} onToggle={toggleFilter} onSetFilter={setColumnFilter} onClear={clearFilter} />
             </TableHead>
@@ -98,8 +114,14 @@ export default function ContactsTable({ contacts, onEdit, onDelete, onDoubleClic
           {filteredData.map((contact) => {
             const birthdate = (contact as any).birthdate as string | null;
             const bdSoon = isBirthdaySoon(birthdate);
+            const isChecked = selectedIds?.has(contact.id) ?? false;
             return (
-              <TableRow key={contact.id} className="cursor-pointer" onDoubleClick={() => onDoubleClick?.(contact)}>
+              <TableRow key={contact.id} className="cursor-pointer" onDoubleClick={() => onDoubleClick?.(contact)} data-state={isChecked ? "selected" : undefined}>
+                {hasSelection && (
+                  <TableCell>
+                    <Checkbox checked={isChecked} onCheckedChange={() => onToggle?.(contact.id)} onClick={(e) => e.stopPropagation()} />
+                  </TableCell>
+                )}
                 <TableCell>
                   <Badge variant={contact.type === "company" ? "default" : "secondary"} className="gap-1">
                     {contact.type === "company" ? <Building2 className="h-3 w-3" /> : <User className="h-3 w-3" />}

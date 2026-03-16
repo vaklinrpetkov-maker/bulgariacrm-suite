@@ -4,6 +4,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { Checkbox } from "@/components/ui/checkbox";
 import type { Tables } from "@/integrations/supabase/types";
 
 const STATUS_LABELS: Record<string, string> = {
@@ -38,9 +39,14 @@ interface TasksTableProps {
   tasks: (Tables<"tasks"> & { _assigneeName?: string | null })[];
   onEdit: (task: Tables<"tasks">) => void;
   onDelete: (task: Tables<"tasks">) => void;
+  selectedIds?: Set<string>;
+  onToggle?: (id: string) => void;
+  onToggleAll?: () => void;
+  allSelected?: boolean;
+  someSelected?: boolean;
 }
 
-export default function TasksTable({ tasks, onEdit, onDelete }: TasksTableProps) {
+export default function TasksTable({ tasks, onEdit, onDelete, selectedIds, onToggle, onToggleAll, allSelected, someSelected }: TasksTableProps) {
   if (tasks.length === 0) {
     return (
       <div className="rounded-lg border border-border bg-card p-12 text-center">
@@ -49,11 +55,21 @@ export default function TasksTable({ tasks, onEdit, onDelete }: TasksTableProps)
     );
   }
 
+  const hasSelection = !!selectedIds && !!onToggle;
+
   return (
     <div className="rounded-lg border border-border bg-card">
       <Table>
         <TableHeader>
           <TableRow>
+            {hasSelection && (
+              <TableHead style={{ width: "40px" }} resizable={false}>
+                <Checkbox
+                  checked={allSelected ? true : someSelected ? "indeterminate" : false}
+                  onCheckedChange={() => onToggleAll?.()}
+                />
+              </TableHead>
+            )}
             <TableHead style={{ width: "30%" }}>Заглавие</TableHead>
             <TableHead style={{ width: "12%" }}>Статус</TableHead>
             <TableHead style={{ width: "10%" }}>Приоритет</TableHead>
@@ -66,8 +82,14 @@ export default function TasksTable({ tasks, onEdit, onDelete }: TasksTableProps)
         <TableBody>
           {tasks.map((task) => {
             const isOverdue = task.due_date && new Date(task.due_date) < new Date() && task.status !== "done" && task.status !== "cancelled";
+            const isChecked = selectedIds?.has(task.id) ?? false;
             return (
-              <TableRow key={task.id} className="cursor-pointer" onDoubleClick={() => onEdit(task)}>
+              <TableRow key={task.id} className="cursor-pointer" onDoubleClick={() => onEdit(task)} data-state={isChecked ? "selected" : undefined}>
+                {hasSelection && (
+                  <TableCell>
+                    <Checkbox checked={isChecked} onCheckedChange={() => onToggle?.(task.id)} onClick={(e) => e.stopPropagation()} />
+                  </TableCell>
+                )}
                 <TableCell className="font-medium">{task.title}</TableCell>
                 <TableCell>
                   <Badge variant={STATUS_VARIANT[task.status] ?? "outline"}>
