@@ -104,6 +104,21 @@ const MeetingsPage = () => {
   const { filters, uniqueValues, toggleFilter, setColumnFilter, clearFilter, filteredData: filtered } =
     useColumnFilters(preFiltered, filterColumns);
 
+  const selection = useRowSelection(filtered);
+
+  const bulkDeleteMutation = useMutation({
+    mutationFn: async (ids: string[]) => {
+      const { error } = await supabase.from("meetings").delete().in("id", ids);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["meetings"] });
+      selection.clearSelection();
+      toast({ title: "Записите са изтрити" });
+    },
+    onError: () => toast({ title: "Грешка при изтриване", variant: "destructive" }),
+  });
+
   const handleExport = async () => {
     await exportToExcel(
       filtered.map((m) => ({
