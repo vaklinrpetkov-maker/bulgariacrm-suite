@@ -136,6 +136,21 @@ const ContactsPage = () => {
      return matchesSearch && matchesType && matchesOwner && matchesDateFrom && matchesDateTo;
   });
 
+  const selection = useRowSelection(filtered);
+
+  const bulkDeleteMutation = useMutation({
+    mutationFn: async (ids: string[]) => {
+      const { error } = await supabase.from("contacts").delete().in("id", ids);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["contacts"] });
+      selection.clearSelection();
+      toast({ title: "Записите са изтрити" });
+    },
+    onError: () => toast({ title: "Грешка при изтриване", variant: "destructive" }),
+  });
+
   const handleExport = async () => {
     await exportToExcel(
       filtered.map(c => ({
