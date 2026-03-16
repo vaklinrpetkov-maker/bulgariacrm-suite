@@ -22,6 +22,8 @@ import ContactProfileDialog from "@/components/contacts/ContactProfileDialog";
 import type { Tables } from "@/integrations/supabase/types";
 import CreateLeadFromContactDialog from "@/components/contacts/CreateLeadFromContactDialog";
 import ContactImportDialog from "@/components/contacts/ContactImportDialog";
+import BulkDeleteBar from "@/components/BulkDeleteBar";
+import { useRowSelection } from "@/hooks/useRowSelection";
 
 const ContactsPage = () => {
   const { user } = useAuth();
