@@ -1,14 +1,15 @@
 
 
-## Plan: Remove recipient check from inbound-email webhook
+## Plan: Remove lead auto-creation from sync-emails
 
-**What**: Remove "Filter 1: Recipient check" from `supabase/functions/inbound-email/index.ts` — the block that verifies the `to`/`envelope` fields contain `leads@vminvest.bg`. This includes removing the `toRaw` and `envelope` variables since they're only used for that check.
+**Goal**: Eliminate the duplicate lead-creation logic in `sync-emails` so that only the `inbound-email` webhook (Path 1) creates leads from emails.
 
-**Why**: Since the SendGrid Inbound Parse is configured specifically for `parse.vminvest.bg`, only emails routed through that domain will hit the webhook. The recipient filter is redundant.
+**Changes in `supabase/functions/sync-emails/index.ts`**:
+1. Remove the `parseStructuredBody` function (lines ~20-50) — no longer needed here
+2. Remove the `findOrCreateContact` helper function (lines ~52-95) — only used for lead creation
+3. Remove the entire "Lead auto-creation for форма emails" block inside the message processing loop (roughly lines ~160-200) — this is the block that checks for "форма" in the subject, parses fields, finds/creates contacts, and inserts leads
+4. Remove the `leadsCreated` counter variable and its reference in the response
+5. Keep all standard email syncing logic intact (IMAP fetch, email upsert, contact linking by existing `contactByEmail` map)
 
-**Changes in `supabase/functions/inbound-email/index.ts`**:
-- Remove `toRaw` and `envelope` variable declarations
-- Remove reading `to` and `envelope` from formData and JSON body
-- Remove the entire "Filter 1: Recipient check" block (lines ~53-70)
-- Keep Filter 2 (subject must contain "форма") intact
+No other files need changes. The `inbound-email` function remains untouched as the sole lead-creation path.
 
