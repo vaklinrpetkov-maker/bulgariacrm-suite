@@ -14,6 +14,8 @@ import TaskFormDialog, { type TaskFormValues } from "@/components/tasks/TaskForm
 import TaskDeleteDialog from "@/components/tasks/TaskDeleteDialog";
 import TasksTable from "@/components/tasks/TasksTable";
 import TasksKanban from "@/components/tasks/TasksKanban";
+import BulkDeleteBar from "@/components/BulkDeleteBar";
+import { useRowSelection } from "@/hooks/useRowSelection";
 import type { Tables } from "@/integrations/supabase/types";
 
 const TasksPage = () => {
@@ -127,6 +129,21 @@ const TasksPage = () => {
     return true;
   });
 
+  const selection = useRowSelection(filtered);
+
+  const bulkDeleteMutation = useMutation({
+    mutationFn: async (ids: string[]) => {
+      const { error } = await supabase.from("tasks").delete().in("id", ids);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["tasks"] });
+      selection.clearSelection();
+      toast({ title: "Записите са изтрити" });
+    },
+    onError: () => toast({ title: "Грешка при изтриване", variant: "destructive" }),
+  });
+
   const handleEdit = (task: Tables<"tasks">) => {
     setEditTask(task);
     setFormOpen(true);
@@ -213,11 +230,27 @@ const TasksPage = () => {
           </Tabs>
         </div>
 
+        <BulkDeleteBar
+          count={selection.selectedCount}
+          onDelete={() => bulkDeleteMutation.mutate([...selection.selectedIds])}
+          onClear={selection.clearSelection}
+          isDeleting={bulkDeleteMutation.isPending}
+        />
+
         {/* Content */}
         {isLoading ? (
           <div className="flex items-center justify-center py-12 text-muted-foreground">Зареждане...</div>
         ) : view === "table" ? (
-          <TasksTable tasks={filtered} onEdit={handleEdit} onDelete={setDeleteTask} />
+          <TasksTable
+            tasks={filtered}
+            onEdit={handleEdit}
+            onDelete={setDeleteTask}
+            selectedIds={selection.selectedIds}
+            onToggle={selection.toggle}
+            onToggleAll={selection.toggleAll}
+            allSelected={selection.allSelected}
+            someSelected={selection.someSelected}
+          />
         ) : (
           <TasksKanban
             tasks={filtered}

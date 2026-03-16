@@ -22,6 +22,8 @@ import ContactProfileDialog from "@/components/contacts/ContactProfileDialog";
 import type { Tables } from "@/integrations/supabase/types";
 import CreateLeadFromContactDialog from "@/components/contacts/CreateLeadFromContactDialog";
 import ContactImportDialog from "@/components/contacts/ContactImportDialog";
+import BulkDeleteBar from "@/components/BulkDeleteBar";
+import { useRowSelection } from "@/hooks/useRowSelection";
 
 const ContactsPage = () => {
   const { user } = useAuth();
@@ -134,6 +136,21 @@ const ContactsPage = () => {
      return matchesSearch && matchesType && matchesOwner && matchesDateFrom && matchesDateTo;
   });
 
+  const selection = useRowSelection(filtered);
+
+  const bulkDeleteMutation = useMutation({
+    mutationFn: async (ids: string[]) => {
+      const { error } = await supabase.from("contacts").delete().in("id", ids);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["contacts"] });
+      selection.clearSelection();
+      toast({ title: "Записите са изтрити" });
+    },
+    onError: () => toast({ title: "Грешка при изтриване", variant: "destructive" }),
+  });
+
   const handleExport = async () => {
     await exportToExcel(
       filtered.map(c => ({
@@ -243,6 +260,13 @@ const ContactsPage = () => {
           )}
         </div>
 
+        <BulkDeleteBar
+          count={selection.selectedCount}
+          onDelete={() => bulkDeleteMutation.mutate([...selection.selectedIds])}
+          onClear={selection.clearSelection}
+          isDeleting={bulkDeleteMutation.isPending}
+        />
+
         {isLoading ? (
           <div className="text-center py-12 text-muted-foreground">Зареждане...</div>
         ) : (
@@ -252,6 +276,11 @@ const ContactsPage = () => {
             onDelete={isAdmin ? (c) => setDeleteContact(c) : undefined}
             onDoubleClick={(c) => setProfileContact(c)}
             onCreateLead={(c) => setCreateLeadContact(c)}
+            selectedIds={selection.selectedIds}
+            onToggle={selection.toggle}
+            onToggleAll={selection.toggleAll}
+            allSelected={selection.allSelected}
+            someSelected={selection.someSelected}
           />
         )}
       </div>

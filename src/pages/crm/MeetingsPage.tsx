@@ -10,6 +10,7 @@ import PageHeader from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
@@ -22,6 +23,8 @@ import { exportToExcel } from "@/lib/exportToExcel";
 import MeetingFormDialog from "@/components/meetings/MeetingFormDialog";
 import { ColumnFilter } from "@/components/ui/column-filter";
 import { useColumnFilters } from "@/hooks/useColumnFilters";
+import BulkDeleteBar from "@/components/BulkDeleteBar";
+import { useRowSelection } from "@/hooks/useRowSelection";
 import type { Tables } from "@/integrations/supabase/types";
 
 const statusLabels: Record<string, string> = {
@@ -100,6 +103,21 @@ const MeetingsPage = () => {
 
   const { filters, uniqueValues, toggleFilter, setColumnFilter, clearFilter, filteredData: filtered } =
     useColumnFilters(preFiltered, filterColumns);
+
+  const selection = useRowSelection(filtered);
+
+  const bulkDeleteMutation = useMutation({
+    mutationFn: async (ids: string[]) => {
+      const { error } = await supabase.from("meetings").delete().in("id", ids);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["meetings"] });
+      selection.clearSelection();
+      toast({ title: "Записите са изтрити" });
+    },
+    onError: () => toast({ title: "Грешка при изтриване", variant: "destructive" }),
+  });
 
   const handleExport = async () => {
     await exportToExcel(
@@ -193,6 +211,13 @@ const MeetingsPage = () => {
           </div>
         </div>
 
+        <BulkDeleteBar
+          count={selection.selectedCount}
+          onDelete={() => bulkDeleteMutation.mutate([...selection.selectedIds])}
+          onClear={selection.clearSelection}
+          isDeleting={bulkDeleteMutation.isPending}
+        />
+
         {view === "table" && (
           isLoading ? (
             <div className="text-center py-12 text-muted-foreground">Зареждане...</div>
@@ -205,6 +230,12 @@ const MeetingsPage = () => {
               <Table>
                 <TableHeader>
                   <TableRow>
+                    <TableHead style={{ width: "40px" }} resizable={false}>
+                      <Checkbox
+                        checked={selection.allSelected ? true : selection.someSelected ? "indeterminate" : false}
+                        onCheckedChange={() => selection.toggleAll()}
+                      />
+                    </TableHead>
                     <TableHead>
                       <ColumnFilter title="Заглавие" columnKey="title" values={uniqueValues["title"] || []} selected={filters["title"]} onToggle={toggleFilter} onSetFilter={setColumnFilter} onClear={clearFilter} />
                     </TableHead>
@@ -227,24 +258,30 @@ const MeetingsPage = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filtered.map((m) => (
-                    <TableRow key={m.id}>
-                      <TableCell className="font-medium">{m.title}</TableCell>
-                      <TableCell>{format(new Date(m.scheduled_at), "dd.MM.yyyy HH:mm")}</TableCell>
-                      <TableCell>{m.duration_minutes ? `${m.duration_minutes} мин.` : "—"}</TableCell>
-                      <TableCell>{m.location || "—"}</TableCell>
-                      <TableCell>{(m as any).leads?.title || "—"}</TableCell>
-                      <TableCell>
-                        <Badge variant="secondary" className={statusColors[m.status]}>{statusLabels[m.status] || m.status}</Badge>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex gap-1">
-                          <Button variant="ghost" size="icon" onClick={() => setEditMeeting(m)}><Pencil className="h-4 w-4" /></Button>
-                          {isAdmin && <Button variant="ghost" size="icon" onClick={() => setDeleteMeeting(m)}><Trash2 className="h-4 w-4 text-destructive" /></Button>}
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                  {filtered.map((m) => {
+                    const isChecked = selection.selectedIds.has(m.id);
+                    return (
+                      <TableRow key={m.id} data-state={isChecked ? "selected" : undefined}>
+                        <TableCell>
+                          <Checkbox checked={isChecked} onCheckedChange={() => selection.toggle(m.id)} />
+                        </TableCell>
+                        <TableCell className="font-medium">{m.title}</TableCell>
+                        <TableCell>{format(new Date(m.scheduled_at), "dd.MM.yyyy HH:mm")}</TableCell>
+                        <TableCell>{m.duration_minutes ? `${m.duration_minutes} мин.` : "—"}</TableCell>
+                        <TableCell>{m.location || "—"}</TableCell>
+                        <TableCell>{(m as any).leads?.title || "—"}</TableCell>
+                        <TableCell>
+                          <Badge variant="secondary" className={statusColors[m.status]}>{statusLabels[m.status] || m.status}</Badge>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex gap-1">
+                            <Button variant="ghost" size="icon" onClick={() => setEditMeeting(m)}><Pencil className="h-4 w-4" /></Button>
+                            {isAdmin && <Button variant="ghost" size="icon" onClick={() => setDeleteMeeting(m)}><Trash2 className="h-4 w-4 text-destructive" /></Button>}
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
                 </TableBody>
               </Table>
             </div>

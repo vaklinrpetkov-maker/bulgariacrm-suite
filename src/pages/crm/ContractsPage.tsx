@@ -1,12 +1,14 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import PageHeader from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
@@ -19,6 +21,8 @@ import ContractExtractDialog from "@/components/contracts/ContractExtractDialog"
 import ContractViewDialog from "@/components/contracts/ContractViewDialog";
 import { ColumnFilter } from "@/components/ui/column-filter";
 import { useColumnFilters } from "@/hooks/useColumnFilters";
+import BulkDeleteBar from "@/components/BulkDeleteBar";
+import { useRowSelection } from "@/hooks/useRowSelection";
 
 const statusLabels: Record<string, string> = {
   draft: "Чернова", active: "Активен", completed: "Завършен", cancelled: "Анулиран",
@@ -43,6 +47,7 @@ const filterColumns = [
 ];
 
 const ContractsPage = () => {
+  const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
@@ -71,6 +76,21 @@ const ContractsPage = () => {
 
   const { filters, uniqueValues, toggleFilter, setColumnFilter, clearFilter, filteredData: filtered } =
     useColumnFilters(preFiltered, filterColumns);
+
+  const selection = useRowSelection(filtered);
+
+  const bulkDeleteMutation = useMutation({
+    mutationFn: async (ids: string[]) => {
+      const { error } = await supabase.from("contracts").delete().in("id", ids);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["contracts"] });
+      selection.clearSelection();
+      toast({ title: "Записите са изтрити" });
+    },
+    onError: () => toast({ title: "Грешка при изтриване", variant: "destructive" }),
+  });
 
   const handleExport = async () => {
     await exportToExcel(
@@ -168,6 +188,13 @@ const ContractsPage = () => {
           )}
         </div>
 
+        <BulkDeleteBar
+          count={selection.selectedCount}
+          onDelete={() => bulkDeleteMutation.mutate([...selection.selectedIds])}
+          onClear={selection.clearSelection}
+          isDeleting={bulkDeleteMutation.isPending}
+        />
+
         {filtered.length === 0 ? (
           <div className="rounded-lg border border-border bg-card p-12 text-center">
             <p className="text-muted-foreground">Няма договори.</p>
@@ -177,6 +204,12 @@ const ContractsPage = () => {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead style={{ width: "40px" }} resizable={false}>
+                    <Checkbox
+                      checked={selection.allSelected ? true : selection.someSelected ? "indeterminate" : false}
+                      onCheckedChange={() => selection.toggleAll()}
+                    />
+                  </TableHead>
                   <TableHead>
                     <ColumnFilter title="Заглавие" columnKey="title" values={uniqueValues["title"] || []} selected={filters["title"]} onToggle={toggleFilter} onSetFilter={setColumnFilter} onClear={clearFilter} />
                   </TableHead>
@@ -198,20 +231,26 @@ const ContractsPage = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filtered.map((c) => (
-                  <TableRow key={c.id} className="cursor-pointer" onClick={() => setViewContract(c)}>
-                    <TableCell className="font-medium">{c.title}</TableCell>
-                    <TableCell>{c.contract_number || "—"}</TableCell>
-                    <TableCell>{contactNameFn(c)}</TableCell>
-                    <TableCell>{c.total_value != null ? `${Number(c.total_value).toLocaleString("bg-BG")} €` : "—"}</TableCell>
-                    <TableCell>
-                      <Badge variant={statusVariant[c.status] || "secondary"}>
-                        {statusLabels[c.status] || c.status}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>{format(new Date(c.created_at), "dd.MM.yyyy")}</TableCell>
-                  </TableRow>
-                ))}
+                {filtered.map((c) => {
+                  const isChecked = selection.selectedIds.has(c.id);
+                  return (
+                    <TableRow key={c.id} className="cursor-pointer" onClick={() => setViewContract(c)} data-state={isChecked ? "selected" : undefined}>
+                      <TableCell onClick={(e) => e.stopPropagation()}>
+                        <Checkbox checked={isChecked} onCheckedChange={() => selection.toggle(c.id)} />
+                      </TableCell>
+                      <TableCell className="font-medium">{c.title}</TableCell>
+                      <TableCell>{c.contract_number || "—"}</TableCell>
+                      <TableCell>{contactNameFn(c)}</TableCell>
+                      <TableCell>{c.total_value != null ? `${Number(c.total_value).toLocaleString("bg-BG")} €` : "—"}</TableCell>
+                      <TableCell>
+                        <Badge variant={statusVariant[c.status] || "secondary"}>
+                          {statusLabels[c.status] || c.status}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>{format(new Date(c.created_at), "dd.MM.yyyy")}</TableCell>
+                    </TableRow>
+                  );
+                })}
               </TableBody>
             </Table>
           </div>
