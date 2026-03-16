@@ -260,6 +260,13 @@ const ContactsPage = () => {
           )}
         </div>
 
+        <BulkDeleteBar
+          count={selection.selectedCount}
+          onDelete={() => bulkDeleteMutation.mutate([...selection.selectedIds])}
+          onClear={selection.clearSelection}
+          isDeleting={bulkDeleteMutation.isPending}
+        />
+
         {isLoading ? (
           <div className="text-center py-12 text-muted-foreground">Зареждане...</div>
         ) : (
@@ -269,6 +276,11 @@ const ContactsPage = () => {
             onDelete={isAdmin ? (c) => setDeleteContact(c) : undefined}
             onDoubleClick={(c) => setProfileContact(c)}
             onCreateLead={(c) => setCreateLeadContact(c)}
+            selectedIds={selection.selectedIds}
+            onToggle={selection.toggle}
+            onToggleAll={selection.toggleAll}
+            allSelected={selection.allSelected}
+            someSelected={selection.someSelected}
           />
         )}
       </div>

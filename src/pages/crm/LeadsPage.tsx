@@ -9,6 +9,7 @@ import PageHeader from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
@@ -25,6 +26,8 @@ import LeadsOverdueAlert from "@/components/leads/LeadsOverdueAlert";
 import LeadMessageHoverCard from "@/components/leads/LeadMessageHoverCard";
 import { ColumnFilter } from "@/components/ui/column-filter";
 import { useColumnFilters } from "@/hooks/useColumnFilters";
+import BulkDeleteBar from "@/components/BulkDeleteBar";
+import { useRowSelection } from "@/hooks/useRowSelection";
 import type { Tables } from "@/integrations/supabase/types";
 
 const statusLabels: Record<string, string> = {
@@ -133,6 +136,21 @@ const LeadsPage = () => {
 
   const { filters, uniqueValues, toggleFilter, setColumnFilter, clearFilter, filteredData: filtered } =
     useColumnFilters(preFiltered, filterColumns);
+
+  const selection = useRowSelection(filtered);
+
+  const bulkDeleteMutation = useMutation({
+    mutationFn: async (ids: string[]) => {
+      const { error } = await supabase.from("leads").delete().in("id", ids);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["leads"] });
+      selection.clearSelection();
+      toast({ title: "Записите са изтрити" });
+    },
+    onError: () => toast({ title: "Грешка при изтриване", variant: "destructive" }),
+  });
 
   const handleExport = async () => {
     const contactName = (l: any) => l.contacts ? getContactName(l.contacts) : "";
@@ -249,6 +267,13 @@ const LeadsPage = () => {
           )}
         </div>
 
+        <BulkDeleteBar
+          count={selection.selectedCount}
+          onDelete={() => bulkDeleteMutation.mutate([...selection.selectedIds])}
+          onClear={selection.clearSelection}
+          isDeleting={bulkDeleteMutation.isPending}
+        />
+
         {isLoading ? (
           <div className="text-center py-12 text-muted-foreground">Зареждане...</div>
         ) : filtered.length === 0 ? (
@@ -261,6 +286,12 @@ const LeadsPage = () => {
               <Table>
                 <TableHeader>
                   <TableRow>
+                    <TableHead style={{ width: "40px" }} resizable={false}>
+                      <Checkbox
+                        checked={selection.allSelected ? true : selection.someSelected ? "indeterminate" : false}
+                        onCheckedChange={() => selection.toggleAll()}
+                      />
+                    </TableHead>
                     <TableHead>
                       <ColumnFilter title="Заглавие" columnKey="title" values={uniqueValues["title"] || []} selected={filters["title"]} onToggle={toggleFilter} onSetFilter={setColumnFilter} onClear={clearFilter} />
                     </TableHead>
@@ -295,8 +326,12 @@ const LeadsPage = () => {
                     const elapsed = isRunning
                       ? Math.max(0, Date.now() - new Date(lead.created_at).getTime())
                       : Math.max(0, new Date((lead as any).responded_at).getTime() - new Date(lead.created_at).getTime());
+                    const isChecked = selection.selectedIds.has(lead.id);
                     return (
-                    <TableRow key={lead.id} className={getTimerRowClass(elapsed, isRunning)}>
+                    <TableRow key={lead.id} className={getTimerRowClass(elapsed, isRunning)} data-state={isChecked ? "selected" : undefined}>
+                      <TableCell>
+                        <Checkbox checked={isChecked} onCheckedChange={() => selection.toggle(lead.id)} onClick={(e) => e.stopPropagation()} />
+                      </TableCell>
                       <TableCell className="font-medium">
                         <LeadMessageHoverCard notes={lead.notes}>
                           {lead.title}

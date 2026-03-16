@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import PageHeader from "@/components/PageHeader";
@@ -11,12 +12,15 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Plus, Download, Upload, Search, CalendarIcon, X, FileSpreadsheet } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import type { DateRange } from "react-day-picker";
 import { exportToExcel } from "@/lib/exportToExcel";
 import { ColumnFilter } from "@/components/ui/column-filter";
 import { useColumnFilters } from "@/hooks/useColumnFilters";
+import BulkDeleteBar from "@/components/BulkDeleteBar";
+import { useRowSelection } from "@/hooks/useRowSelection";
 
 const statusLabels: Record<string, string> = {
   negotiation: "Преговори", proposal: "Предложение", won: "Спечелена", lost: "Загубена",
@@ -36,6 +40,7 @@ const filterColumns = [
 ];
 
 const DealsPage = () => {
+  const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
@@ -62,6 +67,21 @@ const DealsPage = () => {
 
   const { filters, uniqueValues, toggleFilter, setColumnFilter, clearFilter, filteredData: filtered } =
     useColumnFilters(preFiltered, filterColumns);
+
+  const selection = useRowSelection(filtered);
+
+  const bulkDeleteMutation = useMutation({
+    mutationFn: async (ids: string[]) => {
+      const { error } = await supabase.from("deals").delete().in("id", ids);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["deals"] });
+      selection.clearSelection();
+      toast({ title: "Записите са изтрити" });
+    },
+    onError: () => toast({ title: "Грешка при изтриване", variant: "destructive" }),
+  });
 
   const handleExport = async () => {
     await exportToExcel(
@@ -158,6 +178,14 @@ const DealsPage = () => {
             </Button>
           )}
         </div>
+
+        <BulkDeleteBar
+          count={selection.selectedCount}
+          onDelete={() => bulkDeleteMutation.mutate([...selection.selectedIds])}
+          onClear={selection.clearSelection}
+          isDeleting={bulkDeleteMutation.isPending}
+        />
+
         {filtered.length === 0 ? (
           <div className="rounded-lg border border-border bg-card p-12 text-center">
             <p className="text-muted-foreground">Няма сделки.</p>
@@ -167,6 +195,12 @@ const DealsPage = () => {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead style={{ width: "40px" }} resizable={false}>
+                    <Checkbox
+                      checked={selection.allSelected ? true : selection.someSelected ? "indeterminate" : false}
+                      onCheckedChange={() => selection.toggleAll()}
+                    />
+                  </TableHead>
                   <TableHead>
                     <ColumnFilter title="Заглавие" columnKey="title" values={uniqueValues["title"] || []} selected={filters["title"]} onToggle={toggleFilter} onSetFilter={setColumnFilter} onClear={clearFilter} />
                   </TableHead>
@@ -185,17 +219,23 @@ const DealsPage = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filtered.map((d) => (
-                  <TableRow key={d.id}>
-                    <TableCell className="font-medium">{d.title}</TableCell>
-                    <TableCell>{contactNameFn(d)}</TableCell>
-                    <TableCell>{d.value != null ? `${Number(d.value).toLocaleString("bg-BG")} лв.` : "—"}</TableCell>
-                    <TableCell>
-                      <Badge variant="secondary">{statusLabels[d.status] || d.status}</Badge>
-                    </TableCell>
-                    <TableCell>{format(new Date(d.created_at), "dd.MM.yyyy")}</TableCell>
-                  </TableRow>
-                ))}
+                {filtered.map((d) => {
+                  const isChecked = selection.selectedIds.has(d.id);
+                  return (
+                    <TableRow key={d.id} data-state={isChecked ? "selected" : undefined}>
+                      <TableCell>
+                        <Checkbox checked={isChecked} onCheckedChange={() => selection.toggle(d.id)} />
+                      </TableCell>
+                      <TableCell className="font-medium">{d.title}</TableCell>
+                      <TableCell>{contactNameFn(d)}</TableCell>
+                      <TableCell>{d.value != null ? `${Number(d.value).toLocaleString("bg-BG")} лв.` : "—"}</TableCell>
+                      <TableCell>
+                        <Badge variant="secondary">{statusLabels[d.status] || d.status}</Badge>
+                      </TableCell>
+                      <TableCell>{format(new Date(d.created_at), "dd.MM.yyyy")}</TableCell>
+                    </TableRow>
+                  );
+                })}
               </TableBody>
             </Table>
           </div>
