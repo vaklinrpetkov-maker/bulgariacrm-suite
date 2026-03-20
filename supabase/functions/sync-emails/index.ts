@@ -119,7 +119,7 @@ serve(async (req) => {
 
     await client.logout();
 
-    return new Response(JSON.stringify({ success: true, synced, leadsCreated }), {
+    return new Response(JSON.stringify({ success: true, synced }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (error) {
