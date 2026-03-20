@@ -144,7 +144,6 @@ serve(async (req) => {
 
     const lock = await client.getMailboxLock("INBOX");
     let synced = 0;
-    let leadsCreated = 0;
 
     try {
       const { data: contacts } = await serviceClient.from("contacts").select("id, email");
