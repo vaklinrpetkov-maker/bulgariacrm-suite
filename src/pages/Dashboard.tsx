@@ -335,7 +335,7 @@ export default function Dashboard() {
         {/* Charts Row 1 */}
         <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
           {/* Monthly Activity Area Chart */}
-          <Card className="xl:col-span-2">
+          <Card className="xl:col-span-2 dash-card">
             <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
               <CardTitle className="text-sm font-medium text-muted-foreground">Активност ({PERIOD_LABELS[activityPeriod]})</CardTitle>
               <PeriodSelector value={activityPeriod} onChange={setActivityPeriod} />
@@ -358,20 +358,13 @@ export default function Dashboard() {
                         <stop offset="95%" stopColor={CHART_COLORS[2]} stopOpacity={0} />
                       </linearGradient>
                     </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(220, 13%, 88%)" strokeOpacity={0.5} />
-                    <XAxis dataKey="period" tick={{ fontSize: 12 }} stroke="hsl(220, 10%, 46%)" />
-                    <YAxis tick={{ fontSize: 12 }} stroke="hsl(220, 10%, 46%)" allowDecimals={false} />
-                    <Tooltip
-                      contentStyle={{
-                        backgroundColor: "hsl(0, 0%, 100%)",
-                        border: "1px solid hsl(220, 13%, 88%)",
-                        borderRadius: "8px",
-                        fontSize: "13px",
-                      }}
-                    />
-                    <Area type="monotone" dataKey="Контакти" stroke={CHART_COLORS[0]} fill="url(#colorContacts)" strokeWidth={2} />
-                    <Area type="monotone" dataKey="Лийдове" stroke={CHART_COLORS[1]} fill="url(#colorLeads)" strokeWidth={2} />
-                    <Area type="monotone" dataKey="Сделки" stroke={CHART_COLORS[2]} fill="url(#colorDeals)" strokeWidth={2} />
+                    <CartesianGrid strokeDasharray="3 3" stroke={GRID_STROKE} strokeOpacity={0.5} />
+                    <XAxis dataKey="period" tick={{ fontSize: 12, fill: AXIS_STROKE }} stroke={AXIS_STROKE} />
+                    <YAxis tick={{ fontSize: 12, fill: AXIS_STROKE }} stroke={AXIS_STROKE} allowDecimals={false} />
+                    <Tooltip contentStyle={TOOLTIP_STYLE} />
+                    <Area type="monotone" dataKey="Контакти" stroke={CHART_COLORS[0]} fill="url(#colorContacts)" strokeWidth={2.5} />
+                    <Area type="monotone" dataKey="Лийдове" stroke={CHART_COLORS[1]} fill="url(#colorLeads)" strokeWidth={2.5} />
+                    <Area type="monotone" dataKey="Сделки" stroke={CHART_COLORS[2]} fill="url(#colorDeals)" strokeWidth={2.5} />
                     <Legend iconType="circle" wrapperStyle={{ fontSize: "12px" }} />
                   </AreaChart>
                 </ResponsiveContainer>
