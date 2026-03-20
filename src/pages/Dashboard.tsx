@@ -14,13 +14,24 @@ import {
 } from "recharts";
 
 const CHART_COLORS = [
-  "hsl(215, 80%, 55%)",
-  "hsl(35, 92%, 50%)",
-  "hsl(142, 72%, 36%)",
-  "hsl(0, 72%, 51%)",
-  "hsl(270, 60%, 55%)",
-  "hsl(190, 80%, 42%)",
+  "hsl(215, 80%, 55%)",   // blue - Контакти
+  "hsl(35, 92%, 50%)",    // amber - Лийдове
+  "hsl(142, 72%, 36%)",   // green - Сделки
+  "hsl(0, 72%, 51%)",     // red
+  "hsl(270, 60%, 55%)",   // purple
+  "hsl(190, 80%, 42%)",   // cyan
 ];
+
+const TOOLTIP_STYLE = {
+  backgroundColor: "hsl(220, 25%, 12%)",
+  border: "1px solid hsl(220, 20%, 22%)",
+  borderRadius: "8px",
+  fontSize: "13px",
+  color: "hsl(220, 10%, 85%)",
+};
+
+const GRID_STROKE = "hsl(220, 20%, 20%)";
+const AXIS_STROKE = "hsl(220, 10%, 40%)";
 
 const STATUS_LABELS: Record<string, string> = {
   new: "Нов",
@@ -324,7 +335,7 @@ export default function Dashboard() {
         {/* Charts Row 1 */}
         <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
           {/* Monthly Activity Area Chart */}
-          <Card className="xl:col-span-2">
+          <Card className="xl:col-span-2 dash-card">
             <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
               <CardTitle className="text-sm font-medium text-muted-foreground">Активност ({PERIOD_LABELS[activityPeriod]})</CardTitle>
               <PeriodSelector value={activityPeriod} onChange={setActivityPeriod} />
@@ -347,20 +358,13 @@ export default function Dashboard() {
                         <stop offset="95%" stopColor={CHART_COLORS[2]} stopOpacity={0} />
                       </linearGradient>
                     </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(220, 13%, 88%)" strokeOpacity={0.5} />
-                    <XAxis dataKey="period" tick={{ fontSize: 12 }} stroke="hsl(220, 10%, 46%)" />
-                    <YAxis tick={{ fontSize: 12 }} stroke="hsl(220, 10%, 46%)" allowDecimals={false} />
-                    <Tooltip
-                      contentStyle={{
-                        backgroundColor: "hsl(0, 0%, 100%)",
-                        border: "1px solid hsl(220, 13%, 88%)",
-                        borderRadius: "8px",
-                        fontSize: "13px",
-                      }}
-                    />
-                    <Area type="monotone" dataKey="Контакти" stroke={CHART_COLORS[0]} fill="url(#colorContacts)" strokeWidth={2} />
-                    <Area type="monotone" dataKey="Лийдове" stroke={CHART_COLORS[1]} fill="url(#colorLeads)" strokeWidth={2} />
-                    <Area type="monotone" dataKey="Сделки" stroke={CHART_COLORS[2]} fill="url(#colorDeals)" strokeWidth={2} />
+                    <CartesianGrid strokeDasharray="3 3" stroke={GRID_STROKE} strokeOpacity={0.5} />
+                    <XAxis dataKey="period" tick={{ fontSize: 12, fill: AXIS_STROKE }} stroke={AXIS_STROKE} />
+                    <YAxis tick={{ fontSize: 12, fill: AXIS_STROKE }} stroke={AXIS_STROKE} allowDecimals={false} />
+                    <Tooltip contentStyle={TOOLTIP_STYLE} />
+                    <Area type="monotone" dataKey="Контакти" stroke={CHART_COLORS[0]} fill="url(#colorContacts)" strokeWidth={2.5} />
+                    <Area type="monotone" dataKey="Лийдове" stroke={CHART_COLORS[1]} fill="url(#colorLeads)" strokeWidth={2.5} />
+                    <Area type="monotone" dataKey="Сделки" stroke={CHART_COLORS[2]} fill="url(#colorDeals)" strokeWidth={2.5} />
                     <Legend iconType="circle" wrapperStyle={{ fontSize: "12px" }} />
                   </AreaChart>
                 </ResponsiveContainer>
@@ -369,7 +373,7 @@ export default function Dashboard() {
           </Card>
 
           {/* Leads by Status Pie */}
-          <Card>
+          <Card className="dash-card">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">Лийдове по статус</CardTitle>
             </CardHeader>
@@ -391,7 +395,7 @@ export default function Dashboard() {
                           <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />
                         ))}
                       </Pie>
-                      <Tooltip />
+                      <Tooltip contentStyle={TOOLTIP_STYLE} />
                       <Legend iconType="circle" wrapperStyle={{ fontSize: "12px" }} />
                     </PieChart>
                   </ResponsiveContainer>
@@ -406,7 +410,7 @@ export default function Dashboard() {
         {/* Charts Row 2 */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           {/* Deals Pipeline Bar Chart */}
-          <Card>
+          <Card className="dash-card">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">Сделки по етап</CardTitle>
             </CardHeader>
@@ -415,17 +419,10 @@ export default function Dashboard() {
                 {dealsByStatus.length > 0 ? (
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={dealsByStatus} barSize={32}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(220, 13%, 88%)" strokeOpacity={0.5} />
-                      <XAxis dataKey="name" tick={{ fontSize: 11 }} stroke="hsl(220, 10%, 46%)" />
-                      <YAxis tick={{ fontSize: 11 }} stroke="hsl(220, 10%, 46%)" allowDecimals={false} />
-                      <Tooltip
-                        contentStyle={{
-                          backgroundColor: "hsl(0, 0%, 100%)",
-                          border: "1px solid hsl(220, 13%, 88%)",
-                          borderRadius: "8px",
-                          fontSize: "13px",
-                        }}
-                      />
+                      <CartesianGrid strokeDasharray="3 3" stroke={GRID_STROKE} strokeOpacity={0.5} />
+                      <XAxis dataKey="name" tick={{ fontSize: 11, fill: AXIS_STROKE }} stroke={AXIS_STROKE} />
+                      <YAxis tick={{ fontSize: 11, fill: AXIS_STROKE }} stroke={AXIS_STROKE} allowDecimals={false} />
+                      <Tooltip contentStyle={TOOLTIP_STYLE} />
                       <Bar dataKey="value" name="Сделки" radius={[4, 4, 0, 0]}>
                         {dealsByStatus.map((_, i) => (
                           <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />
@@ -441,7 +438,7 @@ export default function Dashboard() {
           </Card>
 
           {/* Tasks Breakdown Pie */}
-          <Card>
+          <Card className="dash-card">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">Задачи по статус</CardTitle>
             </CardHeader>
@@ -463,7 +460,7 @@ export default function Dashboard() {
                           <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />
                         ))}
                       </Pie>
-                      <Tooltip />
+                      <Tooltip contentStyle={TOOLTIP_STYLE} />
                       <Legend iconType="circle" wrapperStyle={{ fontSize: "11px" }} />
                     </PieChart>
                   </ResponsiveContainer>
@@ -475,7 +472,7 @@ export default function Dashboard() {
           </Card>
 
           {/* Email Volume Bar Chart */}
-          <Card>
+          <Card className="dash-card">
             <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
               <CardTitle className="text-sm font-medium text-muted-foreground">Имейли</CardTitle>
               <PeriodSelector value={emailPeriod} onChange={setEmailPeriod} />
@@ -484,17 +481,10 @@ export default function Dashboard() {
               <div className="h-56">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={emailVolume} barSize={16} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(220, 13%, 88%)" strokeOpacity={0.5} />
-                    <XAxis dataKey="period" tick={{ fontSize: 10 }} stroke="hsl(220, 10%, 46%)" />
-                    <YAxis tick={{ fontSize: 11 }} stroke="hsl(220, 10%, 46%)" allowDecimals={false} />
-                    <Tooltip
-                      contentStyle={{
-                        backgroundColor: "hsl(0, 0%, 100%)",
-                        border: "1px solid hsl(220, 13%, 88%)",
-                        borderRadius: "8px",
-                        fontSize: "13px",
-                      }}
-                    />
+                    <CartesianGrid strokeDasharray="3 3" stroke={GRID_STROKE} strokeOpacity={0.5} />
+                    <XAxis dataKey="period" tick={{ fontSize: 10, fill: AXIS_STROKE }} stroke={AXIS_STROKE} />
+                    <YAxis tick={{ fontSize: 11, fill: AXIS_STROKE }} stroke={AXIS_STROKE} allowDecimals={false} />
+                    <Tooltip contentStyle={TOOLTIP_STYLE} />
                     <Bar dataKey="Входящи" fill={CHART_COLORS[0]} radius={[3, 3, 0, 0]} />
                     <Bar dataKey="Изходящи" fill={CHART_COLORS[2]} radius={[3, 3, 0, 0]} />
                     <Legend iconType="circle" wrapperStyle={{ fontSize: "11px" }} />
