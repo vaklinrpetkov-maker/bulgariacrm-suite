@@ -9,91 +9,6 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-interface ParsedFields {
-  project: string | null;
-  fullName: string | null;
-  email: string | null;
-  phone: string | null;
-  message: string | null;
-}
-
-function parseStructuredBody(text: string): ParsedFields {
-  const result: ParsedFields = {
-    project: null, fullName: null, email: null, phone: null, message: null,
-  };
-  if (!text) return result;
-
-  const clean = (v: string) => v.replace(/^\*+|\*+$/g, "").trim();
-
-  const projectMatch = text.match(/Проект:\s*\*?([^*\n]+)\*?/i);
-  if (projectMatch) result.project = clean(projectMatch[1]);
-
-  const nameMatch = text.match(/Име и фамилия:\s*\*?([^*\n]+)\*?/i);
-  if (nameMatch) result.fullName = clean(nameMatch[1]);
-
-  const emailMatch = text.match(/Имейл:\s*\*?([^*\n\s]+)\*?/i);
-  if (emailMatch) result.email = clean(emailMatch[1]).toLowerCase();
-
-  const phoneMatch = text.match(/Телефон:\s*\*?([^*\n]+)\*?/i);
-  if (phoneMatch) result.phone = clean(phoneMatch[1]);
-
-  const msgMatch = text.match(/Съобщение:\s*\*?([\s\S]*?)(?:\*?\s*$)/i);
-  if (msgMatch) result.message = clean(msgMatch[1]);
-
-  return result;
-}
-
-async function findOrCreateContact(
-  supabase: any,
-  contactEmail: string,
-  contactFullName: string,
-  contactPhone: string | null,
-  contactByEmail: Record<string, string>
-): Promise<string | null> {
-  if (contactEmail && contactByEmail[contactEmail.toLowerCase()]) {
-    return contactByEmail[contactEmail.toLowerCase()];
-  }
-
-  if (contactEmail) {
-    const { data: byEmail } = await supabase
-      .from("contacts").select("id").eq("email", contactEmail).maybeSingle();
-    if (byEmail) return byEmail.id;
-  }
-
-  if (contactFullName) {
-    const nameParts = contactFullName.split(/\s+/);
-    const firstName = nameParts[0];
-    const lastName = nameParts.length > 1 ? nameParts.slice(1).join(" ") : null;
-    let query = supabase.from("contacts").select("id").eq("first_name", firstName);
-    if (lastName) query = query.eq("last_name", lastName);
-    const { data: byName } = await query.maybeSingle();
-    if (byName) {
-      const updates: Record<string, string> = {};
-      if (contactEmail) updates.email = contactEmail;
-      if (contactPhone) updates.phone = contactPhone;
-      if (Object.keys(updates).length > 0) {
-        await supabase.from("contacts").update(updates).eq("id", byName.id).is("email", null);
-      }
-      return byName.id;
-    }
-  }
-
-  const nameParts = contactFullName.split(/\s+/);
-  const firstName = nameParts[0] || (contactEmail ? contactEmail.split("@")[0] : "Unknown");
-  const lastName = nameParts.length > 1 ? nameParts.slice(1).join(" ") : null;
-
-  const { data: newContact, error } = await supabase
-    .from("contacts")
-    .insert({ email: contactEmail || null, first_name: firstName, last_name: lastName, phone: contactPhone, type: "person" })
-    .select("id")
-    .single();
-
-  if (error) {
-    console.error("Contact creation failed:", error.message);
-    return null;
-  }
-  return newContact.id;
-}
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -144,7 +59,6 @@ serve(async (req) => {
 
     const lock = await client.getMailboxLock("INBOX");
     let synced = 0;
-    let leadsCreated = 0;
 
     try {
       const { data: contacts } = await serviceClient.from("contacts").select("id, email");
@@ -195,55 +109,6 @@ serve(async (req) => {
 
           if (!error) synced++;
 
-          // --- Lead auto-creation for "форма" emails ---
-          if (
-            !error &&
-            upsertedEmail?.length > 0 &&
-            subject.toLowerCase().includes("форма")
-          ) {
-            const emailIdTag = `[email:${messageId}]`;
-            const { data: existingLead } = await serviceClient
-              .from("leads")
-              .select("id")
-              .ilike("notes", `%${emailIdTag}%`)
-              .maybeSingle();
-
-            if (!existingLead) {
-              const fields = parseStructuredBody(bodyText);
-              const contactEmail = fields.email || from;
-              const contactFullName = fields.fullName || "";
-              const contactPhone = fields.phone || null;
-
-              const leadContactId = await findOrCreateContact(
-                serviceClient, contactEmail, contactFullName, contactPhone, contactByEmail
-              );
-
-              if (leadContactId) {
-                if (contactEmail) contactByEmail[contactEmail.toLowerCase()] = leadContactId;
-
-                const now = new Date();
-                const pad = (n: number) => String(n).padStart(2, "0");
-                const leadTitle = `${pad(now.getDate())}.${pad(now.getMonth() + 1)}.${now.getFullYear()} ${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
-
-                const notesText = bodyText ? bodyText.substring(0, 1900) : "";
-                const { error: leadError } = await serviceClient.from("leads").insert({
-                  contact_id: leadContactId,
-                  title: leadTitle,
-                  source: "email",
-                  status: "new",
-                  notes: `${notesText}\n\n${emailIdTag}`,
-                  project_name: fields.project || null,
-                });
-
-                if (leadError) {
-                  console.error("Lead creation failed:", leadError.message);
-                } else {
-                  leadsCreated++;
-                  console.log(`Lead created from "форма" email: ${subject}`);
-                }
-              }
-            }
-          }
         } catch (fetchErr) {
           console.error(`Error processing message:`, fetchErr);
         }
@@ -254,7 +119,7 @@ serve(async (req) => {
 
     await client.logout();
 
-    return new Response(JSON.stringify({ success: true, synced, leadsCreated }), {
+    return new Response(JSON.stringify({ success: true, synced }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (error) {
