@@ -373,7 +373,7 @@ export default function Dashboard() {
           </Card>
 
           {/* Leads by Status Pie */}
-          <Card>
+          <Card className="dash-card">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">Лийдове по статус</CardTitle>
             </CardHeader>
@@ -395,7 +395,7 @@ export default function Dashboard() {
                           <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />
                         ))}
                       </Pie>
-                      <Tooltip />
+                      <Tooltip contentStyle={TOOLTIP_STYLE} />
                       <Legend iconType="circle" wrapperStyle={{ fontSize: "12px" }} />
                     </PieChart>
                   </ResponsiveContainer>
