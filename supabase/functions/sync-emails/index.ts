@@ -109,55 +109,6 @@ serve(async (req) => {
 
           if (!error) synced++;
 
-          // --- Lead auto-creation for "форма" emails ---
-          if (
-            !error &&
-            upsertedEmail?.length > 0 &&
-            subject.toLowerCase().includes("форма")
-          ) {
-            const emailIdTag = `[email:${messageId}]`;
-            const { data: existingLead } = await serviceClient
-              .from("leads")
-              .select("id")
-              .ilike("notes", `%${emailIdTag}%`)
-              .maybeSingle();
-
-            if (!existingLead) {
-              const fields = parseStructuredBody(bodyText);
-              const contactEmail = fields.email || from;
-              const contactFullName = fields.fullName || "";
-              const contactPhone = fields.phone || null;
-
-              const leadContactId = await findOrCreateContact(
-                serviceClient, contactEmail, contactFullName, contactPhone, contactByEmail
-              );
-
-              if (leadContactId) {
-                if (contactEmail) contactByEmail[contactEmail.toLowerCase()] = leadContactId;
-
-                const now = new Date();
-                const pad = (n: number) => String(n).padStart(2, "0");
-                const leadTitle = `${pad(now.getDate())}.${pad(now.getMonth() + 1)}.${now.getFullYear()} ${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
-
-                const notesText = bodyText ? bodyText.substring(0, 1900) : "";
-                const { error: leadError } = await serviceClient.from("leads").insert({
-                  contact_id: leadContactId,
-                  title: leadTitle,
-                  source: "email",
-                  status: "new",
-                  notes: `${notesText}\n\n${emailIdTag}`,
-                  project_name: fields.project || null,
-                });
-
-                if (leadError) {
-                  console.error("Lead creation failed:", leadError.message);
-                } else {
-                  leadsCreated++;
-                  console.log(`Lead created from "форма" email: ${subject}`);
-                }
-              }
-            }
-          }
         } catch (fetchErr) {
           console.error(`Error processing message:`, fetchErr);
         }
