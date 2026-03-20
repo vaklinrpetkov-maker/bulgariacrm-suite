@@ -14,13 +14,24 @@ import {
 } from "recharts";
 
 const CHART_COLORS = [
-  "hsl(215, 80%, 55%)",
-  "hsl(35, 92%, 50%)",
-  "hsl(142, 72%, 36%)",
-  "hsl(0, 72%, 51%)",
-  "hsl(270, 60%, 55%)",
-  "hsl(190, 80%, 42%)",
+  "hsl(215, 80%, 55%)",   // blue - Контакти
+  "hsl(35, 92%, 50%)",    // amber - Лийдове
+  "hsl(142, 72%, 36%)",   // green - Сделки
+  "hsl(0, 72%, 51%)",     // red
+  "hsl(270, 60%, 55%)",   // purple
+  "hsl(190, 80%, 42%)",   // cyan
 ];
+
+const TOOLTIP_STYLE = {
+  backgroundColor: "hsl(220, 25%, 12%)",
+  border: "1px solid hsl(220, 20%, 22%)",
+  borderRadius: "8px",
+  fontSize: "13px",
+  color: "hsl(220, 10%, 85%)",
+};
+
+const GRID_STROKE = "hsl(220, 20%, 20%)";
+const AXIS_STROKE = "hsl(220, 10%, 40%)";
 
 const STATUS_LABELS: Record<string, string> = {
   new: "Нов",
