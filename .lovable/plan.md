@@ -1,15 +1,53 @@
 
 
-## Plan: Remove lead auto-creation from sync-emails
+# Google Drive Backup — Implementation Plan
 
-**Goal**: Eliminate the duplicate lead-creation logic in `sync-emails` so that only the `inbound-email` webhook (Path 1) creates leads from emails.
+## Summary
 
-**Changes in `supabase/functions/sync-emails/index.ts`**:
-1. Remove the `parseStructuredBody` function (lines ~20-50) — no longer needed here
-2. Remove the `findOrCreateContact` helper function (lines ~52-95) — only used for lead creation
-3. Remove the entire "Lead auto-creation for форма emails" block inside the message processing loop (roughly lines ~160-200) — this is the block that checks for "форма" in the subject, parses fields, finds/creates contacts, and inserts leads
-4. Remove the `leadsCreated` counter variable and its reference in the response
-5. Keep all standard email syncing logic intact (IMAP fetch, email upsert, contact linking by existing `contactByEmail` map)
+Build a "Backup to Google Drive" feature that lets admins sync all documents and export CRM data (contacts, leads, deals, contracts, meetings, tasks) as Excel files to a dedicated Google Drive folder. The Google Drive connector is already linked with `drive.file` and `drive.readonly` scopes.
 
-No other files need changes. The `inbound-email` function remains untouched as the sole lead-creation path.
+## What Gets Built
+
+### 1. Edge Function: `sync-google-drive`
+A backend function that:
+- Creates a root folder "VM Invest CRM Backup" on Google Drive (or reuses existing)
+- Creates subfolders: `Documents`, `CRM Exports`
+- Downloads all files from the `documents` storage bucket and uploads them to the Documents folder
+- Queries each CRM table (contacts, leads, deals, contracts, meetings, tasks) and generates CSV exports, uploading each to the CRM Exports folder
+- Uses the connector gateway (`https://connector-gateway.lovable.dev/google_drive/...`) for all Drive API calls
+- Returns a summary of files synced
+
+### 2. Settings Page: "Google Drive" Tab
+- New tab in Settings showing sync status
+- "Sync Now" button to trigger the backup
+- Progress indicator during sync
+- Last sync timestamp display
+
+### 3. Scope Limitation
+The `drive.file` scope only allows the app to access files it created — perfect for a backup folder. The app will create and manage its own folder structure without accessing the user's other Drive files.
+
+## Technical Details
+
+### Edge Function (`supabase/functions/sync-google-drive/index.ts`)
+- Uses `LOVABLE_API_KEY` and `GOOGLE_DRIVE_API_KEY` via connector gateway
+- Gateway URL: `https://connector-gateway.lovable.dev/google_drive/`
+- Drive API endpoints used:
+  - `POST /drive/v3/files` (create folder, upload file with metadata)
+  - `POST /upload/drive/v3/files?uploadType=multipart` (upload file content)
+  - `GET /drive/v3/files?q=...` (find existing backup folder)
+- Fetches documents from Supabase storage using service role key
+- Generates CSV data in-memory for CRM tables
+- Auth: validates JWT in code, admin-only
+
+### Settings Page Changes (`src/pages/SettingsPage.tsx`)
+- Add "Google Drive" tab with sync button and status card
+- Calls the edge function via `supabase.functions.invoke('sync-google-drive')`
+
+### Files to Create
+- `supabase/functions/sync-google-drive/index.ts`
+
+### Files to Modify
+- `src/pages/SettingsPage.tsx` — add Google Drive tab
+
+### No Database Changes Required
 
