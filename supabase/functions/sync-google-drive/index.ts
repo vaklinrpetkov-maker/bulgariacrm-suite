@@ -94,7 +94,7 @@ serve(async (req) => {
       }
     }
 
-    // 3. Export CRM tables as CSV
+    // 3. Export CRM tables as Google Sheets
     const tables = [
       { name: "contacts", query: adminClient.from("contacts").select("*") },
       { name: "leads", query: adminClient.from("leads").select("*") },
@@ -104,21 +104,13 @@ serve(async (req) => {
       { name: "tasks", query: adminClient.from("tasks").select("*") },
     ];
 
+    const timestamp = new Date().toISOString().slice(0, 10);
     for (const table of tables) {
       try {
         const { data: rows } = await table.query;
         if (rows && rows.length > 0) {
-          const csv = convertToCsv(rows);
-          const encoder = new TextEncoder();
-          const csvBytes = encoder.encode(csv);
-          const timestamp = new Date().toISOString().slice(0, 10);
-          await uploadFileToDrive(
-            `${table.name}_${timestamp}.csv`,
-            "text/csv",
-            csvBytes,
-            crmFolderId,
-            driveHeaders
-          );
+          const sheetName = `${table.name.charAt(0).toUpperCase() + table.name.slice(1)}_${timestamp}`;
+          await createOrUpdateSheet(sheetName, rows, crmFolderId, driveHeaders);
           filesUploaded++;
         }
       } catch (e) {
@@ -203,23 +195,20 @@ async function uploadFileToDrive(
   const closeDelimiter = `--${boundary}--`;
 
   const encoder = new TextEncoder();
-  const metadataPart = encoder.encode(
-    `${delimiter}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${metadata}\r\n`
-  );
-  const mediaPart = encoder.encode(
-    `${delimiter}\r\nContent-Type: ${mimeType}\r\nContent-Transfer-Encoding: base64\r\n\r\n`
-  );
-  const base64Content = encoder.encode(btoa(String.fromCharCode(...content)));
-  const closing = encoder.encode(`\r\n${closeDelimiter}`);
 
-  const body = new Uint8Array(
-    metadataPart.length + mediaPart.length + base64Content.length + closing.length
-  );
-  let offset = 0;
-  body.set(metadataPart, offset); offset += metadataPart.length;
-  body.set(mediaPart, offset); offset += mediaPart.length;
-  body.set(base64Content, offset); offset += base64Content.length;
-  body.set(closing, offset);
+  // Convert to base64 in chunks to avoid stack overflow
+  let base64String = "";
+  const chunkSize = 8192;
+  for (let i = 0; i < content.length; i += chunkSize) {
+    const chunk = content.subarray(i, Math.min(i + chunkSize, content.length));
+    base64String += String.fromCharCode(...chunk);
+  }
+  base64String = btoa(base64String);
+
+  const bodyString =
+    `${delimiter}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${metadata}\r\n` +
+    `${delimiter}\r\nContent-Type: ${mimeType}\r\nContent-Transfer-Encoding: base64\r\n\r\n${base64String}\r\n` +
+    `${closeDelimiter}`;
 
   const res = await fetch(
     `${GATEWAY_URL}/upload/drive/v3/files?uploadType=multipart`,
@@ -229,7 +218,7 @@ async function uploadFileToDrive(
         ...headers,
         "Content-Type": `multipart/related; boundary=${boundary}`,
       },
-      body,
+      body: encoder.encode(bodyString),
     }
   );
   if (!res.ok) {
@@ -239,18 +228,78 @@ async function uploadFileToDrive(
   return await res.json();
 }
 
-function convertToCsv(rows: any[]): string {
-  if (rows.length === 0) return "";
-  const headers = Object.keys(rows[0]);
-  const lines = [headers.join(",")];
-  for (const row of rows) {
-    const values = headers.map((h) => {
-      const val = row[h];
-      if (val === null || val === undefined) return "";
-      const str = typeof val === "object" ? JSON.stringify(val) : String(val);
-      return `"${str.replace(/"/g, '""')}"`;
-    });
-    lines.push(values.join(","));
+async function createOrUpdateSheet(
+  name: string,
+  rows: any[],
+  folderId: string,
+  headers: Record<string, string>
+): Promise<void> {
+  // Search for existing sheet
+  const query = `name='${name}' and mimeType='application/vnd.google-apps.spreadsheet' and '${folderId}' in parents and trashed=false`;
+  const searchRes = await fetch(
+    `${GATEWAY_URL}/drive/v3/files?q=${encodeURIComponent(query)}&fields=files(id,name)`,
+    { headers: { ...headers, "Content-Type": "application/json" } }
+  );
+  if (!searchRes.ok) {
+    const body = await searchRes.text();
+    throw new Error(`Sheet search failed [${searchRes.status}]: ${body}`);
   }
-  return lines.join("\n");
+  const searchData = await searchRes.json();
+  let sheetId: string;
+
+  if (searchData.files && searchData.files.length > 0) {
+    sheetId = searchData.files[0].id;
+    // Clear existing data
+    const clearRes = await fetch(
+      `${GATEWAY_URL}/v4/spreadsheets/${sheetId}/values/Sheet1:clear`,
+      { method: "POST", headers: { ...headers, "Content-Type": "application/json" }, body: "{}" }
+    );
+    if (!clearRes.ok) {
+      console.error(`Failed to clear sheet ${name}: ${await clearRes.text()}`);
+    }
+  } else {
+    // Create new spreadsheet
+    const createRes = await fetch(`${GATEWAY_URL}/drive/v3/files`, {
+      method: "POST",
+      headers: { ...headers, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name,
+        mimeType: "application/vnd.google-apps.spreadsheet",
+        parents: [folderId],
+      }),
+    });
+    if (!createRes.ok) {
+      const body = await createRes.text();
+      throw new Error(`Sheet create failed [${createRes.status}]: ${body}`);
+    }
+    const created = await createRes.json();
+    sheetId = created.id;
+  }
+
+  // Prepare values: header row + data rows
+  const colHeaders = Object.keys(rows[0]);
+  const values = [colHeaders];
+  for (const row of rows) {
+    values.push(
+      colHeaders.map((h) => {
+        const val = row[h];
+        if (val === null || val === undefined) return "";
+        return typeof val === "object" ? JSON.stringify(val) : String(val);
+      })
+    );
+  }
+
+  // Write data
+  const writeRes = await fetch(
+    `${GATEWAY_URL}/v4/spreadsheets/${sheetId}/values/Sheet1!A1?valueInputOption=RAW`,
+    {
+      method: "PUT",
+      headers: { ...headers, "Content-Type": "application/json" },
+      body: JSON.stringify({ range: "Sheet1!A1", majorDimension: "ROWS", values }),
+    }
+  );
+  if (!writeRes.ok) {
+    const body = await writeRes.text();
+    throw new Error(`Sheet write failed [${writeRes.status}]: ${body}`);
+  }
 }
