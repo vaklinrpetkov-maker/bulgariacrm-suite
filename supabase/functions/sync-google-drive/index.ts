@@ -229,78 +229,73 @@ async function uploadFileToDrive(
   return await res.json();
 }
 
-async function createOrUpdateSheet(
+function convertToCsv(rows: any[]): string {
+  const headers = Object.keys(rows[0]);
+  const escape = (val: any) => {
+    if (val === null || val === undefined) return "";
+    const s = typeof val === "object" ? JSON.stringify(val) : String(val);
+    return s.includes(",") || s.includes('"') || s.includes("\n")
+      ? `"${s.replace(/"/g, '""')}"`
+      : s;
+  };
+  const lines = [headers.map(escape).join(",")];
+  for (const row of rows) {
+    lines.push(headers.map((h) => escape(row[h])).join(","));
+  }
+  return lines.join("\n");
+}
+
+async function uploadCsvAsSheet(
   name: string,
-  rows: any[],
+  csvContent: string,
   folderId: string,
   headers: Record<string, string>
-): Promise<void> {
-  // Search for existing sheet
-  const query = `name='${name}' and mimeType='application/vnd.google-apps.spreadsheet' and '${folderId}' in parents and trashed=false`;
+) {
+  // Delete existing file with same name first
+  const query = `name='${name}' and '${folderId}' in parents and trashed=false`;
   const searchRes = await fetch(
-    `${GATEWAY_URL}/drive/v3/files?q=${encodeURIComponent(query)}&fields=files(id,name)`,
+    `${GATEWAY_URL}/drive/v3/files?q=${encodeURIComponent(query)}&fields=files(id)`,
     { headers: { ...headers, "Content-Type": "application/json" } }
   );
-  if (!searchRes.ok) {
-    const body = await searchRes.text();
-    throw new Error(`Sheet search failed [${searchRes.status}]: ${body}`);
-  }
-  const searchData = await searchRes.json();
-  let sheetId: string;
-
-  if (searchData.files && searchData.files.length > 0) {
-    sheetId = searchData.files[0].id;
-    // Clear existing data
-    const clearRes = await fetch(
-      `${GATEWAY_URL}/v4/spreadsheets/${sheetId}/values/Sheet1:clear`,
-      { method: "POST", headers: { ...headers, "Content-Type": "application/json" }, body: "{}" }
-    );
-    if (!clearRes.ok) {
-      console.error(`Failed to clear sheet ${name}: ${await clearRes.text()}`);
+  if (searchRes.ok) {
+    const searchData = await searchRes.json();
+    if (searchData.files) {
+      for (const f of searchData.files) {
+        await fetch(`${GATEWAY_URL}/drive/v3/files/${f.id}`, {
+          method: "DELETE",
+          headers,
+        });
+      }
     }
-  } else {
-    // Create new spreadsheet
-    const createRes = await fetch(`${GATEWAY_URL}/drive/v3/files`, {
-      method: "POST",
-      headers: { ...headers, "Content-Type": "application/json" },
-      body: JSON.stringify({
-        name,
-        mimeType: "application/vnd.google-apps.spreadsheet",
-        parents: [folderId],
-      }),
-    });
-    if (!createRes.ok) {
-      const body = await createRes.text();
-      throw new Error(`Sheet create failed [${createRes.status}]: ${body}`);
-    }
-    const created = await createRes.json();
-    sheetId = created.id;
   }
 
-  // Prepare values: header row + data rows
-  const colHeaders = Object.keys(rows[0]);
-  const values = [colHeaders];
-  for (const row of rows) {
-    values.push(
-      colHeaders.map((h) => {
-        const val = row[h];
-        if (val === null || val === undefined) return "";
-        return typeof val === "object" ? JSON.stringify(val) : String(val);
-      })
-    );
-  }
+  // Upload CSV with conversion to Google Sheets
+  const metadata = JSON.stringify({
+    name,
+    mimeType: "application/vnd.google-apps.spreadsheet",
+    parents: [folderId],
+  });
 
-  // Write data
-  const writeRes = await fetch(
-    `${GATEWAY_URL}/v4/spreadsheets/${sheetId}/values/Sheet1!A1?valueInputOption=RAW`,
+  const boundary = "boundary_" + crypto.randomUUID().replace(/-/g, "");
+  const body =
+    `--${boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${metadata}\r\n` +
+    `--${boundary}\r\nContent-Type: text/csv\r\n\r\n${csvContent}\r\n` +
+    `--${boundary}--`;
+
+  const res = await fetch(
+    `${GATEWAY_URL}/upload/drive/v3/files?uploadType=multipart`,
     {
-      method: "PUT",
-      headers: { ...headers, "Content-Type": "application/json" },
-      body: JSON.stringify({ range: "Sheet1!A1", majorDimension: "ROWS", values }),
+      method: "POST",
+      headers: {
+        ...headers,
+        "Content-Type": `multipart/related; boundary=${boundary}`,
+      },
+      body: new TextEncoder().encode(body),
     }
   );
-  if (!writeRes.ok) {
-    const body = await writeRes.text();
-    throw new Error(`Sheet write failed [${writeRes.status}]: ${body}`);
+  if (!res.ok) {
+    const errBody = await res.text();
+    throw new Error(`Sheet upload failed [${res.status}]: ${errBody}`);
   }
+  return await res.json();
 }
