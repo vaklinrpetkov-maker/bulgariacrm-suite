@@ -11,6 +11,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { Save, Mail, Eye, EyeOff, Server } from "lucide-react";
 import ViewerAccessTab from "@/components/settings/ViewerAccessTab";
+import GoogleDriveTab from "@/components/settings/GoogleDriveTab";
 
 const SettingsPage = () => {
   const { user } = useAuth();
@@ -118,6 +119,7 @@ const SettingsPage = () => {
             <TabsTrigger value="titles">Длъжности</TabsTrigger>
             <TabsTrigger value="users">Потребители</TabsTrigger>
             <TabsTrigger value="viewer-access">Viewer достъп</TabsTrigger>
+            <TabsTrigger value="google-drive">Google Drive</TabsTrigger>
           </TabsList>
 
           <TabsContent value="email-account" className="mt-4">
@@ -297,6 +299,9 @@ const SettingsPage = () => {
           </TabsContent>
           <TabsContent value="viewer-access" className="mt-4">
             <ViewerAccessTab />
+          </TabsContent>
+          <TabsContent value="google-drive" className="mt-4">
+            <GoogleDriveTab />
           </TabsContent>
         </Tabs>
       </div>
