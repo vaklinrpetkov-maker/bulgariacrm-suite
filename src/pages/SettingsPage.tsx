@@ -119,6 +119,7 @@ const SettingsPage = () => {
             <TabsTrigger value="titles">Длъжности</TabsTrigger>
             <TabsTrigger value="users">Потребители</TabsTrigger>
             <TabsTrigger value="viewer-access">Viewer достъп</TabsTrigger>
+            <TabsTrigger value="google-drive">Google Drive</TabsTrigger>
           </TabsList>
 
           <TabsContent value="email-account" className="mt-4">
