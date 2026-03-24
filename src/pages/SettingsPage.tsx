@@ -11,6 +11,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { Save, Mail, Eye, EyeOff, Server } from "lucide-react";
 import ViewerAccessTab from "@/components/settings/ViewerAccessTab";
+import GoogleDriveTab from "@/components/settings/GoogleDriveTab";
 
 const SettingsPage = () => {
   const { user } = useAuth();
