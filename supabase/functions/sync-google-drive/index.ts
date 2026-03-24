@@ -94,7 +94,7 @@ serve(async (req) => {
       }
     }
 
-    // 3. Export CRM tables as CSV
+    // 3. Export CRM tables as Google Sheets
     const tables = [
       { name: "contacts", query: adminClient.from("contacts").select("*") },
       { name: "leads", query: adminClient.from("leads").select("*") },
@@ -104,21 +104,13 @@ serve(async (req) => {
       { name: "tasks", query: adminClient.from("tasks").select("*") },
     ];
 
+    const timestamp = new Date().toISOString().slice(0, 10);
     for (const table of tables) {
       try {
         const { data: rows } = await table.query;
         if (rows && rows.length > 0) {
-          const csv = convertToCsv(rows);
-          const encoder = new TextEncoder();
-          const csvBytes = encoder.encode(csv);
-          const timestamp = new Date().toISOString().slice(0, 10);
-          await uploadFileToDrive(
-            `${table.name}_${timestamp}.csv`,
-            "text/csv",
-            csvBytes,
-            crmFolderId,
-            driveHeaders
-          );
+          const sheetName = `${table.name.charAt(0).toUpperCase() + table.name.slice(1)}_${timestamp}`;
+          await createOrUpdateSheet(sheetName, rows, crmFolderId, driveHeaders);
           filesUploaded++;
         }
       } catch (e) {
