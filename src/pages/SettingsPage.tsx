@@ -300,6 +300,9 @@ const SettingsPage = () => {
           <TabsContent value="viewer-access" className="mt-4">
             <ViewerAccessTab />
           </TabsContent>
+          <TabsContent value="google-drive" className="mt-4">
+            <GoogleDriveTab />
+          </TabsContent>
         </Tabs>
       </div>
     </div>
